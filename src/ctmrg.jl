@@ -1,10 +1,13 @@
-using TensorOperations 
+using LinearAlgebra
+# using Tullio
+using TensorOperations
+using TensorRules
 
 # A[phy, up, left, down, right]
 # C[down, right]
 # E[up,right, down]
 # T[up, left, down, right]
-function CTM(A)
+@∇ function CTM(A; chi = 30)
     D = size(A,2)
     @tensor T[a,e,b,f,c,g,d,h] := A[i, a,b,c,d]*conj(A)[i, e,f,g,h]
     T = reshape(T, D*D, D*D, D*D, D*D)/norm(T)
@@ -15,18 +18,18 @@ function CTM(A)
     E = permutedims(E, (1,3,2))
     
     delta = 1e-10 #TODO
-    chi = 50     #TODO
-    maxitr = 100  #TODO
+    chi = chi     #TODO
+    maxitr = 500  #TODO
     err_sum = 0.0
     sold = zeros(Float64,chi)
     diff = 1.0
-    for n = 1:100
+    for n = 1:maxitr
         C, E, s, err = updateCTM(C, E, T, chi)
         
         err_sum += err
         if length(s) == length(sold)
             diff = norm(s-sold)
-            @show diff, err_sum
+            # @show diff, err_sum
         end
         if diff < delta
             break
@@ -36,7 +39,7 @@ function CTM(A)
     C, E
 end
 
-function updateCTM(C,E,T,chi)
+@∇ function updateCTM(C,E,T,chi)
     dimE = size(E,3)
     dimT = size(T,3)
     newD = min(dimE*dimT, chi)
