@@ -2,7 +2,14 @@ abstract type PEPS end
 """
     IPEPS
 
-dim(A): d*D*D*D*D (phy, up, left, down, right)
+- dim(A): dD⁴ (phy, up, left, down, right)
+    ```
+         1
+         |
+    2 -- A -- 4
+         |
+         3
+    ```
 """
 struct IPEPS{T, N, AT<:AbstractArray{T,N}} <: PEPS
     A::AT
