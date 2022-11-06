@@ -5,24 +5,50 @@ using Test
 #     # Write your tests here.
 # end
 
-# using TensorOperations, LinearAlgebra
-# using Zygote, Optim
-# using BenchmarkTools
+using LinearAlgebra
+using PhyOperators
+using iPEPS
+using MKL
 
-# SI = [1 0; 0 1]
-# Sx = [0 1; 1 0]/2
-# Sy = [0.0 -1.0im; 1.0im 0.0]/2
-# Sz = [1 0; 0 -1]/2
-# Sp = [0 1; 0 0]
-# Sm = [0 0; 1 0]
+SI = op("SI", "Spinhalf")
+Sx = op("Sx", "Spinhalf")
+Sy = op("Sy", "Spinhalf")
+Sz = op("Sz", "Spinhalf")
+Sm = op("Sm", "Spinhalf")
+Sp = op("Sp", "Spinhalf")
 
-# h = kron(Sz,Sz) + kron(Sp,Sm)/2 + kron(Sm,Sp)/2
+# h0 = kron(Sz,Sz,SI,SI) + kron(Sz,SI,Sz,SI) + kron(SI,Sz,SI,Sz) + kron(SI,SI,Sz,Sz) + 
+#         kron(Sx,Sx,SI,SI) + kron(Sx,SI,Sx,SI) + kron(SI,Sx,SI,Sx) + kron(SI,SI,Sx,Sx) + 
+#             kron(Sy,Sy,SI,SI) + kron(Sy,SI,Sy,SI) + kron(SI,Sy,SI,Sy) + kron(SI,SI,Sy,Sy)
+# h0 = real(h0) 
 
-# d = size(h,1) |> sqrt |> Int
-# D = 2
-# A = rand(d,D,D,D,D);
+h1 = 2*kron(Sz,4*Sx'*Sz*Sx) - kron(Sm,4*Sx'*Sp*Sx) - kron(Sp,4*Sx'*Sm*Sx)
 
-# res = optimize_GS(A,h; chi = 30)
+h2 = 2*kron(Sz,4*Sx'*Sz*Sx) - 2*kron(Sx,4*Sx'*Sx*Sx) - 2*kron(Sy,4*Sx'*Sy*Sx) |> real
+
+
+h = real(spinmodel())
+permutedims(reshape(h,(2,2,2,2)), (1,3,2,4))
+
+d = size(h,1) |> sqrt |> Int 
+D = 2
+chi = 30
+A = rand(d,D,D,D,D)
+A = A/norm(A);
+
+res = optimize_GS(A,h0; chi)
+
+using Optim
+A1 = Optim.minimizer(res); 
+
+
+C, E = CTM(A1; chi = 30);
+Mx = kron(Sx,SI)
+Mz = kron(Sz,SI)
+My = kron(Sy,SI)
+op_expect(A1 ,C, E, My)
+
+@show res
 
 
 

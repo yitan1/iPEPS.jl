@@ -27,8 +27,22 @@ end
 # end
 
 function forward(A, h; chi = 30)
+    A = symmetrize(A)
     C,E = CTM(A; chi= chi)
     e0 = op_expect(A ,C, E, h)
     @show e0
     e0
+end
+
+
+function symmetrize(A)
+    # A(phy, up, left, down, right)
+    # left-right, up-down, diagonal symmetrize
+    Asymm = (A + permutedims(A, (1, 2, 5, 4, 3)))/2           # left-right symmetry
+    Asymm = (Asymm + permutedims(Asymm, (1, 4, 3, 2, 5)))/2   # up-down symmetry
+    Asymm = (Asymm + permutedims(Asymm, (1, 5, 4, 3, 2)))/2   # skew-diagonal symmetry
+    Asymm = (Asymm + permutedims(Asymm, (1, 3, 2, 5, 4)))/2   # diagonal symmetry
+
+    return Asymm/norm(Asymm)
+
 end

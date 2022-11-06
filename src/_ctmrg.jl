@@ -12,7 +12,8 @@ using TensorRules
     @tensor T[a,e,b,f,c,g,d,h] := A[i, a,b,c,d]*conj(A)[i, e,f,g,h]
     T = reshape(T, D*D, D*D, D*D, D*D)/norm(T)
     
-    @tensor C[a,b] := T[i,i,a,b] 
+    C = sum(T, dims = (1,2))
+    C = dropdims(C, dims = (1,2))
     E = sum(T, dims = 2)
     E = dropdims(E, dims = 2)
     E = permutedims(E, (1,3,2))
