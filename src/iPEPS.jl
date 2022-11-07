@@ -1,6 +1,12 @@
+"""
+    Tensor Order
+
+- top -> bottom
+- left -> right
+- out -> in
+"""
 module iPEPS
 __precompile__(false)
-
 
 export CTM, updateCTM
 include("_ctmrg.jl")

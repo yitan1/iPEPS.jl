@@ -17,6 +17,8 @@ end
 
 IPEPS(A::AbstractArray{T,N}) where {T,N} = IPEPS{T, N, typeof(A)}(A) 
 
+data(phi::IPEPS) = phi.A
+
 struct ExcIPEPS{T, N, AT<:AbstractArray{T,N}} <: PEPS
     kx::T
     ky::T
