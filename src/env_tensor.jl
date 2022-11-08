@@ -18,32 +18,56 @@
         2
     ```
 """
-struct EnvTensor{T, CT<:AbstractArray{T}, ET<:AbstractArray{T}}
+struct EnvTensor{T, N, AT<:AbstractArray{T,N}, CT<:AbstractArray{T}, ET<:AbstractArray{T}}
+    bulk::AT
     corner::Vector{CT}
     edge::Vector{ET}
     chi::Int
 end
 
-EnvTensor(corner::Vector{CT}, edge::Vector{ET}, chi) where {T, CT<:AbstractArray{T}, ET<:AbstractArray{T}} = EnvTensor{T, CT, ET}(corner, edge)
+EnvTensor(bulk::AT, corner::Vector{CT}, edge::Vector{ET}, chi) where {T, N, AT<:AbstractArray{T,N}, CT<:AbstractArray{T}, ET<:AbstractArray{T}} = EnvTensor{T, N, AT, CT, ET}(bulk, corner, edge)
 
+Base.eltype(::Type{<:EnvTensor{T}}) where {T} = T
+
+bulk(env::EnvTensor) = env.bulk
 corner(env::EnvTensor) = env.corner
 edge(env::EnvTensor) = env.edge
 
 get_maxchi(env::EnvTensor) = env.chi 
 
 """
+    get_envtensor
+
 ```
 C1 -- E1 -- C2
 |     |     |
-E4 --    -- E2
+E4 -- T  -- E2
 |     |     |
 C4 -- E3 -- C3
 ```
 """
 function get_envtensor(phi::PEPS; kwargs...)
-    chi = get(kwargs, chi, 100) # TODO: error when chi is not assigned
-    env0 = init_env(phi, chi)
-    env = update_env(env0, phi; kwargs...)
+    chi = get(kwargs, :chi, 100) # TODO: error when chi is not assigned
+
+    env = init_env(phi, chi)
+
+    maxitr = get(kwargs, :maxitr, 1000)
+    conv_tol = get(kwargs, :conv_tol, 1e-8)
+    olds = zeros(eltype(env), chi)
+    diff = 1.0
+
+    for i = 1:maxitr
+        s = update_env!(env)
+
+        if length(s) == length(olds)
+            diff = norm(s - olds)
+            @show i, diff
+        end
+        if diff < conv_tol
+            break
+        end
+        olds = s
+    end
 
     env
 end
@@ -65,17 +89,17 @@ function init_env(phi::IPEPS, chi)
     Cs = [C1, C2, C3, C4] ./ norm.([C1, C2, C3, C4])
     Es = [E1, E2, E3, E4] ./ norm.([E1, E2, E3, E4])
     
-    env = EnvTensor(Cs, Es, chi)
+    env = EnvTensor(T, Cs, Es, chi)
     env
 end
     
-function update_env!(env::EnvTensor, phi::IPEPS; kwargs...)
-    env, s = up_left!(env, phi)
-    env = up_right!(env, phi)
-    env = up_top!(env, phi)
-    env = up_bottom!(env, phi)
+function update_env!(env::EnvTensor; kwargs...)
+    s1 = up_left!(env)
+    __ = up_right!(env)
+    __ = up_top!(env)
+    __ = up_bottom!(env)
 
-    env, s
+    s1
 end
 
 """
@@ -83,19 +107,16 @@ end
 
 update (C1, E4, C4)
 """
-function up_left!(env::EnvTensor, phi::IPEPS)
-    Pl, Pld, s = left_projector(env, phi) 
+function up_left!(env::EnvTensor)
+    Pl, Pld, s = left_projector(env) 
     Cs = corner(env)
-    C1, C4 = Cs[1], Cs[4]
     Es = edge(env)
-    E1, E3, E4 = Es[1], Es[3], Es[4]
-    A = data(phi)
-    T = transfer_matrix(A)
+    T = bulk(env)
 
-    newC1, newE4, newC4 = proj_left(Pl, Pld, C1, E1, E4, T, C4, E3) # XXX: unnecessay computation
+    newC1, newE4, newC4 = proj_left(Pl, Pld, Cs[1], Es[1], Es[4], T, Cs[4], Es[3]) # XXX: unnecessay computation
 
     Cs[1], Es[4], Cs[4] = newC1, newE4, newC4  # change input variable 
-    env, s
+    s
 end
 
 """
@@ -103,19 +124,16 @@ end
 
 update (C2, E2, C3)
 """
-function up_right!(env::EnvTensor, phi::IPEPS)
-    Pr, Prd, s = right_projector(env, phi) 
+function up_right!(env::EnvTensor)
+    Pr, Prd, s = right_projector(env) 
     Cs = corner(env)
-    C2, C3 = Cs[2], Cs[3]
     Es = edge(env)
-    E1, E2, E3 = Es[1], Es[2], Es[3]
-    A = data(phi)
-    T = transfer_matrix(A)
+    T = bulk(env)
 
-    newC2, newE2, newC3 = proj_right(Pr, Prd, C2, E1, E2, T, C3, E3) # XXX: unnecessay computation
+    newC2, newE2, newC3 = proj_right(Pr, Prd, Cs[2], Es[1], Es[2], T, Cs[3], Es[3]) # XXX: unnecessay computation
 
     Cs[2], Es[2], Cs[3] = newC2, newE2, newC3  # change input variable 
-    env, s
+    s
 end
 
 """
@@ -123,7 +141,16 @@ end
 
 update (C1, E1, C2)
 """
-function up_top!(env::EnvTensor, phi::IPEPS) #TODO
+function up_top!(env::EnvTensor) 
+    Pt, Ptd, s = top_projector(env)
+    Cs = corner(env)
+    Es = edge(env)
+    T = bulk(env)
+
+    newC1, newE1, newC2 = proj_top(Pt, Ptd, Cs[1], Es[4], Es[1], T, Cs[2], Es[2]) # XXX: unnecessay computation
+
+    Cs[1], Es[1], Cs[2] = newC1, newE1, newC2  # change input variable 
+    s
 end
 
 """
@@ -131,22 +158,73 @@ end
 
 update (C4, E3, C3)
 """
-function up_right!(env::EnvTensor, phi::IPEPS) #TODO
-end
-
-function left_projector(env::EnvTensor, phi)
+function up_bottom!(env::EnvTensor) 
+    Pb, Pbd, s = bottom_projector(env)
     Cs = corner(env)
     Es = edge(env)
-    C1, C4 = Cs[1], Cs[4]
-    E1, E3, E4 = Es[1], Es[3], Es[4]
-    A = data(phi)
-    T = transfer_matrix(A)
+    T = bulk(env)
+
+    newC4, newE3, newC3 = proj_bottom(Pb, Pbd, Cs[4], Es[4], Es[3], T, Cs[3], Es[2]) # XXX: unnecessay computation
+
+    Cs[4], Es[3], Cs[3] = newC4, newE3, newC3  # change input variable 
+    s
+end
+
+function left_projector(env::EnvTensor)
+    Cs = corner(env)
+    Es = edge(env)
+    T = bulk(env)
 
     # XXX: add = QR decompisiton 
-    UL = contract_ul_env(C1,E1,E4,T)
-    BL = contract_bl_env(C4,E3,E4,T)
+    UL = contract_ul_env(Cs[1],Es[1],Es[4],T)
+    BL = contract_bl_env(Cs[4],Es[3],Es[4],T)
     R1 = permutedims(UL, (2,1))
     R2 = BL
+
+    chi = get_maxchi(env)
+    get_projector(R1, R2, chi)
+end
+
+function right_projector(env::EnvTensor) 
+    Cs = corner(env)
+    Es = edge(env)
+    T = bulk(env)
+
+    # XXX: add = QR decompisiton 
+    UR = contract_ur_env(Cs[2],Es[1],Es[2],T)
+    BR = contract_br_env(Cs[3],Es[3],Es[2],T)
+    R1 = UR
+    R2 = BR
+
+    chi = get_maxchi(env)
+    get_projector(R1, R2, chi)
+end
+
+function top_projector(env::EnvTensor)
+    Cs = corner(env)
+    Es = edge(env)
+    T = bulk(env)
+
+    # XXX: add = QR decompisiton 
+    UL = contract_ul_env(Cs[1],Es[1],Es[4],T)
+    UR = contract_ur_env(Cs[2],Es[1],Es[2],T)
+    R1 = UL
+    R2 = UR
+
+    chi = get_maxchi(env)
+    get_projector(R1, R2, chi)
+end
+
+function bottom_projector(env::EnvTensor)
+    Cs = corner(env)
+    Es = edge(env)
+    T = bulk(env)
+
+    # XXX: add = QR decompisiton 
+    BL = contract_bl_env(Cs[4],Es[3],Es[4],T)
+    BR = contract_br_env(Cs[3],Es[3],Es[2],T)
+    R1 = BL
+    R2 = permutedims(BR,(2,1))
 
     chi = get_maxchi(env)
     get_projector(R1, R2, chi)
@@ -159,9 +237,10 @@ function get_projector(R1, R2, chi)
     ####### cut off
     U1 = U[:, 1:new_chi]
     V1 = V[:, 1:new_chi]
+    S = S./S[1]
     S1 = S[1:new_chi]
     
-    cut_off = sum(S[new_chi+1:end]) / sum(S)   # XXX: imporve cut-off
+    # cut_off = sum(S[new_chi+1:end]) / sum(S)   # XXX: imporve cut-off
 
     inv_sqrt_S = sqrt.(S1) |> diagm |> inv
 
@@ -207,7 +286,7 @@ function proj_left(Pl, Pld, C1, E1, E4, T, C4, E3)
     newC4 = reshape(newC4, :, size(newC4,3))
     @tensor newC4[m1,m2] := Pld[m1,p1]*newC4[p1,m2]
 
-    newC1, newE4, newC4
+    newC1/norm(newC1), newE4/norm(newE4), newC4/norm(newC4)
 end
 
 """
@@ -242,9 +321,9 @@ function proj_right(Pr, Prd, C2, E1, E2, T, C3, E3)
     
     @tensor newC3[m1,m2,m3] := E3[m2,m3,p1]*C3[m1, p1]
     newC3 = reshape(newC3, :, size(newC3,3))
-    @tensor newC3[m1,m2] := Pld[m1,p1]*newC3[p1,m2]
+    @tensor newC3[m1,m2] := Prd[m1,p1]*newC3[p1,m2]
 
-    newC2, newE2, newC3
+    newC2/norm(newC2), newE2/norm(newE2), newC3/norm(newC3)
 end
 
 """
@@ -257,8 +336,20 @@ E4 /             \\  T  /            \\ E2
 |                   |                 |
 ```
 """
-function proj_top() #TODO
+function proj_top(Pt, Ptd, C1, E4, E1, T, C2, E2) 
+    @tensor newC1[m1,m2,m3] := C1[p1, m2]*E4[p1, m1, m3] 
+    newC1 = reshape(newC1, size(newC1,1), :)
+    @tensor newC1[m1,m2] := newC1[m1,p1]*Pt[p1,m2]
+
+    @tensor newE1[m1,m2,m3,m4,m5] :=E1[m1,p1,m4]*T[p1,m2,m3,m5]
+    newE1 = reshape(newE1, size(newE1,1)*size(newE1,2), :, size(newE1,4)*size(newE1,5))
+    @tensor newE1[m1,m2,m3] := Ptd[m1,p1]*newE1[p1,m2,p2]*Pt[p2,m3]
     
+    @tensor newC2[m1,m2,m3] := C2[m1,p1]*E2[p1,m2,m3]
+    newC2 = reshape(newC2, :, size(newC2,3))
+    @tensor newC2[m1,m2] := Ptd[m1,p1]*newC2[p1,m2]
+
+    newC1/norm(newC1), newE1/norm(newE1), newC2/norm(newC2)
 end
 
 """
@@ -271,8 +362,20 @@ E4 \\             /  T  \\            / E2
 C4 /             \\  E3 /            \\ C3
 ```
 """
-function proj_bottom() #TODO
+function proj_bottom(Pb, Pbd, C4, E4, E3, T, C3, E2) 
+    @tensor newC4[m1,m2,m3] := E4[m1,p1,m3]*C4[p1, m2] 
+    newC4 = reshape(newC4, size(newC4,1), :)
+    @tensor newC4[m1,m2] := newC4[m1,p1]*Pb[p1,m2]
+
+    @tensor newE3[m1,m2,m3,m4,m5] := T[m1,m3,p1,m5]*E3[p1,m2,m4]
+    newE3 = reshape(newE3, :, size(newE3,2)*size(newE3,3), size(newE3,4)*size(newE3,5))
+    @tensor newE3[m1,m2,m3] := Pbd[m2,p1]*newE3[m1,p1,p2]*Pb[p2,m3]
     
+    @tensor newC3[m1,m2,m3] := E2[m1,m3,p1]*C3[p1, m2]
+    newC3 = reshape(newC3, size(newC3,1), :)
+    @tensor newC3[m1,m2] := Pbd[m2,p1]*newC3[m1,p1]
+
+    newC4/norm(newC4), newE3/norm(newE3), newC3/norm(newC3)
 end
 
 ############ 
@@ -322,17 +425,17 @@ end
 
 contraction order:
 ```
--3       -4
+-1       -2
 |        |
-E4 --3-- T --- -2 
+E4 --3-- T --- -4 
 |        |
 2        4
 |        |
-C4 --1-- E3 -- -1
+C4 --1-- E3 -- -3
 ```
 """
 function contract_bl_env(C4,E3,E4,T)
-    @tensor BL[m1,m2,m3,m4] := C4[p2,p1]*E3[p4,p1,m1]*E4[m3,p2,p3]*T[m4,p3,p4,m2]
+    @tensor BL[m1,m2,m3,m4] := C4[p2,p1]*E3[p4,p1,m3]*E4[m1,p2,p3]*T[m2,p3,p4,m4]
     BL = reshape(BL, size(BL,1)*size(BL,2), :)
     BL
 end
