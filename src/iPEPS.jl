@@ -24,4 +24,6 @@ include("env_tensor.jl")
 
 include("optim_ES.jl")
 
+include("contraction.jl")
+
 end
