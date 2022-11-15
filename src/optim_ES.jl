@@ -1,9 +1,7 @@
 
 function optimize_ES(kx, ky, phi0::IPEPS, h; kwargs...) #TODO
-    # Ad = conj(A)
     Bn = get_tangent_basis(phi0; kwargs)
-    H = eff_Hamitonian(h, phi, Bn)
-    N = eff_norm(phi, Bn)
+    H, N = eff_hamitonian_norm(h, kx, ky, phi0, Bn)
     energy, _ = eigsolve(H,N)
     
     energy
@@ -28,22 +26,29 @@ function get_tangent_basis(phi::IPEPS; kwargs...)
 end
 
 """
-Return a matrix(n,n)
+Return two matrix (H, N)
 """
-function eff_Hamitonian(h, phi, Bn)
+function eff_hamitonian_norm(h, kx, ky, phi, Bn)
     M = size(Bn,2)
     H = zeros(eltype(Bn), M, M) 
+    N = zeros(eltype(Bn), M, M) 
     for j in axes(H,2)
-        Bj = Bn[j]
-        Bdj = conj(B)
+        Bj = Bn[:,j]
+        Bdj = conj(Bj)
         
-        hBj = gradient(_x -> get_energy(h, phi, Bj, _x), Bdj)[1]
+        hBj = gradient(_x -> effH_ij(h, kx, ky, phi, Bj, _x), Bdj)[1]
+        Bj1 = gradient(_x -> effN_ij(kx, ky, phi, Bj, _x), Bdj)[1]
         for i in axes(H,1)
-            Bi = Bn[i]
-            H[i,j] = Bi*hBj'
+            Bi = Bn[:,i]
+            H[i,j] = Bi'*hBj
+            N[i,j] = Bi'*Bj1
         end
     end
-    H
+    H, N
+end
+
+function effH_ij(h, kx, ky, phi, Bi, Bdj)
+    # TODO 
 end
 
 """
@@ -75,27 +80,4 @@ function get_norm_dA1(env::EnvTensor, phi)
     gradient(f, Ad)[1]
 end
 
-###########
-"""
-    get_norm
-
-```
-C1 -- E1 -- C2
-|     |     |     
-E4 -- T  -- E2  = N
-|     |     |  
-C4 -- E3 -- C3
-```
-"""
-function get_norm(env::EnvTensor)
-    T = bulk(env)
-    get_norm(env, T)
-end
-
-function get_norm(env::EnvTensor, T)
-    Cs = corner(env)
-    Es = edge(env)
-
-    contract_env(Cs[1], Cs[2], Cs[3], Cs[4], Es[1], Es[2], Es[3], Es[4], T)
-end
 
