@@ -1,14 +1,15 @@
 """
     EnvTensor
 
-1. corner: C1, C2, C3, C4; 
+1. bulk: AAd
+2. corner: C1, C2, C3, C4; 
     - dim(C): χ*χ
     ```
         C -- 2
         |
         1
     ```
-2. edge: E1, E2, E3, E4; 
+3. edge: E1, E2, E3, E4; 
     - dim(E): χ*D²*χ
     ```
         1
@@ -73,8 +74,7 @@ function get_envtensor(phi::PEPS; kwargs...)
 end
 
 function init_env(phi::IPEPS, chi)
-    A = phi.A
-    T = transfer_matrix(A)
+    T = transfer_matrix(get_A(phi), get_Ad(phi))
 
     C1 = sum(T, dims = (1,2)) |> x -> dropdims(x, dims = (1,2))
     C2 = sum(T, dims = (1,4)) |> x -> dropdims(x, dims = (1,4))

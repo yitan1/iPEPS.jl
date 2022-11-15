@@ -23,4 +23,9 @@ size(basis)
 
 B1 = reshape(basis[:,3], d,D,D,D,D);
 T = iPEPS.transfer_matrix(A, B1);
-iPEPS.get_norm(env, T)
+iPEPS.get_norm(env, T) 
+
+
+using Zygote
+
+g = gradient(_x -> iPEPS.get_norm(env, iPEPS.transfer_matrix(_x, _x)), A)[1];

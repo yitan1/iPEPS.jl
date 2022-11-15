@@ -1,7 +1,7 @@
 
-function optimize_ES(phi::ExcIPEPS, h; kwargs...) #TODO
+function optimize_ES(kx, ky, phi0::IPEPS, h; kwargs...) #TODO
     # Ad = conj(A)
-    Bn = get_tangent_basis(phi; kwargs)
+    Bn = get_tangent_basis(phi0; kwargs)
     H = eff_Hamitonian(h, phi, Bn)
     N = eff_norm(phi, Bn)
     energy, _ = eigsolve(H,N)
@@ -28,6 +28,25 @@ function get_tangent_basis(phi::IPEPS; kwargs...)
 end
 
 """
+Return a matrix(n,n)
+"""
+function eff_Hamitonian(h, phi, Bn)
+    M = size(Bn,2)
+    H = zeros(eltype(Bn), M, M) 
+    for j in axes(H,2)
+        Bj = Bn[j]
+        Bdj = conj(B)
+        
+        hBj = gradient(_x -> get_energy(h, phi, Bj, _x), Bdj)[1]
+        for i in axes(H,1)
+            Bi = Bn[i]
+            H[i,j] = Bi*hBj'
+        end
+    end
+    H
+end
+
+"""
     get_norm_dA
 
 ```
@@ -39,15 +58,15 @@ C4 -- E3 -- C3
 ```
 """
 function get_norm_dA(env::EnvTensor, phi)
-    A = data(phi)
+    A = get_A(phi)
     Cs = corner(env)
     Es = edge(env)
     contract_env_dA(Cs[1], Cs[2], Cs[3], Cs[4], Es[1], Es[2], Es[3], Es[4], A)
 end
 # Realize by Zygote
 function get_norm_dA1(env::EnvTensor, phi)
-    A = data(phi)
-    Ad = conj(A)
+    A = get_A(phi)
+    Ad = get_Ad(phi)
     Cs = corner(env)
     Es = edge(env)
 
