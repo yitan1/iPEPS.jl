@@ -47,22 +47,39 @@ E4 -- T  -- E2
 C4 -- E3 -- C3
 ```
 """
-function get_envtensor(phi::PEPS; kwargs...)
-    chi = get(kwargs, :chi, 100) # TODO: error when chi is not assigned
+function get_envtensor(phi::IPEPS; kwargs...)
+    T = transfer_matrix(get_A(phi), get_Ad(phi))
+    get_envtensor(T; kwargs)
+end
 
-    env = init_env(phi, chi)
+function get_envtensor(phi::IPEPS, phid::IPEPS; kwargs...)
+    T = transfer_matrix(get_A(phi), get_Ad(phid))
+    get_envtensor(T; kwargs)
+end
+
+function get_envtensor(T::AbstractArray; kwargs...)
+    chi = get(kwargs, :chi, 100) # TODO: error when chi is not assigned
+    env = init_env(T, chi)
 
     maxitr = get(kwargs, :maxitr, 1000)
     conv_tol = get(kwargs, :conv_tol, 1e-8)
     olds = zeros(eltype(env), chi)
     diff = 1.0
 
+    output = get(kwargs, :output, true)
+    inplace = get(kwargs, :inplace, false)
     for i = 1:maxitr
-        s = update_env!(env)
+        if inplace == true
+            s = update_env!(env)  
+        else 
+            env, s = update_env(env)
+        end
 
         if length(s) == length(olds)
             diff = norm(s - olds)
-            @show i, diff
+            if output == true
+                @show i, diff
+            end
         end
         if diff < conv_tol
             break
@@ -75,7 +92,15 @@ end
 
 function init_env(phi::IPEPS, chi)
     T = transfer_matrix(get_A(phi), get_Ad(phi))
+    init_env(T, chi)
+end
 
+function init_env(phi::IPEPS, phid::IPEPS, chi)
+    T = transfer_matrix(get_A(phi), get_Ad(phid))
+    init_env(T, chi)
+end
+
+function init_env(T::AbstractArray, chi)
     C1 = sum(T, dims = (1,2)) |> x -> dropdims(x, dims = (1,2))
     C2 = sum(T, dims = (1,4)) |> x -> dropdims(x, dims = (1,4))
     C3 = sum(T, dims = (3,4)) |> x -> dropdims(x, dims = (3,4))
@@ -92,7 +117,16 @@ function init_env(phi::IPEPS, chi)
     env = EnvTensor(T, Cs, Es, chi)
     env
 end
-    
+
+function update_env(env::EnvTensor; kwargs...)
+    env, s1 = up_left(env)
+    env, __ = up_right(env)
+    env, __ = up_top(env)
+    env, __ = up_bottom(env)
+
+    env, s1
+end
+
 function update_env!(env::EnvTensor; kwargs...)
     s1 = up_left!(env)
     __ = up_right!(env)
@@ -119,6 +153,18 @@ function up_left!(env::EnvTensor)
     s
 end
 
+function up_left(env::EnvTensor)
+    Pl, Pld, s = left_projector(env) 
+    Cs = corner(env)
+    Es = edge(env)
+    T = bulk(env)
+
+    newC1, newE4, newC4 = proj_left(Pl, Pld, Cs[1], Es[1], Es[4], T, Cs[4], Es[3]) # XXX: unnecessay computation
+
+    env1 = EnvTensor(T, [newC1, Cs[2], Cs[3], newC4], [Es[1], Es[2], Es[3], newE4], get_maxchi(env))
+    env1, s
+end
+
 """
     up_right!
 
@@ -135,6 +181,18 @@ function up_right!(env::EnvTensor)
     Cs[2], Es[2], Cs[3] = newC2, newE2, newC3  # change input variable 
     s
 end
+function up_right(env::EnvTensor)
+    Pr, Prd, s = right_projector(env) 
+    Cs = corner(env)
+    Es = edge(env)
+    T = bulk(env)
+
+    newC2, newE2, newC3 = proj_right(Pr, Prd, Cs[2], Es[1], Es[2], T, Cs[3], Es[3]) # XXX: unnecessay computation
+
+    env1 = EnvTensor(T, [Cs[1], newC2, newC3, Cs[4]], [Es[1], newE2, Es[3], Es[4]], get_maxchi(env))
+    env1, s
+end
+
 
 """
     up_top!
@@ -153,6 +211,18 @@ function up_top!(env::EnvTensor)
     s
 end
 
+function up_top(env::EnvTensor) 
+    Pt, Ptd, s = top_projector(env)
+    Cs = corner(env)
+    Es = edge(env)
+    T = bulk(env)
+
+    newC1, newE1, newC2 = proj_top(Pt, Ptd, Cs[1], Es[4], Es[1], T, Cs[2], Es[2]) # XXX: unnecessay computation
+
+    env1 = EnvTensor(T, [newC1, newC2, Cs[3], Cs[4]], [newE1, Es[2], Es[3], Es[4]], get_maxchi(env))
+    env1, s
+end
+
 """
     up_bottom!
 
@@ -168,6 +238,18 @@ function up_bottom!(env::EnvTensor)
 
     Cs[4], Es[3], Cs[3] = newC4, newE3, newC3  # change input variable 
     s
+end
+
+function up_bottom(env::EnvTensor) 
+    Pb, Pbd, s = bottom_projector(env)
+    Cs = corner(env)
+    Es = edge(env)
+    T = bulk(env)
+
+    newC4, newE3, newC3 = proj_bottom(Pb, Pbd, Cs[4], Es[4], Es[3], T, Cs[3], Es[2]) # XXX: unnecessay computation
+
+    env1 = EnvTensor(T, [Cs[1], Cs[2], newC3, newC4], [Es[1], Es[2], newE3, Es[4]], get_maxchi(env))
+    env1, s
 end
 
 function left_projector(env::EnvTensor)

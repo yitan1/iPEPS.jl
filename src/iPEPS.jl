@@ -22,8 +22,13 @@ include("peps.jl")
 
 include("env_tensor.jl")
 
+include("env_tensor_exc.jl")
+
 include("optim_ES.jl")
 
+include("operations.jl")
+
 include("contraction.jl")
+
 
 end

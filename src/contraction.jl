@@ -33,7 +33,7 @@ E4 -- T --
 C4 -- E3 --       
 ```
 """
-function proj_left(Pl, Pld, C1, E1, E4, T, C4, E3)
+@∇ function proj_left(Pl, Pld, C1, E1, E4, T, C4, E3)
     @tensor newC1[m1,m2,m3] := C1[m1, p1]*E1[p1,m2,m3]
     newC1 = reshape(newC1, :, size(newC1,3))
     @tensor newC1[m1,m2] := newC1[p1,m2]*Pl[p1,m1]
@@ -70,7 +70,7 @@ end
 -- E3 -- C3       
 ```
 """
-function proj_right(Pr, Prd, C2, E1, E2, T, C3, E3)
+@∇ function proj_right(Pr, Prd, C2, E1, E2, T, C3, E3)
     @tensor newC2[m1,m2,m3] := E1[m1,m3,p1]*C2[p1, m2] 
     newC2 = reshape(newC2, size(newC2,1), :)
     @tensor newC2[m1,m2] := newC2[m1,p1]*Pr[p1,m2]
@@ -96,7 +96,7 @@ E4 /             \\  T  /            \\ E2
 |                   |                 |
 ```
 """
-function proj_top(Pt, Ptd, C1, E4, E1, T, C2, E2) 
+@∇ function proj_top(Pt, Ptd, C1, E4, E1, T, C2, E2) 
     @tensor newC1[m1,m2,m3] := C1[p1, m2]*E4[p1, m1, m3] 
     newC1 = reshape(newC1, size(newC1,1), :)
     @tensor newC1[m1,m2] := newC1[m1,p1]*Pt[p1,m2]
@@ -122,7 +122,7 @@ E4 \\             /  T  \\            / E2
 C4 /             \\  E3 /            \\ C3
 ```
 """
-function proj_bottom(Pb, Pbd, C4, E4, E3, T, C3, E2) 
+@∇ function proj_bottom(Pb, Pbd, C4, E4, E3, T, C3, E2) 
     @tensor newC4[m1,m2,m3] := E4[m1,p1,m3]*C4[p1, m2] 
     newC4 = reshape(newC4, size(newC4,1), :)
     @tensor newC4[m1,m2] := newC4[m1,p1]*Pb[p1,m2]
@@ -178,7 +178,7 @@ contraction order:
      -4       -3
 ```
 """
-function contract_ur_env(C2,E1,E2,T)
+@∇ function contract_ur_env(C2,E1,E2,T)
     @tensor UR[m1,m2,m3,m4] := C2[p1,p2]*E1[m1,p3,p1]*E2[p2,p4,m3]*T[p3,m2,m4,p4]
     UR = reshape(UR, size(UR,1)*size(UR,2), :)
     UR
@@ -200,7 +200,7 @@ E4 --3-- T --- -4
 C4 --1-- E3 -- -3
 ```
 """
-function contract_bl_env(C4,E3,E4,T)
+@∇ function contract_bl_env(C4,E3,E4,T)
     @tensor BL[m1,m2,m3,m4] := C4[p2,p1]*E3[p4,p1,m3]*E4[m1,p2,p3]*T[m2,p3,p4,m4]
     BL = reshape(BL, size(BL,1)*size(BL,2), :)
     BL
@@ -222,7 +222,7 @@ contraction order:
 -3 -- E3 --1-- C3
 ```
 """
-function contract_br_env(C3,E3,E2,T)
+@∇ function contract_br_env(C3,E3,E2,T)
     @tensor BR[m1,m2,m3,m4] := C3[p2,p1]*E3[p3,m3,p1]*E2[m1,p4,p2]*T[m2,m4,p3,p4]
     BR = reshape(BR, size(BR,1)*size(BR,2), :)
     BR
@@ -243,7 +243,7 @@ E4 - 0 - AB - 4 - E2  = N
 C4 - 0 - E3 - 6 - C3
 ```
 """
-function contract_env(C1, C2, C3, C4, E1, E2, E3, E4, A, B)
+@∇ function contract_env(C1, C2, C3, C4, E1, E2, E3, E4, A, B)
     T = transfer_matrix(A, B)
     contract_env(C1, C2, C3, C4, E1, E2, E3, E4, T)
 end
@@ -279,7 +279,7 @@ E4 = 4 - A  - 8 = E2  = -- dA --
 C4 - 0 - E3 - 10- C3
 ```
 """
-function contract_env_dA(C1, C2, C3, C4, E1, E2, E3, E4, A)
+@∇ function contract_env_dA(C1, C2, C3, C4, E1, E2, E3, E4, A)
     D = size(A, 2)
     @tensor out[m1,m2,m3,m4] := C1[p1,p2]*E1[p2,m3,m4]*E4[p1,m1,m2]
     dim = size(out)

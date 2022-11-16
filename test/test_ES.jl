@@ -1,31 +1,48 @@
 using iPEPS
-
 using LinearAlgebra
-
 using BenchmarkTools
+using Zygote
 
+####
 d = 2
-D = 3
-phi = iPEPS.IPEPS(rand(d,D,D,D,D));
-A = iPEPS.data(phi);
+D = 2
+A = rand(d,D,D,D,D)
+Ad = conj(A)
+phi = iPEPS.IPEPS(A, Ad);
+####
 
-chi = 10
+###
+function f(A,Ad)
+    phi = iPEPS.IPEPS(A, Ad)
+    env = iPEPS.get_envtensor(phi; chi = 5, output = false)
+    iPEPS.get_norm(env) 
+end
+
+function f1(A,Ad)
+    phi = iPEPS.IPEPS(A, Ad)
+    env = iPEPS.get_envtensor(phi; chi = 5, inplace = true, output = false)
+    iPEPS.get_norm(env) 
+end
+
+g = gradient(x -> f(A, x), Ad);
+
+@btime f($A, $Ad)
+@btime f1($A, $Ad)
+####
+
+####
+chi = 5
 env = iPEPS.get_envtensor(phi; chi = chi);
-
 dA = iPEPS.get_norm_dA(env, phi);
-
 # @btime dA = iPEPS.get_norm_dA1($env, $phi);
 
+####
 dA = reshape(dA, (1,:) );
 basis = nullspace(dA);
 size(basis)
-
-
 B1 = reshape(basis[:,3], d,D,D,D,D);
 T = iPEPS.transfer_matrix(A, B1);
 iPEPS.get_norm(env, T) 
 
-
-using Zygote
-
 g = gradient(_x -> iPEPS.get_norm(env, iPEPS.transfer_matrix(_x, _x)), A)[1];
+####
