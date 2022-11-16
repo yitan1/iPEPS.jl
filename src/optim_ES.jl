@@ -36,8 +36,8 @@ function eff_hamitonian_norm(h, kx, ky, phi, Bn)
         Bj = Bn[:,j]
         Bdj = conj(Bj)
         
-        hBj = gradient(_x -> effH_ij(h, kx, ky, phi, _x, Bj), Bdj)[1]
-        Bj1 = gradient(_x -> effN_ij(kx, ky, phi, _x, Bj), Bdj)[1]
+        hBj = gradient(_x -> effH_ij(h, kx, ky, phi, Bj, _x), Bdj)[1]
+        Bj1 = gradient(_x -> effN_ij(kx, ky, phi, Bj, _x), Bdj)[1]
         for i in axes(H,1)
             Bi = Bn[:,i]
             H[i,j] = Bi'*hBj
@@ -47,9 +47,14 @@ function eff_hamitonian_norm(h, kx, ky, phi, Bn)
     H, N
 end
 
-function effH_ij(h, kx, ky, phi0, Bdi, Bj)
-    phi_i = ExcIPEPS(kx, ky, phi0, conj(Bdi))
-    phi_j = ExcIPEPS(kx, ky, phi0, Bj)
+"""
+    effH_ij
+
+⟨ϕⱼ(Bⱼ†)|h|ϕᵢ(Bᵢ)⟩
+"""
+function effH_ij(h, kx, ky, phi0, Bi, Bdj)
+    phi_i = ExcIPEPS(kx, ky, phi0, Bi)
+    phi_j = ExcIPEPS(kx, ky, phi0, conj(Bdj))
 
     env = get_envtensor(phi_i, phi_j; chi = 10) # BUG
     hij = get_hor_energy(h, env, phi_i, phi_j) + get_ver_energy(h, env, phi_i, phi_j)

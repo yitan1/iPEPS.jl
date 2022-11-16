@@ -8,7 +8,7 @@ d = 2
 D = 2
 A = rand(d,D,D,D,D)
 Ad = conj(A)
-phi = iPEPS.IPEPS(A, Ad);
+phi = iPEPS.IPEPS(A);
 ####
 
 ###
@@ -46,3 +46,16 @@ iPEPS.get_norm(env, T)
 
 g = gradient(_x -> iPEPS.get_norm(env, iPEPS.transfer_matrix(_x, _x)), A)[1];
 ####
+
+
+####
+d = 2
+D = 2
+chi = 5
+A = rand(d,D,D,D,D);
+B = rand(d,D,D,D,D);
+Bd = rand(d,D,D,D,D);
+phi1 = iPEPS.ExcIPEPS(A,B);
+phi2 = iPEPS.ExcIPEPS(A,Bd);
+
+envs = iPEPS.init_env(phi1, phi2, chi);

@@ -29,12 +29,17 @@ struct ExcIPEPS{T, N, AT<:AbstractArray{T,N}} <: PEPS
     B::AT
 end
 
+ExcIPEPS(A::AbstractArray, B::AbstractArray) = ExcIPEPS(IPEPS(A), B)
+ExcIPEPS(GS::IPEPS, B::AbstractArray) = ExcIPEPS(0.0, 0.0, GS, B)
 ExcIPEPS(kx, ky, GS::IPEPS, B::AbstractArray{T,N}) where {T,N} = IPEPS{T, N, typeof(B)}(kx, ky, GS, B) 
 
+get_kx(ES::ExcIPEPS) = ES.kx
+get_ky(ES::ExcIPEPS) = ES.ky
 get_GS(ES::ExcIPEPS) = ES.GS
-get_A(ES::ExcIPEPS) = get_GS(ES) |> get_A
-get_Ad(ES::ExcIPEPS) = get_GS(ES) |> get_Ad
 get_B(ES::ExcIPEPS) = ES.B
 get_Bd(ES::ExcIPEPS) = conj(ES.B)
+
+get_A(ES::ExcIPEPS) = get_GS(ES) |> get_A
+get_Ad(ES::ExcIPEPS) = get_GS(ES) |> get_Ad
 
 
