@@ -35,7 +35,7 @@ function init_env(phi1::ExcIPEPS, phi2::ExcIPEPS, chi)
 
     Cs = corner(env1)
     Es = edge(env1)
-    env2 = EnvTensor(B_Ad, deepcopy(Cs), deepcopy(Es), chi)
+    env2 = EnvTensor(B_Ad, deepcopy(Cs), deepcopy(Es), chi) # XXX deepcopy -> copy ?
     env3 = EnvTensor(A_Bd, deepcopy(Cs), deepcopy(Es), chi)
     env4 = EnvTensor(B_Bd, deepcopy(Cs), deepcopy(Es), chi)
     exc_env = ExcEnvTensor(env1, env2, env3, env4)
@@ -50,8 +50,15 @@ end
 function up_left(envs::ExcEnvTensor)
     Pl, Pld, s = left_projector(envs[1]) 
 
-    Cs1 = corner(env)
-    Es1 = edge(env)
-    T1 = bulk(env)
+    env1 = up_left(envs[1], Pl, Pld) # up: C1,    E4,    C4
+    env2 = up_left_B(envs, Pl, Pld)  # up: B_C1,  B_E4,  B_C4
+    env3 = up_left_Bd(envs, Pl, Pld) # up: Bd_C1, Bd_E4, Bd_C4
+    env4 = up_left_BB(envs, Pl, Pld) # up: BB_C1, BB_E4, BB_C4
+
+    envs = ExcEnvTensor(env1, env2, env3, env4)
+    envs
+end
+
+function up_left_B(envs::EnvTensor, Pl, Pld)
     
 end

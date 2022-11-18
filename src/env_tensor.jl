@@ -155,6 +155,9 @@ end
 
 function up_left(env::EnvTensor)
     Pl, Pld, s = left_projector(env) 
+    up_left(env, Pl, Pld), s
+end
+function up_left(env::EnvTensor, Pl, Pld)
     Cs = corner(env)
     Es = edge(env)
     T = bulk(env)
@@ -162,7 +165,7 @@ function up_left(env::EnvTensor)
     newC1, newE4, newC4 = proj_left(Pl, Pld, Cs[1], Es[1], Es[4], T, Cs[4], Es[3]) # XXX: unnecessay computation
 
     env1 = EnvTensor(T, [newC1, Cs[2], Cs[3], newC4], [Es[1], Es[2], Es[3], newE4], get_maxchi(env))
-    env1, s
+    env1
 end
 
 """
@@ -181,8 +184,12 @@ function up_right!(env::EnvTensor)
     Cs[2], Es[2], Cs[3] = newC2, newE2, newC3  # change input variable 
     s
 end
+
 function up_right(env::EnvTensor)
     Pr, Prd, s = right_projector(env) 
+    up_right(env, Pr, Prd), s
+end
+function up_right(env::EnvTensor, Pr, Prd)
     Cs = corner(env)
     Es = edge(env)
     T = bulk(env)
@@ -190,7 +197,7 @@ function up_right(env::EnvTensor)
     newC2, newE2, newC3 = proj_right(Pr, Prd, Cs[2], Es[1], Es[2], T, Cs[3], Es[3]) # XXX: unnecessay computation
 
     env1 = EnvTensor(T, [Cs[1], newC2, newC3, Cs[4]], [Es[1], newE2, Es[3], Es[4]], get_maxchi(env))
-    env1, s
+    env1
 end
 
 
@@ -213,6 +220,9 @@ end
 
 function up_top(env::EnvTensor) 
     Pt, Ptd, s = top_projector(env)
+    up_top(env, Pt, Ptd), s
+end
+function up_top(env::EnvTensor, Pt, Ptd)
     Cs = corner(env)
     Es = edge(env)
     T = bulk(env)
@@ -220,7 +230,7 @@ function up_top(env::EnvTensor)
     newC1, newE1, newC2 = proj_top(Pt, Ptd, Cs[1], Es[4], Es[1], T, Cs[2], Es[2]) # XXX: unnecessay computation
 
     env1 = EnvTensor(T, [newC1, newC2, Cs[3], Cs[4]], [newE1, Es[2], Es[3], Es[4]], get_maxchi(env))
-    env1, s
+    env1
 end
 
 """
@@ -242,6 +252,9 @@ end
 
 function up_bottom(env::EnvTensor) 
     Pb, Pbd, s = bottom_projector(env)
+    up_bottom(env, Pb, Pbd), s
+end
+function up_bottom(env::EnvTensor, Pb, Pbd)
     Cs = corner(env)
     Es = edge(env)
     T = bulk(env)
@@ -249,7 +262,7 @@ function up_bottom(env::EnvTensor)
     newC4, newE3, newC3 = proj_bottom(Pb, Pbd, Cs[4], Es[4], Es[3], T, Cs[3], Es[2]) # XXX: unnecessay computation
 
     env1 = EnvTensor(T, [Cs[1], Cs[2], newC3, newC4], [Es[1], Es[2], newE3, Es[4]], get_maxchi(env))
-    env1, s
+    env1
 end
 
 function left_projector(env::EnvTensor)
