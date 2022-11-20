@@ -59,6 +59,23 @@ function up_left(envs::ExcEnvTensor)
     envs
 end
 
+"""
+    up_left_B
+
+Return B_C1, B_E4, B_C4
+"""
 function up_left_B(envs::EnvTensor, Pl, Pld)
-    
+    Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
+    Cs_B, Es_B, T_B = corner(envs[2]), edge(envs[2]), bulk(envs[2])
+
+    newB_C1, newB_E4, newB_C4 = proj_left_B(Pl, Pld, Cs_B[1], Es[1], Cs[1], Es_B[1], 
+                                                     Es_B[4], T, Es[4], T_B, 
+                                                     Cs_B[4], Es[3], Cs[4], Es_B[3]) # XXX: unnecessay computation
+
+    env1 = EnvTensor(T, [Cs[1], Cs[2], newC3, newC4], [Es[1], Es[2], newE3, Es[4]], get_maxchi(env))
+    env1
+
 end
+
+
+

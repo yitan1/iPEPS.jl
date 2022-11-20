@@ -15,6 +15,7 @@ end
 """
     proj_left
 
+return C1, E4, C4
 ```
 C1 -- E1 --       
   \\  /
@@ -52,6 +53,7 @@ end
 """
     proj_right
 
+return C2, E2, C3
 ```
 -- E1 -- C2       
      \\  /
@@ -89,6 +91,7 @@ end
 """
     proj_top
 
+return C1, E1, C2
 ```
 C1 \\             /  E1 \\            / C2 
 |    - Pt - Ptd -   |   - Pt - Ptd -  |
@@ -115,6 +118,7 @@ end
 """
     proj_bottom
 
+return C4, E3, C3
 ```
 |                   |                 |
 E4 \\             /  T  \\            / E2 
@@ -228,6 +232,7 @@ contraction order:
     BR
 end
 
+########## 
 """
     contract_env
 
@@ -295,4 +300,322 @@ C4 - 0 - E3 - 10- C3
     @tensor out[m0,m1,m2,m3,m4] := out[m0,m1,m2,m3,m4, p1,p2]*C3[p2,p1]
 
     out
+end
+
+##### exc env contraction
+"""
+    proj_left_B
+
+return C1_B, E4_B, C4_B
+```
+(C1_B -- E1 --  +  C1 -- E1_B -- )⋅exp(-ikₓ)
+            \\  /
+            Pl
+            | 
+            |
+            Pld
+            /  \\
+(E4_B -- T --  +  E4 -- T_B -- )⋅exp(-ikₓ)
+            \\  /
+            Pl
+            |
+            |
+            Pld
+            /  \\
+(C4_B -- E3 --  +  C4 -- E3_B -- )⋅exp(-ikₓ)
+```
+"""
+function proj_left_B(Pl, Pld, C1_B, E1, C1, E1_B, 
+                            E4_B, T, E4, T_B, 
+                            C4_B, E3, C4, E3_B)
+end
+
+"""
+    proj_left_Bd
+
+return C1_Bd, E4_Bd, C4_Bd
+```
+(C1_Bd -- E1 --  +  C1 -- E1_Bd -- )⋅exp(ikₓ)
+                \\  /
+                Pl
+                | 
+                |
+                Pld
+                /  \\
+(E4_Bd -- T --  +  E4 -- T_Bd -- )⋅exp(ikₓ)
+                \\  /
+                Pl
+                |
+                |
+                Pld
+                /  \\
+(C4_Bd -- E3 --  +  C4 -- E3_Bd -- )⋅exp(ikₓ)
+```
+"""
+function proj_left_Bd(Pl, Pld, C1_Bd, E1, C1, E1_Bd, 
+                                E4_Bd, T, E4, T_Bd, 
+                                C4_Bd, E3, C4, E3_Bd)
+end
+
+"""
+    proj_left_BB
+
+return C1_BB, E4_BB, C4_BB
+```
+(C1_BB -- E1 --  +  C1 -- E1_BB  +  C1_B -- E1_Bd --  +  C1_Bd -- E1_B -- )
+                                \\  /
+                                Pl
+                                | 
+                                |
+                                Pld
+                                /  \\
+(E4_BB -- T --  +  E4 -- T_BB --  +  E4_B -- T_Bd --  +  E4_Bd -- T_B -- )
+                                \\  /
+                                Pl
+                                |
+                                |
+                                Pld
+                                /  \\
+(C4_BB -- E3 --  +  C4 -- E3_BB  +  C4_B -- E3_Bd --  +  C4_Bd -- E3_B -- )
+```
+"""
+function proj_left_BB(Pl, Pld, C1_BB,E1, C1,E1_BB, C1_B,E1_Bd, C1_Bd,E1_B, 
+                               E4_BB,T, E4,T_BB, E4_B,T_Bd, E4_Bd,T_B, 
+                               C4_BB,E3, C4,E3_BB, C4_B,E3_Bd, C4_Bd,E3_B)
+end
+
+"""
+    proj_right_B
+
+return C2_B, E2_B, C3_B
+```
+(-- E1 -- C2_B  +  -- E1_B -- C2 )⋅exp(-ikₓ)
+            \\  /
+            Pr
+            | 
+            |
+            Prd
+            /  \\
+( -- T -- E2_B  +  -- T_B -- E2 )⋅exp(-ikₓ)
+            \\  /
+            Pr
+            |
+            |
+            Prd
+            /  \\
+(-- E3 -- C3_B  +  -- E3_B -- C3)⋅exp(-ikₓ)
+```
+"""
+function proj_right_B(Pl, Pld, C2_B, E1, C2, E1_B, 
+                                E2_B, T, E2, T_B, 
+                                C3_B, E3, C3, E3_B)
+end
+
+"""
+    proj_left_Bd
+
+return C2_Bd, E2_Bd, C3_Bd
+```
+(-- E1 -- C2_Bd  +  -- E1_Bd -- C2 )⋅exp(ikₓ)
+            \\  /
+            Pr
+            | 
+            |
+            Prd
+            /  \\
+( -- T -- E2_Bd  +  -- T_Bd -- E2 )⋅exp(ikₓ)
+            \\  /
+            Pr
+            |
+            |
+            Prd
+            /  \\
+(-- E3 -- C3_Bd  +  -- E3_Bd -- C3)⋅exp(ikₓ)
+```
+"""
+function proj_right_Bd(Pl, Pld, C2_Bd, E1, C2, E1_Bd, 
+                                E2_Bd, T, E2, T_Bd, 
+                                C3_Bd, E3, C3, E3_Bd)
+end
+
+"""
+    proj_right_BB
+
+return C2_BB, E2_BB, C3_BB
+```
+(-- E1 -- C2_BB  +  -- E1_BB -- C2  +  -- E1_Bd -- C2_B  +  -- E1_B -- C2_Bd)
+                                \\  /
+                                Pr
+                                | 
+                                |
+                                Prd
+                                /  \\
+(-- T -- E2_BB +  -- T_BB -- E2  +  -- T_Bd -- E2_B  +  -- T_B -- E2_Bd)
+                                \\  /
+                                Pr
+                                |
+                                |
+                                Prd
+                                /  \\
+(-- E3 -- C3_BB  +  -- E3_BB -- C3 +  -- E3_Bd -- C3_B  +  -- E3_B -- C3_Bd)
+```
+"""
+function proj_right_BB(Pr, Prd, C2_BB,E1, C2,E1_BB, C2_B,E1_Bd, C2_Bd,E1_B, 
+                                E2_BB,T,  E2,T_BB,  E2_B,T_Bd,  E2_Bd,T_B, 
+                                C3_BB,E3, C3,E3_BB, C3_B,E3_Bd, C3_Bd,E3_B)
+end
+
+"""
+    proj_top_B
+
+return C1_B, E1_B, C2_B
+```
+exp(-ikₓ)⋅[
+C1_B                     E1_B                     C2_B 
+|                        |                        |
+E4                       T                        E2
+|    \\              /    |    \\              /    |
++      - Pt - Ptd -      +      - Pt - Ptd -      +
+C1   /              \\    E1   /              \\    C2
+|                        |                        |
+E4_B                     T_B                      E2_B
+|                        |                        |
+]
+```
+"""
+function proj_top_B(Pt, Ptd, C1_B,E4, C1,E4_B,
+                             E1_B,T,  E1,T_B,
+                             C2_B,E2, C2,E2_B)    
+end
+
+"""
+    proj_top_Bd
+
+return C1_Bd, E1_Bd, C2_Bd
+```
+exp(ikₓ)⋅[
+C1_Bd                    E1_Bd                    C2_Bd 
+|                        |                        |
+E4                       T                        E2
+|    \\              /    |    \\              /    |
++      - Pt - Ptd -      +      - Pt - Ptd -      +
+C1   /              \\    E1   /              \\    C2
+|                        |                        |
+E4_Bd                    T_Bd                     E2_Bd
+|                        |                        |
+]
+```
+"""
+function proj_top_Bd(Pt, Ptd, C1_Bd,E4, C1,E4_Bd,
+                              E1_Bd,T,  E1,T_Bd,
+                              C2_Bd,E2, C2,E2_Bd)    
+end
+
+"""
+    proj_top_BB
+
+return C1_BB, E1_BB, C2_BB
+```
+C1_BB                    E1_BB                    C2_BB 
+|                        |                        |
+E4                       T                        E2
+|    \\              /    |    \\              /    |
++      - Pt - Ptd -      +      - Pt - Ptd -      +
+C1   /              \\    E1   /              \\    C2
+|                        |                        |
+E4_BB                    T_BB                     E2_BB
+|                        |                        |
++
+C1_B                     E1_B                     C2_B 
+|                        |                        |
+E4_Bd                    T_Bd                     E2_Bd
+|     \\              /   |     \\              /   |
++      - Pt - Ptd -      +       - Pt - Ptd -     +
+C1_Bd /              \\   E1_Bd /              \\   C2_Bd
+|                        |                        |
+E4_B                     T_B                      E2_B
+|                        |                        |
+```
+"""
+function proj_top_BB(Pt, Ptd, C1_BB,E4, C1,E4_BB, C1_B,E4_Bd, C1_Bd,E4_B,
+                              E1_BB,T,  E1,T_BB,  E1_B,T_Bd,  E1_Bd, T_B,
+                              C2_BB,E2, C2,E2_BB, C2_B,E2_Bd, C2_Bd, E2_B)    
+end
+
+
+"""
+    proj_bottom_B
+
+return C4_B, E3_B, C3_B
+```
+[
+|                        |                        |
+E4                       T                        E2
+|                        |                        |
+C4_B \\              /    E3_B \\              /    C3_B 
++      - Pb - Pbd -      +      - Pb - Pbd -      +
+|    /              \\    |    /              \\    |
+E4_B                     T_B                      E2_B
+|                        |                        |
+C4                       E3                       C3
+]⋅exp(-ikₓ)
+```
+"""
+function proj_bottom_B(Pb, Pbd, C4_B,E4, C4,E4_B,
+                                E3_B,T, E3,T_B,
+                                C3_B,E2, C3,E2_B)    
+end
+
+"""
+    proj_bottom_Bd
+
+return C4_Bd, E3_Bd, C3_Bd
+```
+[
+|                        |                        |
+E4                       T                        E2
+|                        |                        |
+C4_Bd \\              /   E3_Bd \\              /   C3_Bd 
++      - Pb - Pbd -      +      - Pb - Pbd -      +
+|     /              \\   |     /              \\   |
+E4_Bd                    T_Bd                     E2_Bd
+|                        |                        |
+C4                       E3                       C3
+]⋅exp(ikₓ)
+```
+"""
+function proj_bottom_B(Pb, Pbd, C4_Bd,E4, C4,E4_Bd,
+                                E3_Bd,T,  E3,T_Bd,
+                                C3_Bd,E2, C3,E2_Bd)    
+end
+
+"""
+    proj_bottom_BB
+
+return C4_BB, E3_BB, C3_BB
+```
+|                        |                        |
+E4                       T                        E2
+|                        |                        |
+C4_BB \\              /   E3_BB \\              /   C3_BB 
++      - Pb - Pbd -      +      - Pb - Pbd -      +
+|     /              \\   |     /              \\   |
+E4_BB                    T_BB                     E2_BB
+|                        |                        |
+C4                       E3                       C3
++
+|                        |                        |
+E4_Bd                    T_Bd                     E2_Bd
+|                        |                        |
+C4_B \\              /    E3_B \\              /    C3_B 
++      - Pb - Pbd -      +      - Pb - Pbd -      +
+|    /              \\    |    /              \\    |
+E4_B                     T_B                      E2_B
+|                        |                        |
+C4_Bd                    E3_Bd                    C3_Bd
+```
+"""
+function proj_bottom_BB(Pb, Pbd, C4_BB,E4, C4,E4_BB, C4_B,E4_Bd, C4_Bd, E4_B,
+                                 E3_BB,T,  E3,T_BB,  E3_B,T_Bd,  E3_Bd, T_B,
+                                 C3_BB,E2, C3,E2_BB, C3_B,E2_Bd, C3_Bd, E2_B)    
 end
