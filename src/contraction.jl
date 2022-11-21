@@ -325,9 +325,9 @@ return C1_B, E4_B, C4_B
 (C4_B -- E3 --  +  C4 -- E3_B -- )⋅exp(-ikₓ)
 ```
 """
-function proj_left_B(Pl, Pld, C1_B, E1, C1, E1_B, 
-                            E4_B, T, E4, T_B, 
-                            C4_B, E3, C4, E3_B)
+function proj_left_B(kx, Pl, Pld, C1_B, E1, C1, E1_B, 
+                                  E4_B, T, E4, T_B, 
+                                  C4_B, E3, C4, E3_B)
 end
 
 """
@@ -352,9 +352,13 @@ return C1_Bd, E4_Bd, C4_Bd
 (C4_Bd -- E3 --  +  C4 -- E3_Bd -- )⋅exp(ikₓ)
 ```
 """
-function proj_left_Bd(Pl, Pld, C1_Bd, E1, C1, E1_Bd, 
-                                E4_Bd, T, E4, T_Bd, 
-                                C4_Bd, E3, C4, E3_Bd)
+function proj_left_Bd(kx, Pl, Pld, C1_Bd, E1, C1, E1_Bd, 
+                                   E4_Bd, T, E4, T_Bd, 
+                                   C4_Bd, E3, C4, E3_Bd)
+                                   
+    proj_left_B(-kx, Pl, Pld, C1_Bd, E1, C1, E1_Bd, 
+                              E4_Bd, T, E4, T_Bd, 
+                              C4_Bd, E3, C4, E3_Bd)
 end
 
 """
@@ -389,26 +393,26 @@ end
 
 return C2_B, E2_B, C3_B
 ```
-(-- E1 -- C2_B  +  -- E1_B -- C2 )⋅exp(-ikₓ)
+(-- E1 -- C2_B  +  -- E1_B -- C2 )⋅exp(ikₓ)
             \\  /
             Pr
             | 
             |
             Prd
             /  \\
-( -- T -- E2_B  +  -- T_B -- E2 )⋅exp(-ikₓ)
+( -- T -- E2_B  +  -- T_B -- E2 )⋅exp(ikₓ)
             \\  /
             Pr
             |
             |
             Prd
             /  \\
-(-- E3 -- C3_B  +  -- E3_B -- C3)⋅exp(-ikₓ)
+(-- E3 -- C3_B  +  -- E3_B -- C3)⋅exp(ikₓ)
 ```
 """
-function proj_right_B(Pl, Pld, C2_B, E1, C2, E1_B, 
-                                E2_B, T, E2, T_B, 
-                                C3_B, E3, C3, E3_B)
+function proj_right_B(kx, Pl, Pld, C2_B, E1, C2, E1_B, 
+                                   E2_B, T, E2, T_B, 
+                                   C3_B, E3, C3, E3_B)
 end
 
 """
@@ -416,26 +420,26 @@ end
 
 return C2_Bd, E2_Bd, C3_Bd
 ```
-(-- E1 -- C2_Bd  +  -- E1_Bd -- C2 )⋅exp(ikₓ)
+(-- E1 -- C2_Bd  +  -- E1_Bd -- C2 )⋅exp(-ikₓ)
             \\  /
             Pr
             | 
             |
             Prd
             /  \\
-( -- T -- E2_Bd  +  -- T_Bd -- E2 )⋅exp(ikₓ)
+( -- T -- E2_Bd  +  -- T_Bd -- E2 )⋅exp(-ikₓ)
             \\  /
             Pr
             |
             |
             Prd
             /  \\
-(-- E3 -- C3_Bd  +  -- E3_Bd -- C3)⋅exp(ikₓ)
+(-- E3 -- C3_Bd  +  -- E3_Bd -- C3)⋅exp(-ikₓ)
 ```
 """
-function proj_right_Bd(Pl, Pld, C2_Bd, E1, C2, E1_Bd, 
-                                E2_Bd, T, E2, T_Bd, 
-                                C3_Bd, E3, C3, E3_Bd)
+function proj_right_Bd(kx, Pl, Pld, C2_Bd, E1, C2, E1_Bd, 
+                                    E2_Bd, T, E2, T_Bd, 
+                                    C3_Bd, E3, C3, E3_Bd)
 end
 
 """
@@ -470,7 +474,7 @@ end
 
 return C1_B, E1_B, C2_B
 ```
-exp(-ikₓ)⋅[
+exp(-iky)⋅[
 C1_B                     E1_B                     C2_B 
 |                        |                        |
 E4                       T                        E2
@@ -483,9 +487,9 @@ E4_B                     T_B                      E2_B
 ]
 ```
 """
-function proj_top_B(Pt, Ptd, C1_B,E4, C1,E4_B,
-                             E1_B,T,  E1,T_B,
-                             C2_B,E2, C2,E2_B)    
+function proj_top_B(ky, Pt, Ptd, C1_B,E4, C1,E4_B,
+                                 E1_B,T,  E1,T_B,
+                                 C2_B,E2, C2,E2_B)    
 end
 
 """
@@ -493,7 +497,7 @@ end
 
 return C1_Bd, E1_Bd, C2_Bd
 ```
-exp(ikₓ)⋅[
+exp(iky)⋅[
 C1_Bd                    E1_Bd                    C2_Bd 
 |                        |                        |
 E4                       T                        E2
@@ -506,9 +510,9 @@ E4_Bd                    T_Bd                     E2_Bd
 ]
 ```
 """
-function proj_top_Bd(Pt, Ptd, C1_Bd,E4, C1,E4_Bd,
-                              E1_Bd,T,  E1,T_Bd,
-                              C2_Bd,E2, C2,E2_Bd)    
+function proj_top_Bd(ky, Pt, Ptd, C1_Bd,E4, C1,E4_Bd,
+                                  E1_Bd,T,  E1,T_Bd,
+                                  C2_Bd,E2, C2,E2_Bd)    
 end
 
 """
@@ -558,12 +562,12 @@ C4_B \\              /    E3_B \\              /    C3_B
 E4_B                     T_B                      E2_B
 |                        |                        |
 C4                       E3                       C3
-]⋅exp(-ikₓ)
+]⋅exp(iky)
 ```
 """
-function proj_bottom_B(Pb, Pbd, C4_B,E4, C4,E4_B,
-                                E3_B,T, E3,T_B,
-                                C3_B,E2, C3,E2_B)    
+function proj_bottom_B(ky, Pb, Pbd, C4_B,E4, C4,E4_B,
+                                    E3_B,T, E3,T_B,
+                                    C3_B,E2, C3,E2_B)    
 end
 
 """
@@ -581,12 +585,12 @@ C4_Bd \\              /   E3_Bd \\              /   C3_Bd
 E4_Bd                    T_Bd                     E2_Bd
 |                        |                        |
 C4                       E3                       C3
-]⋅exp(ikₓ)
+]⋅exp(-iky)
 ```
 """
-function proj_bottom_B(Pb, Pbd, C4_Bd,E4, C4,E4_Bd,
-                                E3_Bd,T,  E3,T_Bd,
-                                C3_Bd,E2, C3,E2_Bd)    
+function proj_bottom_B(ky, Pb, Pbd, C4_Bd,E4, C4,E4_Bd,
+                                    E3_Bd,T,  E3,T_Bd,
+                                    C3_Bd,E2, C3,E2_Bd)    
 end
 
 """

@@ -61,6 +61,15 @@ function effH_ij(h, kx, ky, phi0, Bi, Bdj)
     hij
 end
 
+# function effN_ij(h, kx, ky, phi0, Bi, Bdj)
+#     phi_i = ExcIPEPS(kx, ky, phi0, Bi)
+#     phi_j = ExcIPEPS(kx, ky, phi0, conj(Bdj))
+
+#     env = get_envtensor(phi_i, phi_j; chi = 10) # BUG
+#     hij = get_hor_energy(h, env, phi_i, phi_j) + get_ver_energy(h, env, phi_i, phi_j)
+#     hij
+# end
+
 """
     get_norm_dA
 
