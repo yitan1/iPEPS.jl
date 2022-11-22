@@ -40,7 +40,7 @@ function get_hor_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
             
             effE1 = contract_E1(W[2], W[3])
             effE3 = contract_E3(W[10], W[11])
-            effT = contract_hor_T(h, W[6], W[7]) 
+            effT = contract_hor_T(h, W[6], W[7])
             E_hor += contract_env(W[1], W[4], W[12], W[9], effE1, W[8], effE3, W[5], effT)
         end
     end
