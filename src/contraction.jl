@@ -13,6 +13,89 @@ transfer_matrix(A::AbstractArray) = transfer_matrix(A, conj(A))
 end
 
 """
+    transfer_matrix
+
+Return a tensor(d, d, D²,D²,D²,D²)
+"""
+density_matrix(A::AbstractArray) = density_matrix(A, conj(A)) 
+
+@∇ function density_matrix(A::AbstractArray,B::AbstractArray)
+    @tensor T[i,j, a1,a2,b1,b2,c1,c2,d1,d2] := A[i, a1, b1, c1, d1]*B[j, a2, b2, c2, d2]
+    dim = size(T)
+    T = reshape(T, dim[1], dim[2], dim[3]*dim[4], dim[5]*dim[6], dim[7]*dim[8], dim[9]*dim[10])
+    T
+end
+
+"""
+```
+-- E1 -- E1 --
+   |     |
+```
+"""
+@∇ function contract_E1(E1_1, E1_2)
+    
+end
+
+"""
+```
+   |
+-- E2
+   |
+-- E2
+   |
+```
+"""
+function contract_E2(E2_1, E2_2)
+    
+end
+
+"""
+```
+   |     | 
+-- E3 -- E3 --
+```
+"""
+function contract_E3(E3_1, E3_2)
+    
+end
+
+"""
+```
+|
+E4 --
+|
+E4 --
+|
+```
+"""
+function contract_E4()
+    
+end
+
+"""
+```
+   |     |
+-- T -h- T --
+   |     |
+```
+"""
+function contract_hor_T(h, T1, T2)
+end
+
+"""
+```
+   |        
+-- T -- 
+   h     
+-- T --  
+   |    
+```
+"""
+function contract_ver_T(h, T1, T2)
+    
+end
+
+"""
     proj_left
 
 return C1, E4, C4
