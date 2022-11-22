@@ -26,7 +26,7 @@ include("env_tensor_exc.jl")
 
 include("optim_ES.jl")
 
-include("operations.jl")
+include("op_expect.jl")
 
 include("contraction.jl")
 

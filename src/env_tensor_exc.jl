@@ -19,8 +19,8 @@ function get_envtensor(phi1::ExcIPEPS, phi2::ExcIPEPS; kwargs...)
     kx, ky = get_kx(phi1), get_ky(phi1)
 
     # init
-    env = init_env(phi1, phi2, chi)
-    olds = zeros(eltype(env), chi)
+    envs = init_env(phi1, phi2, chi)
+    olds = zeros(chi)
     diff = 1.0
 
     # parameter 
@@ -29,7 +29,7 @@ function get_envtensor(phi1::ExcIPEPS, phi2::ExcIPEPS; kwargs...)
     output = get(kwargs, :output, true)
 
     for i = 1:maxitr
-        env, s = update_env(env, kx, ky)
+        envs, s = update_env(envs, kx, ky)
 
         if length(s) == length(olds)
             diff = norm(s - olds)
@@ -43,7 +43,7 @@ function get_envtensor(phi1::ExcIPEPS, phi2::ExcIPEPS; kwargs...)
         olds = s
     end
 
-    env
+    envs
 end
 
 function init_env(phi1::ExcIPEPS, phi2::ExcIPEPS, chi)
@@ -125,7 +125,7 @@ end
 
 Return C1_B, E4_B, C4_B
 """
-function up_left_B(envs::EnvTensor, kx, Pl, Pld)
+function up_left_B(envs::ExcEnvTensor, kx, Pl, Pld)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_B, Es_B, T_B = corner(envs[2]), edge(envs[2]), bulk(envs[2])
 
@@ -142,7 +142,7 @@ end
 
 Return C1_Bd, E4_Bd, C4_Bd
 """
-function up_left_Bd(envs::EnvTensor, kx, Pl, Pld)
+function up_left_Bd(envs::ExcEnvTensor, kx, Pl, Pld)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_Bd, Es_Bd, T_Bd = corner(envs[3]), edge(envs[3]), bulk(envs[3])
 
@@ -159,7 +159,7 @@ end
 
 Return C1_BB, E4_BB, C4_BB
 """
-function up_left_BB(envs::EnvTensor, Pl, Pld)
+function up_left_BB(envs::ExcEnvTensor, Pl, Pld)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_B, Es_B, T_B = corner(envs[2]), edge(envs[2]), bulk(envs[2])
     Cs_Bd, Es_Bd, T_Bd = corner(envs[3]), edge(envs[3]), bulk(envs[3])
@@ -179,7 +179,7 @@ end
 
 Return C2_B, E2_B, C3_B
 """
-function up_right_B(envs::EnvTensor, kx, Pr, Prd)
+function up_right_B(envs::ExcEnvTensor, kx, Pr, Prd)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_B, Es_B, T_B = corner(envs[2]), edge(envs[2]), bulk(envs[2])
 
@@ -196,7 +196,7 @@ end
 
 Return C2_Bd, E2_Bd, C3_Bd
 """
-function up_right_Bd(envs::EnvTensor, kx, Pr, Prd)
+function up_right_Bd(envs::ExcEnvTensor, kx, Pr, Prd)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_Bd, Es_Bd, T_Bd = corner(envs[3]), edge(envs[3]), bulk(envs[3])
 
@@ -213,17 +213,17 @@ end
 
 Return C2_BB, E2_BB, C3_BB
 """
-function up_right_BB(envs::EnvTensor, Pr, Prd)
+function up_right_BB(envs::ExcEnvTensor, Pr, Prd)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_B, Es_B, T_B = corner(envs[2]), edge(envs[2]), bulk(envs[2])
     Cs_Bd, Es_Bd, T_Bd = corner(envs[3]), edge(envs[3]), bulk(envs[3])
     Cs_BB, Es_BB, T_BB = corner(envs[4]), edge(envs[4]), bulk(envs[4])
 
-    newC2_BB, newE2_BB, newC3_BB = proj_left_BB(Pr, Prd, 
+    newC2_BB, newE2_BB, newC3_BB = proj_right_BB(Pr, Prd, 
                                     Cs_BB[2],Es[1], Cs[2],Es_BB[1], Cs_B[2],Es_Bd[1], Cs_Bd[2], Es_B[1],
                                     Es_BB[2],T,     Es[2],T_BB,     Es_B[2],T_Bd,     Es_Bd[2], T_B,
                                     Cs_BB[3],Es[3], Cs[3],Es_BB[3], Cs_B[3],Es_Bd[3], Cs_Bd[3], Es_B[3]) 
-    
+
     env4 = EnvTensor(T_BB, [Cs_BB[1], newC2_BB, newC3_BB, Cs_BB[4]], [Es_BB[1], newE2_BB, Es_BB[3], Es_BB[4]], get_maxchi(envs[4]))
     env4
 end
@@ -233,7 +233,7 @@ end
 
 Return C1_B, E1_B, C2_B
 """
-function up_top_B(envs::EnvTensor, ky, Pt, Ptd)
+function up_top_B(envs::ExcEnvTensor, ky, Pt, Ptd)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_B, Es_B, T_B = corner(envs[2]), edge(envs[2]), bulk(envs[2])
 
@@ -250,7 +250,7 @@ end
 
 Return C1_Bd, E1_Bd, C2_Bd
 """
-function up_top_Bd(envs::EnvTensor, ky, Pt, Ptd)
+function up_top_Bd(envs::ExcEnvTensor, ky, Pt, Ptd)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_Bd, Es_Bd, T_Bd = corner(envs[3]), edge(envs[3]), bulk(envs[3])
 
@@ -267,7 +267,7 @@ end
 
 Return C1_BB, E1_BB, C2_BB
 """
-function up_top_BB(envs::EnvTensor, Pt, Ptd)
+function up_top_BB(envs::ExcEnvTensor, Pt, Ptd)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_B, Es_B, T_B = corner(envs[2]), edge(envs[2]), bulk(envs[2])
     Cs_Bd, Es_Bd, T_Bd = corner(envs[3]), edge(envs[3]), bulk(envs[3])
@@ -287,7 +287,7 @@ end
 
 Return C4_B, E3_B, C3_B
 """
-function up_bottom_B(envs::EnvTensor, ky, Pb, Pbd)
+function up_bottom_B(envs::ExcEnvTensor, ky, Pb, Pbd)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_B, Es_B, T_B = corner(envs[2]), edge(envs[2]), bulk(envs[2])
 
@@ -304,7 +304,7 @@ end
 
 Return C4_Bd, E3_Bd, C3_Bd
 """
-function up_bottom_Bd(envs::EnvTensor, ky, Pb, Pbd)
+function up_bottom_Bd(envs::ExcEnvTensor, ky, Pb, Pbd)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_Bd, Es_Bd, T_Bd = corner(envs[3]), edge(envs[3]), bulk(envs[3])
 
@@ -321,7 +321,7 @@ end
 
 Return C4_BB, E3_BB, C3_BB
 """
-function up_bottom_BB(envs::EnvTensor, Pb, Pbd)
+function up_bottom_BB(envs::ExcEnvTensor, Pb, Pbd)
     Cs, Es, T = corner(envs[1]), edge(envs[1]), bulk(envs[1])
     Cs_B, Es_B, T_B = corner(envs[2]), edge(envs[2]), bulk(envs[2])
     Cs_Bd, Es_Bd, T_Bd = corner(envs[3]), edge(envs[3]), bulk(envs[3])

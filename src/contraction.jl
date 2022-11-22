@@ -325,9 +325,23 @@ return C1_B, E4_B, C4_B
 (C4_B -- E3 --  +  C4 -- E3_B -- )⋅exp(-ikₓ)
 ```
 """
-function proj_left_B(kx, Pl, Pld, C1_B, E1, C1, E1_B, 
+@∇ function proj_left_B(kx, Pl, Pld, C1_B, E1, C1, E1_B, 
                                   E4_B, T, E4, T_B, 
                                   C4_B, E3, C4, E3_B)
+
+    @tensor newC1_B[m1,m2,m3] := (C1_B[m1, p1]*E1[p1,m2,m3] + C1[m1, p1]*E1_B[p1,m2,m3])*exp(-im*kx)
+    newC1_B = reshape(newC1_B, :, size(newC1_B,3))
+    @tensor newC1_B[m1,m2] := newC1_B[p1,m2]*Pl[p1,m1]
+
+    @tensor newE4_B[m1,m2,m3,m4,m5] := (E4_B[m1,m3,p1]*T[m2,p1,m4,m5] + E4[m1,m3,p1]*T_B[m2,p1,m4,m5])*exp(-im*kx)
+    newE4_B = reshape(newE4_B, size(newE4_B,1)*size(newE4_B,2), size(newE4_B,3)*size(newE4_B,4), :)
+    @tensor newE4_B[m1,m2,m3] := Pld[m1,p1]*newE4_B[p1,p2,m3]*Pl[p2,m2]
+    
+    @tensor newC4_B[m1,m2,m3] := (C4_B[m1, p1]*E3[m2,p1,m3] + C4[m1, p1]*E3_B[m2,p1,m3])*exp(-im*kx)
+    newC4_B = reshape(newC4_B, :, size(newC4_B,3))
+    @tensor newC4_B[m1,m2] := Pld[m1,p1]*newC4_B[p1,m2]
+
+    newC1_B/norm(newC1_B), newE4_B/norm(newE4_B), newC4_B/norm(newC4_B)
 end
 
 """
@@ -355,7 +369,7 @@ return C1_Bd, E4_Bd, C4_Bd
 function proj_left_Bd(kx, Pl, Pld, C1_Bd, E1, C1, E1_Bd, 
                                    E4_Bd, T, E4, T_Bd, 
                                    C4_Bd, E3, C4, E3_Bd)
-                                   
+
     proj_left_B(-kx, Pl, Pld, C1_Bd, E1, C1, E1_Bd, 
                               E4_Bd, T, E4, T_Bd, 
                               C4_Bd, E3, C4, E3_Bd)
@@ -383,9 +397,22 @@ return C1_BB, E4_BB, C4_BB
 (C4_BB -- E3 --  +  C4 -- E3_BB  +  C4_B -- E3_Bd --  +  C4_Bd -- E3_B -- )
 ```
 """
-function proj_left_BB(Pl, Pld, C1_BB,E1, C1,E1_BB, C1_B,E1_Bd, C1_Bd,E1_B, 
+@∇ function proj_left_BB(Pl, Pld, C1_BB,E1, C1,E1_BB, C1_B,E1_Bd, C1_Bd,E1_B, 
                                E4_BB,T, E4,T_BB, E4_B,T_Bd, E4_Bd,T_B, 
                                C4_BB,E3, C4,E3_BB, C4_B,E3_Bd, C4_Bd,E3_B)
+    @tensor newC1_BB[m1,m2,m3] := C1_BB[m1, p1]*E1[p1,m2,m3] + C1[m1, p1]*E1_BB[p1,m2,m3] + C1_B[m1, p1]*E1_Bd[p1,m2,m3] + C1_Bd[m1, p1]*E1_B[p1,m2,m3]
+    newC1_BB = reshape(newC1_BB, :, size(newC1_BB,3))
+    @tensor newC1_BB[m1,m2] := newC1_BB[p1,m2]*Pl[p1,m1]
+
+    @tensor newE4_BB[m1,m2,m3,m4,m5] := E4_BB[m1,m3,p1]*T[m2,p1,m4,m5] + E4[m1,m3,p1]*T_BB[m2,p1,m4,m5] + E4_B[m1,m3,p1]*T_Bd[m2,p1,m4,m5] + E4_Bd[m1,m3,p1]*T_B[m2,p1,m4,m5]
+    newE4_BB = reshape(newE4_BB, size(newE4_BB,1)*size(newE4_BB,2), size(newE4_BB,3)*size(newE4_BB,4), :)
+    @tensor newE4_BB[m1,m2,m3] := Pld[m1,p1]*newE4_BB[p1,p2,m3]*Pl[p2,m2]
+    
+    @tensor newC4_BB[m1,m2,m3] := C4_BB[m1, p1]*E3[m2,p1,m3] + C4[m1, p1]*E3_BB[m2,p1,m3] + C4_B[m1, p1]*E3_Bd[m2,p1,m3] + C4_Bd[m1, p1]*E3_B[m2,p1,m3]
+    newC4_BB = reshape(newC4_BB, :, size(newC4_BB,3))
+    @tensor newC4_BB[m1,m2] := Pld[m1,p1]*newC4_BB[p1,m2]
+
+    newC1_BB/norm(newC1_BB), newE4_BB/norm(newE4_BB), newC4_BB/norm(newC4_BB)
 end
 
 """
@@ -410,9 +437,23 @@ return C2_B, E2_B, C3_B
 (-- E3 -- C3_B  +  -- E3_B -- C3)⋅exp(ikₓ)
 ```
 """
-function proj_right_B(kx, Pl, Pld, C2_B, E1, C2, E1_B, 
+@∇ function proj_right_B(kx, Pr, Prd, C2_B, E1, C2, E1_B, 
                                    E2_B, T, E2, T_B, 
                                    C3_B, E3, C3, E3_B)
+    
+    @tensor newC2_B[m1,m2,m3] := (E1[m1,m3,p1]*C2_B[p1, m2] + E1_B[m1,m3,p1]*C2[p1, m2])*exp(im*kx)
+    newC2_B = reshape(newC2_B, size(newC2_B,1), :)
+    @tensor newC2_B[m1,m2] := newC2_B[m1,p1]*Pr[p1,m2]
+
+    @tensor newE2_B[m1,m2,m3,m4,m5] := (T[m2,m3,m5,p1]*E2_B[m1,p1,m4] + T_B[m2,m3,m5,p1]*E2[m1,p1,m4])*exp(im*kx)
+    newE2_B = reshape(newE2_B, size(newE2_B,1)*size(newE2_B,2), :, size(newE2_B,4)*size(newE2_B,5))
+    @tensor newE2_B[m1,m2,m3] := Prd[m1,p1]*newE2_B[p1,m2,p2]*Pr[p2,m3]
+    
+    @tensor newC3_B[m1,m2,m3] := (E3[m2,m3,p1]*C3_B[m1, p1] + E3_B[m2,m3,p1]*C3[m1, p1])*exp(im*kx)
+    newC3_B = reshape(newC3_B, :, size(newC3_B,3))
+    @tensor newC3_B[m1,m2] := Prd[m1,p1]*newC3_B[p1,m2]
+
+    newC2_B/norm(newC2_B), newE2_B/norm(newE2_B), newC3_B/norm(newC3_B)
 end
 
 """
@@ -437,9 +478,13 @@ return C2_Bd, E2_Bd, C3_Bd
 (-- E3 -- C3_Bd  +  -- E3_Bd -- C3)⋅exp(-ikₓ)
 ```
 """
-function proj_right_Bd(kx, Pl, Pld, C2_Bd, E1, C2, E1_Bd, 
-                                    E2_Bd, T, E2, T_Bd, 
+function proj_right_Bd(kx, Pr, Prd, C2_Bd, E1, C2, E1_Bd, 
+                                    E2_Bd, T,  E2, T_Bd, 
                                     C3_Bd, E3, C3, E3_Bd)
+
+    proj_right_B(-kx, Pr, Prd, C2_Bd, E1, C2, E1_Bd, 
+                               E2_Bd, T,  E2, T_Bd, 
+                               C3_Bd, E3, C3, E3_Bd)
 end
 
 """
@@ -464,9 +509,23 @@ return C2_BB, E2_BB, C3_BB
 (-- E3 -- C3_BB  +  -- E3_BB -- C3 +  -- E3_Bd -- C3_B  +  -- E3_B -- C3_Bd)
 ```
 """
-function proj_right_BB(Pr, Prd, C2_BB,E1, C2,E1_BB, C2_B,E1_Bd, C2_Bd,E1_B, 
+@∇ function proj_right_BB(Pr, Prd, C2_BB,E1, C2,E1_BB, C2_B,E1_Bd, C2_Bd,E1_B, 
                                 E2_BB,T,  E2,T_BB,  E2_B,T_Bd,  E2_Bd,T_B, 
                                 C3_BB,E3, C3,E3_BB, C3_B,E3_Bd, C3_Bd,E3_B)
+    
+    @tensor newC2_BB[m1,m2,m3] := E1[m1,m3,p1]*C2_BB[p1, m2] + E1_BB[m1,m3,p1]*C2[p1, m2] + E1_Bd[m1,m3,p1]*C2_B[p1, m2] + E1_B[m1,m3,p1]*C2_Bd[p1, m2]
+    newC2_BB = reshape(newC2_BB, size(newC2_BB,1), :)
+    @tensor newC2_BB[m1,m2] := newC2_BB[m1,p1]*Pr[p1,m2]
+
+    @tensor newE2_BB[m1,m2,m3,m4,m5] := T[m2,m3,m5,p1]*E2_BB[m1,p1,m4] + T_BB[m2,m3,m5,p1]*E2[m1,p1,m4] + T_Bd[m2,m3,m5,p1]*E2_B[m1,p1,m4] + T_B[m2,m3,m5,p1]*E2_Bd[m1,p1,m4]
+    newE2_BB = reshape(newE2_BB, size(newE2_BB,1)*size(newE2_BB,2), :, size(newE2_BB,4)*size(newE2_BB,5))
+    @tensor newE2_BB[m1,m2,m3] := Prd[m1,p1]*newE2_BB[p1,m2,p2]*Pr[p2,m3]
+    
+    @tensor newC3_BB[m1,m2,m3] := E3[m2,m3,p1]*C3_BB[m1, p1] + E3_BB[m2,m3,p1]*C3[m1, p1] + E3_Bd[m2,m3,p1]*C3_B[m1, p1] + E3_B[m2,m3,p1]*C3_Bd[m1, p1]
+    newC3_BB = reshape(newC3_BB, :, size(newC3_BB,3))
+    @tensor newC3_BB[m1,m2] := Prd[m1,p1]*newC3_BB[p1,m2]
+
+    newC2_BB/norm(newC2_BB), newE2_BB/norm(newE2_BB), newC3_BB/norm(newC3_BB)
 end
 
 """
@@ -487,9 +546,23 @@ E4_B                     T_B                      E2_B
 ]
 ```
 """
-function proj_top_B(ky, Pt, Ptd, C1_B,E4, C1,E4_B,
+@∇ function proj_top_B(ky, Pt, Ptd, C1_B,E4, C1,E4_B,
                                  E1_B,T,  E1,T_B,
-                                 C2_B,E2, C2,E2_B)    
+                                 C2_B,E2, C2,E2_B)  
+
+    @tensor newC1_B[m1,m2,m3] := (C1_B[p1, m2]*E4[p1, m1, m3] + C1[p1, m2]*E4_B[p1, m1, m3])*exp(-im*ky) 
+    newC1_B = reshape(newC1_B, size(newC1_B,1), :)
+    @tensor newC1_B[m1,m2] := newC1_B[m1,p1]*Pt[p1,m2]
+
+    @tensor newE1_B[m1,m2,m3,m4,m5] := (E1_B[m1,p1,m4]*T[p1,m2,m3,m5] + E1[m1,p1,m4]*T_B[p1,m2,m3,m5])*exp(-im*ky)
+    newE1_B = reshape(newE1_B, size(newE1_B,1)*size(newE1_B,2), :, size(newE1_B,4)*size(newE1_B,5))
+    @tensor newE1_B[m1,m2,m3] := Ptd[m1,p1]*newE1_B[p1,m2,p2]*Pt[p2,m3]
+    
+    @tensor newC2_B[m1,m2,m3] := (C2_B[m1,p1]*E2[p1,m2,m3] + C2[m1,p1]*E2_B[p1,m2,m3])*exp(-im*ky)
+    newC2_B = reshape(newC2_B, :, size(newC2_B,3))
+    @tensor newC2_B[m1,m2] := Ptd[m1,p1]*newC2_B[p1,m2]
+
+    newC1_B/norm(newC1_B), newE1_B/norm(newE1_B), newC2_B/norm(newC2_B)
 end
 
 """
@@ -513,6 +586,10 @@ E4_Bd                    T_Bd                     E2_Bd
 function proj_top_Bd(ky, Pt, Ptd, C1_Bd,E4, C1,E4_Bd,
                                   E1_Bd,T,  E1,T_Bd,
                                   C2_Bd,E2, C2,E2_Bd)    
+
+    proj_top_B(-ky, Pt, Ptd, C1_Bd,E4, C1,E4_Bd,
+                             E1_Bd,T,  E1,T_Bd,
+                             C2_Bd,E2, C2,E2_Bd) 
 end
 
 """
@@ -541,9 +618,23 @@ E4_B                     T_B                      E2_B
 |                        |                        |
 ```
 """
-function proj_top_BB(Pt, Ptd, C1_BB,E4, C1,E4_BB, C1_B,E4_Bd, C1_Bd,E4_B,
+@∇ function proj_top_BB(Pt, Ptd, C1_BB,E4, C1,E4_BB, C1_B,E4_Bd, C1_Bd,E4_B,
                               E1_BB,T,  E1,T_BB,  E1_B,T_Bd,  E1_Bd, T_B,
-                              C2_BB,E2, C2,E2_BB, C2_B,E2_Bd, C2_Bd, E2_B)    
+                              C2_BB,E2, C2,E2_BB, C2_B,E2_Bd, C2_Bd, E2_B)
+                              
+    @tensor newC1_BB[m1,m2,m3] := C1_BB[p1, m2]*E4[p1, m1, m3] + C1[p1, m2]*E4_BB[p1, m1, m3] + C1_B[p1, m2]*E4_Bd[p1, m1, m3] + C1_Bd[p1, m2]*E4_B[p1, m1, m3] 
+    newC1_BB = reshape(newC1_BB, size(newC1_BB,1), :)
+    @tensor newC1_BB[m1,m2] := newC1_BB[m1,p1]*Pt[p1,m2]
+
+    @tensor newE1_BB[m1,m2,m3,m4,m5] := E1_BB[m1,p1,m4]*T[p1,m2,m3,m5] + E1[m1,p1,m4]*T_BB[p1,m2,m3,m5] + E1_B[m1,p1,m4]*T_Bd[p1,m2,m3,m5] + E1_Bd[m1,p1,m4]*T_B[p1,m2,m3,m5]
+    newE1_BB = reshape(newE1_BB, size(newE1_BB,1)*size(newE1_BB,2), :, size(newE1_BB,4)*size(newE1_BB,5))
+    @tensor newE1_BB[m1,m2,m3] := Ptd[m1,p1]*newE1_BB[p1,m2,p2]*Pt[p2,m3]
+    
+    @tensor newC2_BB[m1,m2,m3] := C2_BB[m1,p1]*E2[p1,m2,m3] + C2[m1,p1]*E2_BB[p1,m2,m3] + C2_B[m1,p1]*E2_Bd[p1,m2,m3] + C2_Bd[m1,p1]*E2_B[p1,m2,m3]
+    newC2_BB = reshape(newC2_BB, :, size(newC2_BB,3))
+    @tensor newC2_BB[m1,m2] := Ptd[m1,p1]*newC2_BB[p1,m2]
+
+    newC1_BB/norm(newC1_BB), newE1_BB/norm(newE1_BB), newC2_BB/norm(newC2_BB)
 end
 
 
@@ -565,9 +656,23 @@ C4                       E3                       C3
 ]⋅exp(iky)
 ```
 """
-function proj_bottom_B(ky, Pb, Pbd, C4_B,E4, C4,E4_B,
+@∇ function proj_bottom_B(ky, Pb, Pbd, C4_B,E4, C4,E4_B,
                                     E3_B,T, E3,T_B,
-                                    C3_B,E2, C3,E2_B)    
+                                    C3_B,E2, C3,E2_B)
+
+    @tensor newC4_B[m1,m2,m3] := (E4[m1,p1,m3]*C4_B[p1, m2] + E4_B[m1,p1,m3]*C4[p1, m2])*exp(im*ky)
+    newC4_B = reshape(newC4_B, size(newC4_B,1), :)
+    @tensor newC4_B[m1,m2] := newC4_B[m1,p1]*Pb[p1,m2]
+
+    @tensor newE3_B[m1,m2,m3,m4,m5] := (T[m1,m3,p1,m5]*E3_B[p1,m2,m4] + T_B[m1,m3,p1,m5]*E3[p1,m2,m4])*exp(im*ky)
+    newE3_B = reshape(newE3_B, :, size(newE3_B,2)*size(newE3_B,3), size(newE3_B,4)*size(newE3_B,5))
+    @tensor newE3_B[m1,m2,m3] := Pbd[m2,p1]*newE3_B[m1,p1,p2]*Pb[p2,m3]
+    
+    @tensor newC3_B[m1,m2,m3] := (E2[m1,m3,p1]*C3_B[p1, m2] + E2_B[m1,m3,p1]*C3[p1, m2])*exp(im*ky)
+    newC3_B = reshape(newC3_B, size(newC3_B,1), :)
+    @tensor newC3_B[m1,m2] := Pbd[m2,p1]*newC3_B[m1,p1]
+
+    newC4_B/norm(newC4_B), newE3_B/norm(newE3_B), newC3_B/norm(newC3_B)
 end
 
 """
@@ -588,9 +693,13 @@ C4                       E3                       C3
 ]⋅exp(-iky)
 ```
 """
-function proj_bottom_B(ky, Pb, Pbd, C4_Bd,E4, C4,E4_Bd,
-                                    E3_Bd,T,  E3,T_Bd,
-                                    C3_Bd,E2, C3,E2_Bd)    
+function proj_bottom_Bd(ky, Pb, Pbd, C4_Bd,E4, C4,E4_Bd,
+                                     E3_Bd,T,  E3,T_Bd,
+                                     C3_Bd,E2, C3,E2_Bd) 
+
+    proj_bottom_B(-ky, Pb, Pbd, C4_Bd,E4, C4,E4_Bd,
+                                E3_Bd,T,  E3,T_Bd,
+                                C3_Bd,E2, C3,E2_Bd) 
 end
 
 """
@@ -619,7 +728,21 @@ E4_B                     T_B                      E2_B
 C4_Bd                    E3_Bd                    C3_Bd
 ```
 """
-function proj_bottom_BB(Pb, Pbd, C4_BB,E4, C4,E4_BB, C4_B,E4_Bd, C4_Bd, E4_B,
+@∇ function proj_bottom_BB(Pb, Pbd, C4_BB,E4, C4,E4_BB, C4_B,E4_Bd, C4_Bd, E4_B,
                                  E3_BB,T,  E3,T_BB,  E3_B,T_Bd,  E3_Bd, T_B,
                                  C3_BB,E2, C3,E2_BB, C3_B,E2_Bd, C3_Bd, E2_B)    
+
+    @tensor newC4_BB[m1,m2,m3] := E4[m1,p1,m3]*C4_BB[p1, m2] + E4_BB[m1,p1,m3]*C4[p1, m2] + E4_Bd[m1,p1,m3]*C4_B[p1, m2] + E4_B[m1,p1,m3]*C4_Bd[p1, m2]
+    newC4_BB = reshape(newC4_BB, size(newC4_BB,1), :)
+    @tensor newC4_BB[m1,m2] := newC4_BB[m1,p1]*Pb[p1,m2]
+
+    @tensor newE3_BB[m1,m2,m3,m4,m5] := T[m1,m3,p1,m5]*E3_BB[p1,m2,m4] + T_BB[m1,m3,p1,m5]*E3[p1,m2,m4] + T_Bd[m1,m3,p1,m5]*E3_B[p1,m2,m4] + T_B[m1,m3,p1,m5]*E3_Bd[p1,m2,m4]
+    newE3_BB = reshape(newE3_BB, :, size(newE3_BB,2)*size(newE3_BB,3), size(newE3_BB,4)*size(newE3_BB,5))
+    @tensor newE3_BB[m1,m2,m3] := Pbd[m2,p1]*newE3_BB[m1,p1,p2]*Pb[p2,m3]
+    
+    @tensor newC3_BB[m1,m2,m3] := E2[m1,m3,p1]*C3_BB[p1, m2] + E2_BB[m1,m3,p1]*C3[p1, m2] + E2_Bd[m1,m3,p1]*C3_B[p1, m2] + E2_B[m1,m3,p1]*C3_Bd[p1, m2]
+    newC3_BB = reshape(newC3_BB, size(newC3_BB,1), :)
+    @tensor newC3_BB[m1,m2] := Pbd[m2,p1]*newC3_BB[m1,p1]
+
+    newC4_BB/norm(newC4_BB), newE3_BB/norm(newE3_BB), newC3_BB/norm(newC3_BB)
 end

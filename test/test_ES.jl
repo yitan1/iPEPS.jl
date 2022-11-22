@@ -58,4 +58,8 @@ Bd = rand(d,D,D,D,D);
 phi1 = iPEPS.ExcIPEPS(A,B);
 phi2 = iPEPS.ExcIPEPS(A,Bd);
 
-envs = iPEPS.init_env(phi1, phi2, chi);
+envs0 = iPEPS.init_env(phi1, phi2, chi);
+
+env, s = iPEPS.update_env(envs0, 0, 0);
+
+iPEPS.get_envtensor(phi1, phi2);

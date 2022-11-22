@@ -26,7 +26,15 @@ struct EnvTensor{T, N, AT<:AbstractArray{T,N}, CT<:AbstractArray{T}, ET<:Abstrac
     chi::Int
 end
 
-EnvTensor(bulk::AT, corner::Vector{CT}, edge::Vector{ET}, chi) where {T, N, AT<:AbstractArray{T,N}, CT<:AbstractArray{T}, ET<:AbstractArray{T}} = EnvTensor{T, N, AT, CT, ET}(bulk, corner, edge)
+# T1 > T 
+function EnvTensor(bulk::AT, corner::Vector{CT}, edge::Vector{ET}, chi) where {T, T1, N, 
+                                AT<:AbstractArray{T,N}, CT<:AbstractArray{T1}, ET<:AbstractArray{T1}} 
+    newT = promote_type(T, T1)
+    newbulk = convert.(newT, bulk)
+    EnvTensor(newbulk, corner, edge, chi)
+end
+
+EnvTensor(bulk::AT, corner::Vector{CT}, edge::Vector{ET}, chi) where {T, N, AT<:AbstractArray{T,N}, CT<:AbstractArray{T}, ET<:AbstractArray{T}} = EnvTensor{T, N, AT, CT, ET}(bulk, corner, edge, chi)
 
 Base.eltype(::Type{<:EnvTensor{T}}) where {T} = T
 
