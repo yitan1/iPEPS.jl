@@ -14,7 +14,7 @@ Base.getindex(envs::ExcEnvTensor, i::Int) = envs.data[i]
 
 ExcEnvTensor(args...) = ExcEnvTensor(collect(args))
 
-function get_envtensor(phi1::ExcIPEPS, phi2::ExcIPEPS; kwargs...)
+function get_envtensor(phi1::ExcIPEPS, phi2::ExcIPEPS; kwargs...) #### XXX kwargs
     chi = get(kwargs, :chi, 100) # TODO: error when chi is not assigned
     kx, ky = get_kx(phi1), get_ky(phi1)
 

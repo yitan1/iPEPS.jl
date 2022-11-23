@@ -1,7 +1,7 @@
 
-function optimize_ES(kx, ky, phi0::IPEPS, h; kwargs...) #TODO
+function optimize_ES(kx, ky, phi0::IPEPS, h_hor, h_ver; kwargs...) ##### XXX kwargs
     Bn = get_tangent_basis(phi0; kwargs)
-    H, N = eff_hamitonian_norm(h, kx, ky, phi0, Bn)
+    H, N = eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi0, Bn; kwargs)
     energy, _ = eigsolve(H,N)
     
     energy
@@ -16,8 +16,8 @@ end
 
 Return (dD⁴-1) tensor B(d, D, D, D, D) satisfying ⟨ϕ(A)|ϕ(B)⟩ = 0
 """
-function get_tangent_basis(phi::IPEPS; kwargs...)
-    env = get_envtensor(phi; kwargs)
+function get_tangent_basis(phi::IPEPS; kwargs...) #### XXX kwargs
+    env = get_envtensor(phi; kwargs) #### XXX kwargs
     dA = get_norm_dA(env, phi)
     dA = reshape(dA, (1,:) )
     basis = nullspace(dA)   #(dD^4, dD^4-1)  
@@ -28,7 +28,9 @@ end
 """
 Return two matrix (H, N)
 """
-function eff_hamitonian_norm(h, kx, ky, phi, Bn)
+function eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi, Bn; kwargs...) #### XXX kwargs
+    chi = get(kwargs, :chi, 100)
+
     M = size(Bn,2)
     H = zeros(eltype(Bn), M, M) 
     N = zeros(eltype(Bn), M, M) 
@@ -36,8 +38,8 @@ function eff_hamitonian_norm(h, kx, ky, phi, Bn)
         Bj = Bn[:,j]
         Bdj = conj(Bj)
         
-        hBj = gradient(_x -> effH_ij(h, kx, ky, phi, Bj, _x), Bdj)[1]
-        Bj1 = gradient(_x -> effN_ij(kx, ky, phi, Bj, _x), Bdj)[1]
+        hBj = gradient(_x -> effH_ij(h_hor, h_ver, kx, ky, phi, Bj, _x, chi), Bdj)[1]
+        Bj1 = gradient(_x -> effN_ij(kx, ky, phi, Bj, _x, chi), Bdj)[1]
         for i in axes(H,1)
             Bi = Bn[:,i]
             H[i,j] = Bi'*hBj
@@ -52,23 +54,33 @@ end
 
 ⟨ϕⱼ(Bⱼ†)|h|ϕᵢ(Bᵢ)⟩
 """
-function effH_ij(h, kx, ky, phi0, Bi, Bdj)
+function effH_ij(h_hor, h_ver, kx, ky, phi0, Bi, Bdj, chi)
+    Bi = reshape(Bi, size( get_A(phi0) ))
+    Bdj = reshape(Bdj, size( get_A(phi0) ))
     phi_i = ExcIPEPS(kx, ky, phi0, Bi)
     phi_j = ExcIPEPS(kx, ky, phi0, conj(Bdj))
 
-    env = get_envtensor(phi_i, phi_j; chi = 10) # BUG
-    hij = get_hor_energy(h, env, phi_i, phi_j) + get_ver_energy(h, env, phi_i, phi_j)
+    envs = get_envtensor(phi_i, phi_j; chi = chi) #### XXX kwargs
+    hij = get_hor_energy(h_hor, envs, phi_i, phi_j) + get_ver_energy(h_ver, envs, phi_i, phi_j)
     hij
 end
 
-# function effN_ij(h, kx, ky, phi0, Bi, Bdj)
-#     phi_i = ExcIPEPS(kx, ky, phi0, Bi)
-#     phi_j = ExcIPEPS(kx, ky, phi0, conj(Bdj))
+function effN_ij(kx, ky, phi0, Bi, Bdj, chi)
+    Bi = reshape(Bi, size( get_A(phi0) ))
+    Bdj = reshape(Bdj, size( get_A(phi0) ))
+    phi_i = ExcIPEPS(kx, ky, phi0, Bi)
+    phi_j = ExcIPEPS(kx, ky, phi0, conj(Bdj))
 
-#     env = get_envtensor(phi_i, phi_j; chi = 10) # BUG
-#     hij = get_hor_energy(h, env, phi_i, phi_j) + get_ver_energy(h, env, phi_i, phi_j)
-#     hij
-# end
+    env = get_envtensor(phi_i, phi_j; chi = chi) #### XXX kwargs
+
+    d = size(get_A(phi0), 1)
+    id = Matrix(I, d,d)
+    hI = kron(id,id)
+    hI = reshape(hI, d, d, d, d)
+
+    Nij = get_hor_energy(hI, env, phi_i, phi_j) + get_ver_energy(hI, env, phi_i, phi_j)
+    Nij
+end
 
 """
     get_norm_dA

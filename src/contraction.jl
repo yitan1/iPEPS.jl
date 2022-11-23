@@ -28,71 +28,86 @@ end
 
 """
 ```
--- E1 -- E1 --
-   |     |
+-- E1a -- E1b --
+   |      |
 ```
 """
-@∇ function contract_E1(E1_1, E1_2)
-    
+@∇ function contract_E1(E1a, E1b)
+    @tensor out[m1,m2,m3,m4] := E1a[m1,m2, p1]*E1b[p1, m3, m4]
+    out = reshape(out, size(out,1), :, size(out,4))
+    out
 end
 
 """
 ```
    |
--- E2
+-- E2a
    |
--- E2
+-- E2b
    |
 ```
 """
-function contract_E2(E2_1, E2_2)
-    
+@∇ function contract_E2(E2a, E2b)
+    @tensor out[m1,m2,m3,m4] := E2a[m1,m2, p1]*E2b[p1, m3, m4]
+    out = reshape(out, size(out,1), :, size(out,4))
+    out
 end
 
 """
 ```
-   |     | 
--- E3 -- E3 --
+   |      | 
+-- E3a -- E3b --
 ```
 """
-function contract_E3(E3_1, E3_2)
-    
+@∇ function contract_E3(E3a, E3b)
+    @tensor out[m1,m2,m3,m4] := E3a[m1,m3, p1]*E3b[m2, p1, m4]
+    out = reshape(out, :, size(out,3), size(out,4))
+    out
 end
 
 """
 ```
 |
-E4 --
+E4a --
 |
-E4 --
+E4b --
 |
 ```
 """
-function contract_E4()
-    
+@∇ function contract_E4(E4a, E4b)
+    @tensor out[m1,m2,m3,m4] := E4a[m1,p1, m3]*E4b[p1, m2, m4]
+    out = reshape(out, size(out,1), size(out,2), :)
+    out
 end
 
 """
 ```
-   |     |
--- T -h- T --
-   |     |
+   |      |
+-- T1 -h- T2 --
+   |      |
 ```
 """
-function contract_hor_T(h, T1, T2)
+@∇ function contract_hor_T(h, T1, T2)
+    @tensor out[m1,m2,m3,m4,m5,m6] := T1[i1,j1, m1,m3,m4,p1]*T2[i2,j2, m2,p1,m5,m6]*h[i1,i2,j1,j2]
+    dims = size(out)
+    out = reshape(out, dims[1]*dims[2], dims[3], dims[4]*dims[5], dims[6])
+    out
 end
 
 """
 ```
    |        
--- T -- 
+-- T1 -- 
    h     
--- T --  
+-- T2 --  
    |    
 ```
 """
-function contract_ver_T(h, T1, T2)
-    
+@∇ function contract_ver_T(h, T1, T2)
+    @tensor out[m1,m2,m3,m4,m5,m6] := T1[i1,j1, m1,m2,p1,m5]*T2[i2,j2, p1,m3,m4,m6]*h[i1,i2,j1,j2]
+    dims = size(out)
+    out = reshape(out, dims[1], dims[2]*dims[3], dims[4], dims[5]*dims[6])
+    out
 end
 
 """

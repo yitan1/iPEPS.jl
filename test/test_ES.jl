@@ -62,4 +62,28 @@ envs0 = iPEPS.init_env(phi1, phi2, chi);
 
 env, s = iPEPS.update_env(envs0, 0, 0);
 
-iPEPS.get_envtensor(phi1, phi2);
+envs = iPEPS.get_envtensor(phi1, phi2);
+
+
+
+
+##########
+using PhyOperators
+h = spinmodel();
+h = reshape(h, 2,2,2,2);
+d = 2
+D = 2
+using MKL
+
+A = rand(d,D,D,D,D);
+phi0 = iPEPS.IPEPS(A);
+Bn = iPEPS.get_tangent_basis(phi0; chi = 5);
+
+H, N = iPEPS.eff_hamitonian_norm(h, h, 0.0, 0.0, phi0, Bn; chi = 5);
+
+Bj = Bn[:,1];
+Bdj = conj(Bj);
+
+res1 = gradient(_x -> iPEPS.effH_ij(h, h, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1]
+
+iPEPS.effH_ij(h, h, 0.0, 0.0, phi0, Bj, Bdj, 5)

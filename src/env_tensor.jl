@@ -55,17 +55,17 @@ E4 -- T  -- E2
 C4 -- E3 -- C3
 ```
 """
-function get_envtensor(phi::IPEPS; kwargs...)
+function get_envtensor(phi::IPEPS; kwargs...) #### XXX kwargs
     T = transfer_matrix(get_A(phi), get_Ad(phi))
     get_envtensor(T; kwargs)
 end
 
-function get_envtensor(phi::IPEPS, phid::IPEPS; kwargs...)
+function get_envtensor(phi::IPEPS, phid::IPEPS; kwargs...) #### XXX kwargs
     T = transfer_matrix(get_A(phi), get_Ad(phid))
     get_envtensor(T; kwargs)
 end
 
-function get_envtensor(T::AbstractArray; kwargs...)
+function get_envtensor(T::AbstractArray; kwargs...) #### XXX kwargs
     chi = get(kwargs, :chi, 100) # TODO: error when chi is not assigned
     env = init_env(T, chi)
 
