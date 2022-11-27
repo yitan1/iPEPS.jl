@@ -1,6 +1,6 @@
 name = "iPEPS"
 uuid = "01e728fb-b642-4ffa-9b05-4a090a979482"
-authors = ["'yitan1 <yitam98@gmaimail.com>'"]
+authors = ["'yitan1 <yitam98@gmail.com>'"]
 version = "0.1.0"
 
 [deps]

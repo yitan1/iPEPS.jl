@@ -87,8 +87,22 @@ end
    |      |
 ```
 """
-@∇ function contract_hor_T(h, T1, T2)
+@∇ function contract_hor_Th(h, T1, T2)
     @tensor out[m1,m2,m3,m4,m5,m6] := T1[i1,j1, m1,m3,m4,p1]*T2[i2,j2, m2,p1,m5,m6]*h[i1,i2,j1,j2]
+    dims = size(out)
+    out = reshape(out, dims[1]*dims[2], dims[3], dims[4]*dims[5], dims[6])
+    out
+end
+
+"""
+```
+   |      |
+-- T1 --- T2 --
+   |      |
+```
+"""
+@∇ function contract_hor_T(T1, T2)
+    @tensor out[m1,m2,m3,m4,m5,m6] := T1[m1,m3,m4,p1]*T2[m2,p1,m5,m6]
     dims = size(out)
     out = reshape(out, dims[1]*dims[2], dims[3], dims[4]*dims[5], dims[6])
     out
@@ -103,8 +117,24 @@ end
    |    
 ```
 """
-@∇ function contract_ver_T(h, T1, T2)
+@∇ function contract_ver_Th(h, T1, T2)
     @tensor out[m1,m2,m3,m4,m5,m6] := T1[i1,j1, m1,m2,p1,m5]*T2[i2,j2, p1,m3,m4,m6]*h[i1,i2,j1,j2]
+    dims = size(out)
+    out = reshape(out, dims[1], dims[2]*dims[3], dims[4], dims[5]*dims[6])
+    out
+end
+
+"""
+```
+   |        
+-- T1 -- 
+   |     
+-- T2 --  
+   |    
+```
+"""
+@∇ function contract_ver_T(T1, T2)
+    @tensor out[m1,m2,m3,m4,m5,m6] := T1[m1,m2,p1,m5]*T2[p1,m3,m4,m6]
     dims = size(out)
     out = reshape(out, dims[1], dims[2]*dims[3], dims[4], dims[5]*dims[6])
     out
