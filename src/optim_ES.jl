@@ -49,6 +49,18 @@ function eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi, Bn; kwargs...) #### XXX 
     H, N
 end
 
+# slower than computing separately
+function effH_N_ij(h_hor, h_ver, kx, ky, phi0, Bi, Bdj, chi)
+    Bi = reshape(Bi, size( get_A(phi0) ))
+    Bdj = reshape(Bdj, size( get_A(phi0) ))
+    phi_i = ExcIPEPS(kx, ky, phi0, Bi)
+    phi_j = ExcIPEPS(kx, ky, phi0, conj(Bdj))
+
+    envs = get_envtensor(phi_i, phi_j; chi = chi) #### XXX kwargs
+    HN_ij = get_hor_E_N(h_hor, envs, phi_i, phi_j) .+ get_ver_E_N(h_ver, envs, phi_i, phi_j)
+    HN_ij
+end
+
 """
     effH_ij
 
@@ -71,14 +83,8 @@ function effN_ij(kx, ky, phi0, Bi, Bdj, chi)
     phi_i = ExcIPEPS(kx, ky, phi0, Bi)
     phi_j = ExcIPEPS(kx, ky, phi0, conj(Bdj))
 
-    env = get_envtensor(phi_i, phi_j; chi = chi) #### XXX kwargs
-
-    d = size(get_A(phi0), 1)
-    id = Matrix(I, d,d)
-    hI = kron(id,id)
-    hI = reshape(hI, d, d, d, d)
-
-    Nij = get_hor_energy(hI, env, phi_i, phi_j) + get_ver_energy(hI, env, phi_i, phi_j)
+    envs = get_envtensor(phi_i, phi_j; chi = chi) #### XXX kwargs
+    Nij = get_hor_norm(envs, phi_i, phi_j) + get_ver_norm(envs, phi_i, phi_j)
     Nij
 end
 

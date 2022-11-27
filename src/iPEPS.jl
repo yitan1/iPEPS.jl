@@ -9,13 +9,13 @@ module iPEPS
 __precompile__(false)
 
 export CTM, updateCTM
-include("_ctmrg.jl")
+include("sym_ctmrg_gs/ctmrg.jl")
 
 export op_expect
-include("_obs.jl")
+include("sym_ctmrg_gs/obs.jl")
 
 export optimize_GS
-include("_optim_GS.jl")
+include("sym_ctmrg_gs/optim_GS.jl")
 
 # Excited States
 include("peps.jl")

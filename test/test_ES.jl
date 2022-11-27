@@ -81,9 +81,23 @@ Bn = iPEPS.get_tangent_basis(phi0; chi = 5);
 
 H, N = iPEPS.eff_hamitonian_norm(h, h, 0.0, 0.0, phi0, Bn; chi = 5);
 
+
 Bj = Bn[:,1];
 Bdj = conj(Bj);
 
-res1 = gradient(_x -> iPEPS.effH_ij(h, h, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1]
+@time dE = gradient(_x -> iPEPS.effH_ij(h, h, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
+@time dN = gradient(_x -> iPEPS.effN_ij(0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
 
-iPEPS.effH_ij(h, h, 0.0, 0.0, phi0, Bj, Bdj, 5)
+@time dEN = jacobian(_x -> iPEPS.effH_N_ij(h, h, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
+
+
+@time iPEPS.effH_ij(h, h, 1.0, 0.0, phi0, Bj, Bdj, 5)
+@time iPEPS.effN_ij(1.0, 0.0, phi0, Bj, Bdj, 5)
+@time iPEPS.effH_N_ij(h, h, 0.0, 0.0, phi0, Bj, Bdj, 5)
+
+
+d = 2
+id = Matrix(I, d,d)
+hI = kron(id,id)
+hI = reshape(hI, d, d, d, d);
+@time iPEPS.effH_ij(hI, hI, 0.0, 0.0, phi0, Bj, Bdj, 5)

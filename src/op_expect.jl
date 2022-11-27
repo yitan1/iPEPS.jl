@@ -22,7 +22,7 @@ function get_hor_E_N(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
     for i in 1:12
         for j in 1:12
             W = get_W([W1, W2, W3, W4], i, j)
-            T6, T7 = get_hor_T1T2(envs, i, j)
+            T6, T7 = get_hor_T6T7(envs, i, j)
 
             dx = (j-1) % 4 - (i-1) % 4 - 1 # (distance - 1) along x
             dy = (j-1) ÷ 4 - (i-1) ÷ 4 - 1 # (distance - 1) along y
@@ -47,10 +47,10 @@ function get_hor_E_N(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
     E_hor = E_hor/144
     N_hor = N_hor/144
     @show E_hor, N_hor
-    real(E_hor), real(N_hor)
+    [real(E_hor), real(N_hor)]
 end
 
-function get_ver_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
+function get_ver_E_N(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
     Cs, Es = corner(envs[1]), edge(envs[1])
     Cs_B, Es_B = corner(envs[2]), edge(envs[2])
     Cs_Bd, Es_Bd = corner(envs[3]), edge(envs[3])
@@ -64,7 +64,6 @@ function get_ver_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
 
     kx ,ky = get_kx(phi1), get_ky(phi1)
 
-
     W1 = [Cs[1], Es[1], Cs[2], Es[4], A_x_Ad, Es[2], Es[4], A_x_Ad, Es[2], Cs[4], Es[3], Cs[3]]
     W2 = [Cs_B[1], Es_B[1], Cs_B[2], Es_B[4], B_x_Ad, Es_B[2], Es_B[4], B_x_Ad, Es_B[2], Cs_B[4], Es_B[3], Cs_B[3]]
     W3 = [Cs_Bd[1], Es_Bd[1], Cs_Bd[2], Es_Bd[4], A_x_Bd, Es_Bd[2], Es_Bd[4], A_x_Bd, Es_Bd[2], Cs_Bd[4], Es_Bd[3], Cs_Bd[3]]
@@ -75,7 +74,7 @@ function get_ver_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
     for i in 1:12
         for j in 1:12
             W = get_W([W1, W2, W3, W4], i, j)
-            T5, T8 = get_ver_T1T2(envs, i, j)
+            T5, T8 = get_ver_T5T8(envs, i, j)
 
             dx = (j-1) % 3 - (i-1) % 3 - 1  # (distance - 1) along x
             dy = (j-1) ÷ 3 - (i-1) ÷ 3 - 1  # (distance - 1) along y
@@ -92,7 +91,7 @@ function get_ver_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
             effTh = contract_ver_Th(h, W[5], W[8])
 
             effT = contract_ver_T(T5, T8)
-            
+
             E_ver += contract_env(W[1], W[3], W[12], W[10], W[2], effE2, W[11], effE4, effTh)*a
             N_ver += contract_env(W[1], W[3], W[12], W[10], W[2], effE2, W[11], effE4, effT)*a
         end
@@ -100,7 +99,7 @@ function get_ver_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
     E_ver = E_ver/144
     N_ver = N_ver/144
     @show E_ver, N_ver
-    real(E_ver), real(N_ver)
+    [real(E_ver), real(N_ver)]
 end
 
 #### XXX ugly
@@ -366,6 +365,7 @@ function get_hor_norm(envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
             effE1 = contract_E1(W[2], W[3])
             effE3 = contract_E3(W[10], W[11])
             effT = contract_hor_T(W[6], W[7])
+
             N_hor += contract_env(W[1], W[4], W[12], W[9], effE1, W[8], effE3, W[5], effT)*a
         end
     end
@@ -417,7 +417,8 @@ function get_ver_norm(envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
             
             effE2 = contract_E2(W[6], W[9])
             effE4 = contract_E4(W[4], W[7])
-            effT = contract_ver_T(h, W[5], W[8])
+            effT = contract_ver_T(W[5], W[8])
+
             N_ver += contract_env(W[1], W[3], W[12], W[10], W[2], effE2, W[11], effE4, effT)*a
         end
     end
