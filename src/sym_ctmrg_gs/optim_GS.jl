@@ -1,13 +1,13 @@
 using Zygote, Optim
 
-function optimize_GS(A, h; chi = 30)
+function sym_optimize_GS(A, h; chi = 30)
     f(x) = forward(x, h; chi = chi) 
     function fg!(F,G,x)
         y, back = Zygote.pullback(f, x)
-        if G != nothing
+        if G !== nothing
             copy!(G, back(1)[1])
         end
-        if F != nothing
+        if F !== nothing
             return y
         end
     end

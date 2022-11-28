@@ -18,7 +18,7 @@ using TensorRules
     E = dropdims(E, dims = 2)
     E = permutedims(E, (1,3,2))
     
-    delta = 1e-10 #XXX
+    delta = 1e-10 #XXX set parameter
     chi = chi     #XXX
     maxitr = 500  #XXX
     err_sum = 0.0

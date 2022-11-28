@@ -80,7 +80,12 @@ phi0 = iPEPS.IPEPS(A);
 Bn = iPEPS.get_tangent_basis(phi0; chi = 5);
 
 H, N = iPEPS.eff_hamitonian_norm(h, h, 0.0, 0.0, phi0, Bn; chi = 5);
-
+using KrylovKit
+H = (H + H')/2
+N = (N + N')/2
+isposdef(N)
+ishermitian(H)
+F= eigen(H, N)
 
 Bj = Bn[:,1];
 Bdj = conj(Bj);

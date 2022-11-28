@@ -1,8 +1,10 @@
-
+# using KrylovKit
 function optimize_ES(kx, ky, phi0::IPEPS, h_hor, h_ver; kwargs...) ##### XXX kwargs
     Bn = get_tangent_basis(phi0; kwargs)
     H, N = eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi0, Bn; kwargs)
-    energy, _ = eigsolve(H,N)
+    H = (H + H')/2
+    N = (N + N')/2
+    energy, _ = eigen(H,N)
     
     energy
 end

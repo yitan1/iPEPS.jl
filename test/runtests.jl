@@ -30,13 +30,13 @@ h2 = 2*kron(Sz,4*Sx'*Sz*Sx) - 2*kron(Sx,4*Sx'*Sx*Sx) - 2*kron(Sy,4*Sx'*Sy*Sx) |>
 h = real(spinmodel())
 permutedims(reshape(h,(2,2,2,2)), (1,3,2,4))
 
-d = size(h,1) |> sqrt |> Int 
+d = size(h2,1) |> sqrt |> Int 
 D = 2
 chi = 30
 A = rand(d,D,D,D,D)
 A = A/norm(A);
 
-res = optimize_GS(A,h0; chi)
+res = sym_optimize_GS(A,h2; chi)
 
 using Optim
 A1 = Optim.minimizer(res); 
