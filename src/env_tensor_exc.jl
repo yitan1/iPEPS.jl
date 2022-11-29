@@ -14,8 +14,8 @@ Base.getindex(envs::ExcEnvTensor, i::Int) = envs.data[i]
 
 ExcEnvTensor(args...) = ExcEnvTensor(collect(args))
 
-function get_envtensor(phi1::ExcIPEPS, phi2::ExcIPEPS; kwargs...) #### XXX kwargs
-    chi = get(kwargs, :chi, 100) # TODO: error when chi is not assigned
+function get_envtensor(phi1::ExcIPEPS, phi2::ExcIPEPS; kwargs...) 
+    chi = get(kwargs, :chi, 10) 
     kx, ky = get_kx(phi1), get_ky(phi1)
 
     # init
@@ -55,7 +55,7 @@ function init_env(phi1::ExcIPEPS, phi2::ExcIPEPS, chi)
 
     Cs = corner(env1)
     Es = edge(env1)
-    env2 = EnvTensor(B_Ad, deepcopy(Cs), deepcopy(Es), chi) # XXX deepcopy -> copy ?
+    env2 = EnvTensor(B_Ad, deepcopy(Cs), deepcopy(Es), chi) 
     env3 = EnvTensor(A_Bd, deepcopy(Cs), deepcopy(Es), chi)
     env4 = EnvTensor(B_Bd, deepcopy(Cs), deepcopy(Es), chi)
     exc_env = ExcEnvTensor(env1, env2, env3, env4)

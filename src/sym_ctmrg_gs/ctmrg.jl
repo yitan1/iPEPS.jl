@@ -19,8 +19,8 @@ using TensorRules
     E = permutedims(E, (1,3,2))
     
     delta = 1e-10 #XXX set parameter
-    chi = chi     #XXX
-    maxitr = 500  #XXX
+    chi = chi     
+    maxitr = 500  
     err_sum = 0.0
     sold = zeros(Float64,chi)
     diff = 1.0

@@ -47,6 +47,7 @@ get_maxchi(env::EnvTensor) = env.chi
 """
     get_envtensor
 
+kwargs: chi = 100, maxitr = 1000, conv_tol = 1e-8, output = true, inplace = false
 ```
 C1 -- E1 -- C2
 |     |     |
@@ -55,18 +56,18 @@ E4 -- T  -- E2
 C4 -- E3 -- C3
 ```
 """
-function get_envtensor(phi::IPEPS; kwargs...) #### XXX kwargs
+function get_envtensor(phi::IPEPS; kwargs...) 
     T = transfer_matrix(get_A(phi), get_Ad(phi))
     get_envtensor(T; kwargs)
 end
 
-function get_envtensor(phi::IPEPS, phid::IPEPS; kwargs...) #### XXX kwargs
+function get_envtensor(phi::IPEPS, phid::IPEPS; kwargs...) 
     T = transfer_matrix(get_A(phi), get_Ad(phid))
     get_envtensor(T; kwargs)
 end
 
-function get_envtensor(T::AbstractArray; kwargs...) #### XXX kwargs
-    chi = get(kwargs, :chi, 100) # TODO: error when chi is not assigned
+function get_envtensor(T::AbstractArray; kwargs...) 
+    chi = get(kwargs, :chi, 10)
     env = init_env(T, chi)
 
     maxitr = get(kwargs, :maxitr, 1000)
@@ -84,7 +85,7 @@ function get_envtensor(T::AbstractArray; kwargs...) #### XXX kwargs
         end
 
         if length(s) == length(olds)
-            diff = norm(s - olds)
+            diff = norm(s - olds) # XXX: imporve cut-off
             if output == true
                 @show i, diff
             end
@@ -126,7 +127,7 @@ function init_env(T::AbstractArray, chi)
     env
 end
 
-function update_env(env::EnvTensor; kwargs...)
+function update_env(env::EnvTensor; kwargs...) 
     env, s1 = up_left(env)
     env, __ = up_right(env)
     env, __ = up_top(env)
@@ -135,7 +136,7 @@ function update_env(env::EnvTensor; kwargs...)
     env, s1
 end
 
-function update_env!(env::EnvTensor; kwargs...)
+function update_env!(env::EnvTensor; kwargs...) #XXX inplace update
     s1 = up_left!(env)
     __ = up_right!(env)
     __ = up_top!(env)
@@ -343,7 +344,7 @@ function get_projector(R1, R2, chi)
     S = S./S[1]
     S1 = S[1:new_chi]
     
-    # cut_off = sum(S[new_chi+1:end]) / sum(S)   # XXX: imporve cut-off
+    # cut_off = sum(S[new_chi+1:end]) / sum(S)   
 
     inv_sqrt_S = sqrt.(S1) |> diagm |> inv
 

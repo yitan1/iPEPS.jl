@@ -277,7 +277,7 @@ E4 -- T  -- E2
 C4 -- E3 -- C3
 ```
 """
-function get_ver_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS) #TODO 
+function get_ver_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS) 
     Cs, Es = corner(envs[1]), edge(envs[1])
     Cs_B, Es_B = corner(envs[2]), edge(envs[2])
     Cs_Bd, Es_Bd = corner(envs[3]), edge(envs[3])
