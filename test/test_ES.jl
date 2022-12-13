@@ -40,7 +40,7 @@ env = iPEPS.get_envtensor(phi; chi = chi);
 #### excited basis
 using PhyOperators
 h = spinmodel();
-h = reshape(h, 2,2,2,2);
+ht = reshape(h, 2,2,2,2);
 d = 2
 D = 2
 
@@ -62,7 +62,7 @@ F= eigen(H, N)
 #### comparison time about autodiff H,N and HN  
 Bj = Bn[:,1];
 Bdj = conj(Bj);
-@time dE = gradient(_x -> iPEPS.effH_ij(h, h, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
+@time dE = gradient(_x -> iPEPS.effH_ij(ht, ht, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
 @time dN = gradient(_x -> iPEPS.effN_ij(0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
 
 @time dEN = jacobian(_x -> iPEPS.effH_N_ij(h, h, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];

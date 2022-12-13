@@ -1,4 +1,4 @@
-export op_timize_ES
+export optimize_ES
 
 """
     optimize_ES
@@ -30,6 +30,14 @@ function get_tangent_basis(phi::IPEPS; kwargs...)
 
     basis
 end
+
+#TODO filter_basis
+# function filter_basis(basis)
+#     nulls = similar(basis)
+#     for i in axes(nulls, 2)
+#         M = rand(D,D)
+#     end
+# end
 
 """
 Return two matrix (H, N)

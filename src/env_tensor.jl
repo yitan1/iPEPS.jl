@@ -204,8 +204,8 @@ function up_right(env::EnvTensor, Pr, Prd)
     T = bulk(env)
 
     newC2, newE2, newC3 = proj_right(Pr, Prd, Cs[2], Es[1], Es[2], T, Cs[3], Es[3]) # XXX: unnecessay computation
-
-    env1 = EnvTensor(T, [Cs[1], newC2, newC3, Cs[4]], [Es[1], newE2, Es[3], Es[4]], get_maxchi(env))
+    #TODO
+    env1 = EnvTensor(Zygote.@showgrad(T), [Cs[1], newC2, newC3, Cs[4]], [Es[1], newE2, Es[3], Es[4]], get_maxchi(env))
     env1
 end
 

@@ -31,6 +31,7 @@ include("optim_GS.jl")
 include("optim_ES.jl")
 
 include("op_expect.jl")
+include("op_expect2.jl")
 
 include("contraction.jl")
 
