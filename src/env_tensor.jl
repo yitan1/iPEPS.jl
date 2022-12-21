@@ -75,7 +75,7 @@ function get_envtensor(T::AbstractArray; kwargs...)
     olds = zeros(eltype(env), chi)
     diff = 1.0
 
-    output = get(kwargs, :output, true)
+    output = get(kwargs, :output, false)
     inplace = get(kwargs, :inplace, false)
     for i = 1:maxitr
         if inplace == true
@@ -110,6 +110,22 @@ function init_env(phi::IPEPS, phid::IPEPS, chi)
 end
 
 function init_env(T::AbstractArray, chi)
+    Cs, Es = init_CE(size(T,1))
+    env = EnvTensor(T, Cs, Es, chi)
+    env
+end
+
+function init_CE(D::Int)
+    Cs = [rand(D, D) for i = 1:4]
+    Es = [rand(D, D, D) for i = 1:4]
+
+    Cs = Cs ./ norm.(Cs)
+    Es = Es ./ norm.(Es)
+
+    Cs, Es
+end
+
+function init_CE(T::AbstractArray)
     C1 = sum(T, dims = (1,2)) |> x -> dropdims(x, dims = (1,2))
     C2 = sum(T, dims = (1,4)) |> x -> dropdims(x, dims = (1,4))
     C3 = sum(T, dims = (3,4)) |> x -> dropdims(x, dims = (3,4))
@@ -122,9 +138,8 @@ function init_env(T::AbstractArray, chi)
 
     Cs = [C1, C2, C3, C4] ./ norm.([C1, C2, C3, C4])
     Es = [E1, E2, E3, E4] ./ norm.([E1, E2, E3, E4])
-    
-    env = EnvTensor(T, Cs, Es, chi)
-    env
+
+    Cs,Es
 end
 
 function update_env(env::EnvTensor; kwargs...) 
@@ -205,7 +220,7 @@ function up_right(env::EnvTensor, Pr, Prd)
 
     newC2, newE2, newC3 = proj_right(Pr, Prd, Cs[2], Es[1], Es[2], T, Cs[3], Es[3]) # XXX: unnecessay computation
     #TODO
-    env1 = EnvTensor(Zygote.@showgrad(T), [Cs[1], newC2, newC3, Cs[4]], [Es[1], newE2, Es[3], Es[4]], get_maxchi(env))
+    env1 = EnvTensor(T, [Cs[1], newC2, newC3, Cs[4]], [Es[1], newE2, Es[3], Es[4]], get_maxchi(env))
     env1
 end
 

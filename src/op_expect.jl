@@ -24,15 +24,12 @@ function get_hor_E_N(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
             W = get_W([W1, W2, W3, W4], i, j)
             T6, T7 = get_hor_T6T7(envs, i, j)
 
-            dx = (j-1) % 4 - (i-1) % 4 - 1 # (distance - 1) along x
-            dy = (j-1) ÷ 4 - (i-1) ÷ 4 - 1 # (distance - 1) along y
-            if dx == -1
-                dx = 0
-            end
-            if dy == -1
-                dy = 0
-            end
+            dx = (j-1) % 4 - (i-1) % 4 # distance along x
+            dx -= sign(dx)
+            dy = (j-1) ÷ 4 - (i-1) ÷ 4 # distance along y
+            dy -= sign(dy)
             a = exp(-im*kx*dx)*exp(-im*ky*dy)
+            # a = exp(-im*kx*dx)
             
             effE1 = contract_E1(W[2], W[3])
             effE3 = contract_E3(W[10], W[11])
@@ -76,15 +73,12 @@ function get_ver_E_N(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
             W = get_W([W1, W2, W3, W4], i, j)
             T5, T8 = get_ver_T5T8(envs, i, j)
 
-            dx = (j-1) % 3 - (i-1) % 3 - 1  # (distance - 1) along x
-            dy = (j-1) ÷ 3 - (i-1) ÷ 3 - 1  # (distance - 1) along y
-            if dx == -1 
-                dx = 0
-            end
-            if dy == -1
-                dy = 0
-            end
+            dx = (j-1) % 4 - (i-1) % 4 # distance along x
+            dx -= sign(dx)
+            dy = (j-1) ÷ 4 - (i-1) ÷ 4 # distance along y
+            dy -= sign(dy)
             a = exp(-im*kx*dx)*exp(-im*ky*dy)
+            # a = exp(-im*ky*dx)
             
             effE2 = contract_E2(W[6], W[9])
             effE4 = contract_E4(W[4], W[7])
@@ -243,15 +237,12 @@ function get_hor_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
         for j in 1:12
             W = get_W([W1, W2, W3, W4], i, j)
 
-            dx = (j-1) % 4 - (i-1) % 4 - 1 # (distance - 1) along x
-            dy = (j-1) ÷ 4 - (i-1) ÷ 4 - 1 # (distance - 1) along y
-            if dx == -1
-                dx = 0
-            end
-            if dy == -1
-                dy = 0
-            end
+            dx = (j-1) % 4 - (i-1) % 4 # distance along x
+            dx -= sign(dx)
+            dy = (j-1) ÷ 4 - (i-1) ÷ 4 # distance along y
+            dy -= sign(dy)
             a = exp(-im*kx*dx)*exp(-im*ky*dy)
+            # a = exp(-im*kx*dx)
             
             effE1 = contract_E1(W[2], W[3])
             effE3 = contract_E3(W[10], W[11])
@@ -302,15 +293,12 @@ function get_ver_energy(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
         for j in 1:12
             W = get_W([W1, W2, W3, W4], i, j)
 
-            dx = (j-1) % 3 - (i-1) % 3 - 1  # (distance - 1) along x
-            dy = (j-1) ÷ 3 - (i-1) ÷ 3 - 1  # (distance - 1) along y
-            if dx == -1 
-                dx = 0
-            end
-            if dy == -1
-                dy = 0
-            end
+            dx = (j-1) % 4 - (i-1) % 4 # distance along x
+            dx -= sign(dx)
+            dy = (j-1) ÷ 4 - (i-1) ÷ 4 # distance along y
+            dy -= sign(dy)
             a = exp(-im*kx*dx)*exp(-im*ky*dy)
+            # a = exp(-im*ky*dx)
             
             effE2 = contract_E2(W[6], W[9])
             effE4 = contract_E4(W[4], W[7])
@@ -352,15 +340,12 @@ function get_hor_norm(envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
         for j in 1:12
             W = get_W([W1, W2, W3, W4], i, j)
 
-            dx = (j-1) % 4 - (i-1) % 4 - 1 # (distance - 1) along x
-            dy = (j-1) ÷ 4 - (i-1) ÷ 4 - 1 # (distance - 1) along y
-            if dx == -1
-                dx = 0
-            end
-            if dy == -1
-                dy = 0
-            end
+            dx = (j-1) % 4 - (i-1) % 4 # distance along x
+            dx -= sign(dx)
+            dy = (j-1) ÷ 4 - (i-1) ÷ 4 # distance along y
+            dy -= sign(dy)
             a = exp(-im*kx*dx)*exp(-im*ky*dy)
+            # a = exp(-im*kx*dx)
             
             effE1 = contract_E1(W[2], W[3])
             effE3 = contract_E3(W[10], W[11])
@@ -405,15 +390,12 @@ function get_ver_norm(envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
         for j in 1:12
             W = get_W([W1, W2, W3, W4], i, j)
 
-            dx = (j-1) % 3 - (i-1) % 3 - 1  # (distance - 1) along x
-            dy = (j-1) ÷ 3 - (i-1) ÷ 3 - 1  # (distance - 1) along y
-            if dx == -1 
-                dx = 0
-            end
-            if dy == -1
-                dy = 0
-            end
+            dx = (j-1) % 4 - (i-1) % 4 # distance along x
+            dx -= sign(dx)
+            dy = (j-1) ÷ 4 - (i-1) ÷ 4 # distance along y
+            dy -= sign(dy)
             a = exp(-im*kx*dx)*exp(-im*ky*dy)
+            # a = exp(-im*ky*dx)
             
             effE2 = contract_E2(W[6], W[9])
             effE4 = contract_E4(W[4], W[7])

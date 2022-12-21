@@ -5,12 +5,28 @@ export optimize_ES
 
 return eigen(H,N)
 """
-function optimize_ES(kx, ky, phi0::IPEPS, h_hor, h_ver; kwargs...)
+function optimize_ES(kx::Float64, ky::Float64, phi0::IPEPS, h_hor, h_ver; kwargs...)
     Bn = get_tangent_basis(phi0; kwargs)
+    optimize_ES(Bn, kx, ky, phi0, h_hor, h_ver; kwargs)
+end
+function optimize_ES(Bn, kx::Float64, ky::Float64, phi0::IPEPS, h_hor, h_ver; kwargs...)
+    E0 = get_energy(get_A(phi0), h_hor, h_ver)
+    id = Matrix{Float64}(I, size(h_hor,1)*size(h_hor,2), size(h_hor,3)*size(h_hor,4))
+    h_hor = h_hor .- E0*reshape(id, size(h_hor))
+    h_hor = h_ver .- E0*reshape(id, size(h_ver))
+
     H, N = eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi0, Bn; kwargs)
     H = (H + H')/2
     N = (N + N')/2
-    eigen(H,N)
+    ev_N, P = eigen(N)
+    idx = sortperm(real.(ev_N))[end:-1:1]
+    ev_N = ev_N[idx]
+    selected = (ev_N/maximum(ev_N) ) .> 1e-3
+    P = P[:,idx]
+    P = P[:,selected]
+    N2 = P' * N * P
+    H2 = P' * H * P
+    eigen(H2,N2)
 end
 
 # function get_tangent_basis(phi::ExcIPEPS)
@@ -52,8 +68,11 @@ function eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi, Bn; kwargs...)
         Bj = Bn[:,j]
         Bdj = conj(Bj)
         
-        hBj = gradient(_x -> effH_ij(h_hor, h_ver, kx, ky, phi, Bj, _x, chi), Bdj)[1]
-        Bj1 = gradient(_x -> effN_ij(kx, ky, phi, Bj, _x, chi), Bdj)[1]
+        # hBj = gradient(_x -> effH_ij(h_hor, h_ver, kx, ky, phi, Bj, _x, chi), Bdj)[1]
+        # Bj1 = gradient(_x -> effN_ij(kx, ky, phi, Bj, _x, chi), Bdj)[1]
+        HN = jacobian(_x -> effH_N_ij(h_hor, h_ver, kx, ky, phi, Bj, _x, chi), Bdj)[1]
+        hBj = HN[1,:]
+        Bj1 = HN[2,:]
         for i in axes(H,1)
             Bi = Bn[:,i]
             H[i,j] = Bi'*hBj

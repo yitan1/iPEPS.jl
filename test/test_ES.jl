@@ -44,9 +44,10 @@ ht = reshape(h, 2,2,2,2);
 d = 2
 D = 2
 
-A = rand(d,D,D,D,D);
+A = load("example/gs_ising_D2_chi30.jld2")["A"] |> iPEPS.symmetrize
 phi0 = iPEPS.IPEPS(A);
-Bn = iPEPS.get_tangent_basis(phi0; chi = 5);
+Bn1 = iPEPS.get_tangent_basis(phi0; chi = 30)
+Bn1 ≈ Bn
 #### 
 
 #### test eigenvalue
@@ -65,7 +66,7 @@ Bdj = conj(Bj);
 @time dE = gradient(_x -> iPEPS.effH_ij(ht, ht, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
 @time dN = gradient(_x -> iPEPS.effN_ij(0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
 
-@time dEN = jacobian(_x -> iPEPS.effH_N_ij(h, h, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
+@time dEN = jacobian(_x -> iPEPS.effH_N_ij(ht, ht, 0.0, 0.0, phi0, Bj, _x, 5), Bdj)[1];
 #####
 
 #### test 

@@ -25,8 +25,8 @@ function get_envtensor(phi1::ExcIPEPS, phi2::ExcIPEPS; kwargs...)
 
     # parameter 
     maxitr = get(kwargs, :maxitr, 1000)
-    conv_tol = get(kwargs, :conv_tol, 1e-8)
-    output = get(kwargs, :output, true)
+    conv_tol = get(kwargs, :conv_tol, 1e-9)
+    output = get(kwargs, :output, false)
 
     for i = 1:maxitr
         envs, s = update_env(envs, kx, ky)
