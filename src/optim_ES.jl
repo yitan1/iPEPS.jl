@@ -6,14 +6,18 @@ export optimize_ES
 return eigen(H,N)
 """
 function optimize_ES(kx::Float64, ky::Float64, phi0::IPEPS, h_hor, h_ver; kwargs...)
-    Bn = get_tangent_basis(phi0; kwargs)
-    optimize_ES(Bn, kx, ky, phi0, h_hor, h_ver; kwargs)
+    env = get_envtensor(phi0; kwargs) 
+    nrm0 = get_norm(env)
+    phi = IPEPS(get_A(phi0) / sqrt(abs(nrm0)) )
+    
+    Bn = get_tangent_basis(phi; kwargs)
+    optimize_ES(Bn, kx, ky, phi, h_hor, h_ver; kwargs)
 end
 function optimize_ES(Bn, kx::Float64, ky::Float64, phi0::IPEPS, h_hor, h_ver; kwargs...)
     E0 = get_energy(get_A(phi0), h_hor, h_ver)
     id = Matrix{Float64}(I, size(h_hor,1)*size(h_hor,2), size(h_hor,3)*size(h_hor,4))
     h_hor = h_hor .- E0*reshape(id, size(h_hor))
-    h_hor = h_ver .- E0*reshape(id, size(h_ver))
+    h_ver = h_ver .- E0*reshape(id, size(h_ver))
 
     H, N = eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi0, Bn; kwargs)
     H = (H + H')/2
@@ -47,7 +51,7 @@ function get_tangent_basis(phi::IPEPS; kwargs...)
     basis
 end
 
-#TODO filter_basis
+# TODO filter_basis
 # function filter_basis(basis)
 #     nulls = similar(basis)
 #     for i in axes(nulls, 2)
@@ -58,7 +62,7 @@ end
 """
 Return two matrix (H, N)
 """
-function eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi, Bn; kwargs...)
+function eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi0, Bn; kwargs...)
     chi = get(kwargs, :chi, 10)
 
     M = size(Bn,2)
@@ -67,10 +71,15 @@ function eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi, Bn; kwargs...)
     for j in axes(H,2)
         Bj = Bn[:,j]
         Bdj = conj(Bj)
+
+        tBj = reshape(Bj, size( get_A(phi0) ))
+        tBdj = reshape(Bdj, size( get_A(phi0) ))
+    
+        env0 = get_envtensor(ExcIPEPS(kx, ky, phi0, tBj), ExcIPEPS(kx, ky, phi0, conj(tBdj) ) ; chi = chi) 
         
         # hBj = gradient(_x -> effH_ij(h_hor, h_ver, kx, ky, phi, Bj, _x, chi), Bdj)[1]
         # Bj1 = gradient(_x -> effN_ij(kx, ky, phi, Bj, _x, chi), Bdj)[1]
-        HN = jacobian(_x -> effH_N_ij(h_hor, h_ver, kx, ky, phi, Bj, _x, chi), Bdj)[1]
+        HN = jacobian(_x -> effH_N_ij(h_hor, h_ver, env0, kx, ky, phi0, Bj, _x, chi), Bdj)[1]
         hBj = HN[1,:]
         Bj1 = HN[2,:]
         for i in axes(H,1)
@@ -83,13 +92,13 @@ function eff_hamitonian_norm(h_hor, h_ver, kx, ky, phi, Bn; kwargs...)
 end
 
 # slower than computing separately
-function effH_N_ij(h_hor, h_ver, kx, ky, phi0, Bi, Bdj, chi)
+function effH_N_ij(h_hor, h_ver, env0, kx, ky, phi0, Bi, Bdj, chi)
     Bi = reshape(Bi, size( get_A(phi0) ))
     Bdj = reshape(Bdj, size( get_A(phi0) ))
     phi_i = ExcIPEPS(kx, ky, phi0, Bi)
     phi_j = ExcIPEPS(kx, ky, phi0, conj(Bdj))
 
-    envs = get_envtensor(phi_i, phi_j; chi = chi)
+    envs, s = update_env(env0, kx, ky)
     HN_ij = get_hor_E_N(h_hor, envs, phi_i, phi_j) .+ get_ver_E_N(h_ver, envs, phi_i, phi_j)
     HN_ij
 end

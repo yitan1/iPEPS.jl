@@ -44,9 +44,14 @@ ht = reshape(h, 2,2,2,2);
 d = 2
 D = 2
 
-A = load("example/gs_ising_D2_chi30.jld2")["A"] |> iPEPS.symmetrize
-phi0 = iPEPS.IPEPS(A);
-Bn1 = iPEPS.get_tangent_basis(phi0; chi = 30)
+A = load("example/gs_ising_D2_chi30.jld2")["A"]
+phi = iPEPS.IPEPS(A);
+
+env = iPEPS.get_envtensor(phi; chi = 30) ;
+nrm0 = iPEPS.get_norm(env)
+phi = iPEPS.IPEPS(iPEPS.get_A(phi) / sqrt(abs(nrm0)) )
+
+Bn1 = iPEPS.get_tangent_basis(phi; chi = 30)
 Bn1 ≈ Bn
 #### 
 

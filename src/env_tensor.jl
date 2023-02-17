@@ -71,7 +71,7 @@ function get_envtensor(T::AbstractArray; kwargs...)
     env = init_env(T, chi)
 
     maxitr = get(kwargs, :maxitr, 1000)
-    conv_tol = get(kwargs, :conv_tol, 1e-8)
+    conv_tol = get(kwargs, :conv_tol, 1e-6)
     olds = zeros(eltype(env), chi)
     diff = 1.0
 
@@ -82,6 +82,7 @@ function get_envtensor(T::AbstractArray; kwargs...)
             s = update_env!(env)  
         else 
             env, s = update_env(env)
+            s = s./s[1]
         end
 
         if length(s) == length(olds)
@@ -187,6 +188,7 @@ function up_left(env::EnvTensor, Pl, Pld)
     T = bulk(env)
 
     newC1, newE4, newC4 = proj_left(Pl, Pld, Cs[1], Es[1], Es[4], T, Cs[4], Es[3]) # XXX: unnecessay computation
+    # newC1, newE4, newC4 = Cs[1], Es[4], Cs[4]
 
     env1 = EnvTensor(T, [newC1, Cs[2], Cs[3], newC4], [Es[1], Es[2], Es[3], newE4], get_maxchi(env))
     env1
@@ -356,7 +358,7 @@ function get_projector(R1, R2, chi)
     ####### cut off
     U1 = U[:, 1:new_chi]
     V1 = V[:, 1:new_chi]
-    S = S./S[1]
+    # S = S./S[1]
     S1 = S[1:new_chi]
     
     # cut_off = sum(S[new_chi+1:end]) / sum(S)   

@@ -175,7 +175,7 @@ C4 -- E3 --
     newC4 = reshape(newC4, :, size(newC4,3))
     @tensor newC4[m1,m2] := Pld[m1,p1]*newC4[p1,m2]
 
-    newC1/norm(newC1), newE4/norm(newE4), newC4/norm(newC4)
+    newC1/maximum(abs, newC1), newE4/maximum(abs, newE4), newC4/maximum(abs, newC4)
 end
 
 """
@@ -213,7 +213,7 @@ return C2, E2, C3
     newC3 = reshape(newC3, :, size(newC3,3))
     @tensor newC3[m1,m2] := Prd[m1,p1]*newC3[p1,m2]
 
-    newC2/norm(newC2), newE2/norm(newE2), newC3/norm(newC3)
+    newC2/maximum(abs,newC2), newE2/maximum(abs,newE2), newC3/maximum(abs,newC3)
 end
 
 """
@@ -240,7 +240,7 @@ E4 /             \\  T  /            \\ E2
     newC2 = reshape(newC2, :, size(newC2,3))
     @tensor newC2[m1,m2] := Ptd[m1,p1]*newC2[p1,m2]
 
-    newC1/norm(newC1), newE1/norm(newE1), newC2/norm(newC2)
+    newC1/maximum(abs,newC1), newE1/maximum(abs,newE1), newC2/maximum(abs,newC2)
 end
 
 """
@@ -267,7 +267,7 @@ C4 /             \\  E3 /            \\ C3
     newC3 = reshape(newC3, size(newC3,1), :)
     @tensor newC3[m1,m2] := Pbd[m2,p1]*newC3[m1,p1]
 
-    newC4/norm(newC4), newE3/norm(newE3), newC3/norm(newC3)
+    newC4/maximum(abs,newC4), newE3/maximum(abs,newE3), newC3/maximum(abs,newC3)
 end
 
 ############ 
@@ -469,7 +469,7 @@ return C1_B, E4_B, C4_B
     newC4_B = reshape(newC4_B, :, size(newC4_B,3))
     @tensor newC4_B[m1,m2] := Pld[m1,p1]*newC4_B[p1,m2]
 
-    newC1_B/norm(newC1_B), newE4_B/norm(newE4_B), newC4_B/norm(newC4_B)
+    newC1_B/maximum(abs,newC1_B), newE4_B/maximum(abs,newE4_B), newC4_B/maximum(abs,newC4_B)
 end
 
 """
@@ -540,7 +540,7 @@ return C1_BB, E4_BB, C4_BB
     newC4_BB = reshape(newC4_BB, :, size(newC4_BB,3))
     @tensor newC4_BB[m1,m2] := Pld[m1,p1]*newC4_BB[p1,m2]
 
-    newC1_BB/norm(newC1_BB), newE4_BB/norm(newE4_BB), newC4_BB/norm(newC4_BB)
+    newC1_BB/maximum(abs,newC1_BB), newE4_BB/maximum(abs,newE4_BB), newC4_BB/maximum(abs,newC4_BB)
 end
 
 """
@@ -581,7 +581,7 @@ return C2_B, E2_B, C3_B
     newC3_B = reshape(newC3_B, :, size(newC3_B,3))
     @tensor newC3_B[m1,m2] := Prd[m1,p1]*newC3_B[p1,m2]
 
-    newC2_B/norm(newC2_B), newE2_B/norm(newE2_B), newC3_B/norm(newC3_B)
+    newC2_B/maximum(abs,newC2_B), newE2_B/maximum(abs,newE2_B), newC3_B/maximum(abs,newC3_B)
 end
 
 """
@@ -653,7 +653,7 @@ return C2_BB, E2_BB, C3_BB
     newC3_BB = reshape(newC3_BB, :, size(newC3_BB,3))
     @tensor newC3_BB[m1,m2] := Prd[m1,p1]*newC3_BB[p1,m2]
 
-    newC2_BB/norm(newC2_BB), newE2_BB/norm(newE2_BB), newC3_BB/norm(newC3_BB)
+    newC2_BB/maximum(abs,newC2_BB), newE2_BB/maximum(abs,newE2_BB), newC3_BB/maximum(abs,newC3_BB)
 end
 
 """
@@ -690,7 +690,7 @@ E4_B                     T_B                      E2_B
     newC2_B = reshape(newC2_B, :, size(newC2_B,3))
     @tensor newC2_B[m1,m2] := Ptd[m1,p1]*newC2_B[p1,m2]
 
-    newC1_B/norm(newC1_B), newE1_B/norm(newE1_B), newC2_B/norm(newC2_B)
+    newC1_B/maximum(abs,newC1_B), newE1_B/maximum(abs,newE1_B), newC2_B/maximum(abs,newC2_B)
 end
 
 """
@@ -762,7 +762,7 @@ E4_B                     T_B                      E2_B
     newC2_BB = reshape(newC2_BB, :, size(newC2_BB,3))
     @tensor newC2_BB[m1,m2] := Ptd[m1,p1]*newC2_BB[p1,m2]
 
-    newC1_BB/norm(newC1_BB), newE1_BB/norm(newE1_BB), newC2_BB/norm(newC2_BB)
+    newC1_BB/maximum(abs,newC1_BB), newE1_BB/maximum(abs,newE1_BB), newC2_BB/maximum(abs,newC2_BB)
 end
 
 
@@ -800,7 +800,7 @@ C4                       E3                       C3
     newC3_B = reshape(newC3_B, size(newC3_B,1), :)
     @tensor newC3_B[m1,m2] := Pbd[m2,p1]*newC3_B[m1,p1]
 
-    newC4_B/norm(newC4_B), newE3_B/norm(newE3_B), newC3_B/norm(newC3_B)
+    newC4_B/maximum(abs,newC4_B), newE3_B/maximum(abs,newE3_B), newC3_B/maximum(abs,newC3_B)
 end
 
 """
@@ -872,5 +872,5 @@ C4_Bd                    E3_Bd                    C3_Bd
     newC3_BB = reshape(newC3_BB, size(newC3_BB,1), :)
     @tensor newC3_BB[m1,m2] := Pbd[m2,p1]*newC3_BB[m1,p1]
 
-    newC4_BB/norm(newC4_BB), newE3_BB/norm(newE3_BB), newC3_BB/norm(newC3_BB)
+    newC4_BB/maximum(abs,newC4_BB), newE3_BB/maximum(abs,newE3_BB), newC3_BB/maximum(abs,newC3_BB)
 end

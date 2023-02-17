@@ -43,7 +43,7 @@ function get_hor_E_N(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
     end
     E_hor = E_hor/144
     N_hor = N_hor/144
-    @show E_hor, N_hor
+    # @show E_hor, N_hor
     [real(E_hor), real(N_hor)]
 end
 
@@ -92,7 +92,7 @@ function get_ver_E_N(h, envs::ExcEnvTensor, phi1::ExcIPEPS, phi2::ExcIPEPS)
     end
     E_ver = E_ver/144
     N_ver = N_ver/144
-    @show E_ver, N_ver
+    # @show E_ver, N_ver
     [real(E_ver), real(N_ver)]
 end
 

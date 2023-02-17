@@ -25,6 +25,7 @@ include("env_tensor.jl")
 include("env_tensor_exc.jl")
 
 #GS
+include("autodiff.jl")
 include("optim_GS.jl")
 #GS
 
