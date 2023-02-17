@@ -9,10 +9,16 @@ Sx = op("Sx", "Spinhalf")
 Sy = op("Sy", "Spinhalf")
 Sz = op("Sz", "Spinhalf")
 
-hh = kron(kron(I, Sx), kron(Sx, I)) + ( kron(kron(Sz, Sz), kron(I, I) )  + kron(kron(I, I), kron(Sz, Sz)) ) /2
-hv = kron(kron(I, Sy), kron(Sy, I)) + ( kron(kron(Sz, Sz), kron(I, I) )  + kron(kron(I, I), kron(Sz, Sz)) ) /2
+hh = 0.2*kron(kron(SI, Sx), kron(Sx, SI)) + ( kron(kron(Sz, Sz), kron(SI, SI) )  + kron(kron(SI, SI), kron(Sz, Sz)) ) /2
+hv = 0.2*kron(kron(SI, Sy), kron(Sy, SI)) + ( kron(kron(Sz, Sz), kron(SI, SI) )  + kron(kron(SI, SI), kron(Sz, Sz)) ) /2
+hh = reshape(hh, 4,4,4,4)
+hv = reshape(hv, 4,4,4,4)
 
-d = 4
+h = rotate_heisenberg()
+hh = reshape(h, 2, 2, 2, 2)
+hv = reshape(h, 2, 2, 2, 2)
+
+d = 2
 D = 2
 chi = 30
 A = rand(d,D,D,D,D)
