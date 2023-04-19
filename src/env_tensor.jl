@@ -111,7 +111,7 @@ function init_env(phi::IPEPS, phid::IPEPS, chi)
 end
 
 function init_env(T::AbstractArray, chi)
-    Cs, Es = init_CE(size(T,1))
+    Cs, Es = init_CE(T)
     env = EnvTensor(T, Cs, Es, chi)
     env
 end

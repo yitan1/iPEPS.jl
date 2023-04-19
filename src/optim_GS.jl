@@ -29,7 +29,7 @@ function get_energy(A, Ad, h_hor, h_ver; chi=30)
     E_hor, N_hor = get_hor_E_N(h_hor, env, dm)
     E_ver, N_ver = get_ver_E_N(h_ver, env, dm)
     
-    E0 =  (E_hor + E_ver)/2
+    E0 =  (E_hor/N_hor + E_ver/N_ver)/2
     # E0 = (E_hor + E_ver)/2
     @show E0, E_hor, E_ver, N_hor, N_ver
     E0
