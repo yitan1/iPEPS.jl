@@ -14,3 +14,6 @@ struct CTMTensors
     Es_BB
 end
 
+function CTMTensors(A)
+    
+end

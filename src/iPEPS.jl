@@ -36,6 +36,8 @@ module iPEPS
 
 # include("old_ctmrg/contraction.jl")
 
-include("ctmrg.jl")
+# include("ctmrg.jl")
+include("getCT.jl")
+# include("optim_gs.jl")
 
 end
