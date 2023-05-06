@@ -1,4 +1,4 @@
-using TensorOperations, TensorRules
+
 function optim_GS(H, A0)
     function fg!(F,G,x)
         T = transfer_matrix(x)
@@ -17,101 +17,129 @@ function optim_GS(H, A0)
     res
 end
 
-function compute_energy(hh, hv, C1,C2,C3,C4,E1,E2,E3,E4, A)
-    dm = density_matrix(A)
-    rh = get_rho_hor(C1,C2,C3,C4, E1,E1, E2, E3,E3, E4, dm, dm)
-    rv = get_rho_ver(C1,C2,C3,C4, E1, E2,E2, E3, E4,E4, dm, dm)
+function get_energy(H, ts)
+    A = ts.A 
+    Ad = ts.Ad
+    roh, rov = get_dms(ts)
+    Nh = tr(roh)
+    Nv = tr(rov)
+    Eh = tr(H[1]*roh)
+    Ev = tr(H[2]*rov)
+    E = Eh + Ev
+    N = Nh + Nv
 
-    rrh = reshape(rh, size(rh,1)*size(rh,2), :)
-    hh = reshape(hh, size(hh,1)*size(hh,2), :)
-    Eh = tr(hh*rrh)
-    Nh = tr(rrh)
-
-    rrv = reshape(rv, size(rv,1)*size(rv,2), :)
-    hv = reshape(hv, size(hv,1)*size(hv,2), :)
-    Ev = tr(hv*rrv)
-    Nv = tr(rrv)
-
-    E = Eh/Nh + Ev/Nv
-    E
+    E, N
 end
 
-transfer_matrix(A::AbstractArray) = transfer_matrix(A, conj(A)) 
+function get_dms(ts; only_gs = false)
+    if only_gs
+        A    = ts.A
+        Ad   = ts.Ad
+        C1   = ts.Cs[1]
+        C2   = ts.Cs[2]
+        C3   = ts.Cs[3]
+        C4   = ts.Cs[4]
+        E1   = ts.Es[1]
+        E2   = ts.Es[2]
+        E3   = ts.Es[3]
+        E4   = ts.Es[4]
+    else
+        A    = get_all_A(ts)
+        Ad   = get_all_Ad(ts)
+        C1, C2, C3, C4 = get_all_Cs(ts)
+        E1, E2, E3, E4 = get_all_Es(ts)
+    end
 
-@∇ function transfer_matrix(A::AbstractArray,B::AbstractArray)
-    @tensor T[a1,a2,b1,b2,c1,c2,d1,d2] := A[i, a1, b1, c1, d1]*B[i, a2, b2, c2, d2]
-    dim = size(T)
-    T = reshape(T, dim[1]*dim[2], dim[3]*dim[4], dim[5]*dim[6], dim[7]*dim[8])
-    T
+    ts_h = [C1, C2, C3, C4, E1l, E1r, E2, E3l, E3r, E4, Al, Ar, Adl, Adr]
+    ts_v = [C1, C2, C3, C4, E1, E2u, E2d, E3, E4u, E4d, Au, Ad, Adu, Add]
+    roh = get_dm_h(ts_h...)
+    rov = get_dm_v(ts_v...)
+
+    return roh, rov
 end
-
 """
-    density_matrix
-
-Return a tensor(d, d, D²,D²,D²,D²)
-"""
-density_matrix(A::AbstractArray) = density_matrix(A, conj(A)) 
-
-@∇ function density_matrix(A::AbstractArray,B::AbstractArray)
-    @tensor T[i,j, a1,a2,b1,b2,c1,c2,d1,d2] := A[i, a1, b1, c1, d1]*B[j, a2, b2, c2, d2]
-    dim = size(T)
-    T = reshape(T, dim[1], dim[2], dim[3]*dim[4], dim[5]*dim[6], dim[7]*dim[8], dim[9]*dim[10])
-    T
-end
-
-    """
     get_dm_hor
 
 return density matrix(d,d,d,d) of following diagram
 ```
 C1 -- E1l -- E1r -- C2
-|     |      |      |
-E4 -- dml<  >dmr -- E2  = ρₕ
-|     |      |      |  
+|     ||     ||      |
+E4 == AAl< =>AAr == E2  = ρₕ
+|     ||     ||      |  
 C4 -- E3l -- E3r -- C3
 ```
 """
-@∇ function get_rho_hor(C1, C2, C3, C4, E1l, E1r, E2, E3l, E3r, E4, dml, dmr)
-    # left
-    @tensor ul[i,j, m1,m2,m3,m4] := C1[p2,p1]*E1l[p1,p3,m3]*E4[p2,m1,p4]*dml[i,j, p3,p4,m2,m4]
-    @tensor bl[m1,m2,m3] := C4[m1, p1]*E3l[m2, p1, m3]
-    @tensor rhol[i,j, m1,m2,m3] := ul[i,j, p1,p2, m1,m2]*bl[p1,p2, m3]
-    # right
-    @tensor ur[i,j, m1,m2,m3,m4] := C2[p1,p2]*E1r[m1, p3,p1]*E2[p2,p4, m3]*dmr[i,j, p3,m2,m4,p4]
-    @tensor br[m1,m2,m3] := E3r[m2,m3, p1]*C3[m1, p1]
-    @tensor rhor[i,j, m1,m2,m3] := ur[i,j, m1,m2, p1,p2]*br[p1,p2, m3]
+function get_dm_h(C1, C2, C3, C4, E1l, E1r, E2, E3l, E3r, E4, Al, Ar, Adl, Adr)
+    #left
+    LU = begin
+        C1E1 = tcon([C1, E1l], [[-1,1], [1, -2, -3, -4]])
+        tcon([C1E1, Adl], [[-1,-2, -3, 1], [1, -4,-5,-6,-7]])
+    end
+    LB = begin
+        C4E3 = tcon([C4, E3l], [[-1,1], [1,-2, -3, -4]])    # [t, r], [l, r, bra, ket] -> [t, r, bra, ket]
+        CEE4 = tcon([E4, C4E3], [[-1,1, -3,-5], [1, -2, -4, -6]])  # [t, b, bra, ket], [t, r, bra, ket] -> 
+        tcon([CEE4, Al], [[-1,-2,1,2,-4,-5], [-3, 1, 2, -6, -7]])  
+    end  
+    L = tcon([LB,LU], [[1,-2,2,3,4,-3,-5], [1,-1,2,3,4,-4,-6]])
 
-    @tensor rho[m1,m2,m3,m4] := rhol[m1,m3, p1,p2,p3]*rhor[m2,m4, p1,p2,p3]
+    #right
+    RU = begin
+        C2E1 = tcon([C2, E1r], [[1,-2],[-1, 1, -3, -4]])
+        tcon([C2E1, Ar], [[-1, -2, 1, -3], [1, -4, -5, -6, -7]])
+    end 
+    RB = begin
+        C3E3 = tcon([C3, E3r], [[-1,1],[-2,1, -3,-4]])
+        CEE2 = tcon([C3E3, E2], [[1,-2, -3, -5],[-1,1, -4,-6]])
+        tcon([CEE2, Adr], [[-1,-2,-3,-4,1,2], [-5,-6,1,2,-7]])
+    end
+    R = tcon([RU,RB], [[-1,1,2,-3,3,4,-5],[1,-2,3,4,2,-4,-6]])
 
-    rho
+    roh = tcon([L,R],[[1,2,3,4,-1,-3],[1,2,3,4,-2,-4]])
+
+    return roh
 end
 
 """
-    get_dm_ver
+    get_dm_v
 
 return density matrix(d,d,d,d) of following diagram
 ```
 C1 --  E1 -- C2
 |      |     |   
-E4u -- dmu-- E2u
+E4u -- Au-- E2u
 |      Λ     |  =  ρᵥ
 |      V     |
-E4d -- dmd-- E2d  
+E4d -- Ad-- E2d  
 |      |     |  
 C4 --  E3 -- C3
 ```
 """
-@∇ function get_rho_ver(C1, C2, C3, C4, E1, E2u, E2d, E3, E4u, E4d, dmu, dmd)
+function get_dm_v(C1, C2, C3, C4, E1, E2u, E2d, E3, E4u, E4d, Au, Ad, Adu, Add)
     #up
-    @tensor ul[i,j, m1,m2,m3,m4] := C1[p2,p1]*E1[p1,p3, m3]*E4u[p2, m1, p4]*dmu[i,j, p3,p4, m2,m4]
-    @tensor ur[m1,m2,m3] := C2[m1, p1]*E2u[p1, m2,m3]
-    @tensor rhou[i,j, m1,m2,m3] := ul[i,j, m1,m2, p1,p2]*ur[p1,p2, m3]
+    UL = begin
+        C1E1 = tcon([C1, E1], [[-1,1], [1-2,-3,-4]])
+        CEE4 = tcon([C1E1, E4u], [[1,-2,-3,-5], [1,-1,-4,-6]])
+        tcon([CEE4, Au], [[-1,-2,1,2,-3,-4], [1,2,-5,-6,-7]])
+    end
+    UR = begin
+        C2E2 = tcon([C2,E2u], [[-1,1], [1,-2,-3,-4]])
+        tcon([C2E2, Adu], [[-1,-2,-3,1],[-4,-5,-6,1,-7]])
+    end
+    U = tcon([UL,UR], [[-1,1,3,4,-3,2,-5], [1,-2,2,3,4,-4,-6]])
+
     #bottom
-    @tensor dl[i,j, m1,m2,m3,m4] := C4[p2,p1]*E3[p4,p1, m3]*E4d[m1, p2,p3]*dmd[i,j, m2, p3,p4, m4]
-    @tensor dr[m1,m2,m3] := E2d[m3,m2, p1]*C3[p1, m1]
-    @tensor rhod[i,j, m1,m2,m3] := dl[i,j, m1,m2, p1,p2]*dr[p1,p2, m3]
+    BL = begin
+        C4E3 = tcon([C4,E3], [[-1,1], [1,-2,-3,-4]])
+        CEE4 = tcon([C4E3, E4d], [[1,-2,-4,-6],[-1,1,-3,-5]])
+        tcon([CEE4, Add], [[-1,-2,-3,-4,1,2], [-5,1,2,-6,-7]])
+    end
+    BR = begin
+        C3E2 = tcon([C3, E2d], [[1,-2], [-1,1,-3,-4]])
+        tcon([C3E2, Ad], [[-1,-2,1,-3], [-4,-5,-6,1,-7]])
+    end
+    B = tcon([BL, BR], [[-1,1,2,3,-4,4,-6], [-2,1,4,-3,2,3,-5]])
 
-    @tensor rho[m1,m2,m3,m4] := rhou[m1,m3, p1,p2,p3]*rhod[m2,m4, p1,p2,p3] 
+    rov = tcon([U,B], [[1,2,3,4,-1,-3], [1,2,3,4,-2,-4]])
 
-    rho
+    return rov
 end

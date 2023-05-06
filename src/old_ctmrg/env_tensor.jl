@@ -69,9 +69,11 @@ end
 function get_envtensor(T::AbstractArray; kwargs...) 
     chi = get(kwargs, :chi, 10)
     env = init_env(T, chi)
+    # Cs, Es = init_CE(16)
+    # env = EnvTensor(T, Cs, Es, chi)
 
     maxitr = get(kwargs, :maxitr, 1000)
-    conv_tol = get(kwargs, :conv_tol, 1e-6)
+    conv_tol = get(kwargs, :conv_tol, 1e-10)
     olds = zeros(eltype(env), chi)
     diff = 1.0
 
@@ -140,7 +142,7 @@ function init_CE(T::AbstractArray)
     Cs = [C1, C2, C3, C4] ./ norm.([C1, C2, C3, C4])
     Es = [E1, E2, E3, E4] ./ norm.([E1, E2, E3, E4])
 
-    Cs,Es
+    Cs, Es
 end
 
 function update_env(env::EnvTensor; kwargs...) 
@@ -353,13 +355,16 @@ end
 
 function get_projector(R1, R2, chi)
     # BUG: potentional; should be size(R2,2)
-    new_chi = min(chi, size(R1,2))  
+    new_chi = min(chi, size(R1,2)) 
+
     U, S, V = svd(R1*R2)
     ####### cut off
+    new_chi = count(>=(S[new_chi]-1.0E-12),S) 
     U1 = U[:, 1:new_chi]
     V1 = V[:, 1:new_chi]
     # S = S./S[1]
     S1 = S[1:new_chi]
+    
     
     # cut_off = sum(S[new_chi+1:end]) / sum(S)   
 

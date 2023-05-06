@@ -1,11 +1,20 @@
 """
     Tensor Order
 
+
+- big -> small 
+- bra -> ket
 - top -> bottom
 - left -> right
 - out -> in
 """
 module iPEPS
+
+using LinearAlgebra
+using OMEinsum
+using Zygote
+using Optim
+
 # __precompile__(false)
 
 # export CTM, updateCTM
@@ -37,7 +46,9 @@ module iPEPS
 # include("old_ctmrg/contraction.jl")
 
 # include("ctmrg.jl")
-include("getCT.jl")
+# include("getCT.jl")
+include("nested_tensor.jl")
+include("tcon.jl")
 # include("optim_gs.jl")
 
 end

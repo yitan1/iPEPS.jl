@@ -67,7 +67,7 @@ function get_hor_E_N(h_hor, env::EnvTensor, dm) #TODO
     N_hor = tr(rrho)
 
     hh = reshape(h_hor, size(h_hor,1)*size(h_hor,2), :)
-    E_hor = tr(hh*rrho)/N_hor
+    E_hor = tr(hh*rrho)
 
     # E_hor = contract_env(Cs[1], Cs[2], Cs[3], Cs[4], effE1, Es[2], effE3, Es[4], effTh)
     # N_hor = contract_env(Cs[1], Cs[2], Cs[3], Cs[4], effE1, Es[2], effE3, Es[4], effT)
@@ -92,7 +92,7 @@ function get_ver_E_N(h_ver, env::EnvTensor, dm)
     # N_ver = contract_env(Cs[1], Cs[2], Cs[3], Cs[4], Es[1], effE2, Es[3], effE4, effT)
 
     hh = reshape(h_ver, size(h_ver,1)*size(h_ver,2), :)
-    E_ver = tr(hh*rrho)/N_ver
+    E_ver = tr(hh*rrho)
 
     E_ver, N_ver
 end
