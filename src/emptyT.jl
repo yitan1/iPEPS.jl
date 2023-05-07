@@ -1,0 +1,1 @@
+struct EmptyT end

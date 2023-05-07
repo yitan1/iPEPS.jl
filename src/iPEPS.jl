@@ -15,6 +15,8 @@ using OMEinsum
 using Zygote
 using Optim
 
+# @Zygote.nograd time
+
 # __precompile__(false)
 
 # export CTM, updateCTM
@@ -45,10 +47,13 @@ using Optim
 
 # include("old_ctmrg/contraction.jl")
 
-# include("ctmrg.jl")
-# include("getCT.jl")
+include("basis.jl")
+include("ctm_tensor.jl")
+include("emptyT.jl")
 include("nested_tensor.jl")
 include("tcon.jl")
-# include("optim_gs.jl")
+include("ctmrg.jl")
+# include("getCT.jl")
+include("optim_gs.jl")
 
 end

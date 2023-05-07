@@ -7,6 +7,7 @@ using Test
 # end
 
 using BenchmarkTools
+using LinearAlgebra
 using Zygote
 using MKL
 using TensorOperations, TensorRules
@@ -19,7 +20,8 @@ using TOML
 cf = TOML.parsefile("src/config.toml")
 a = ((1,2,3),  (2,-2))
 a = 0
-Tuple(collect(1:-10))
+A = rand(10,10);
+u,s,v = svd(A)
 
 #######################
 D = 100
