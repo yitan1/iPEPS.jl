@@ -1,6 +1,6 @@
 function run_ctm(ts::CTMTensors, chi)
-    min_iter = 4
-    max_iter = 20
+    min_iter = 1
+    max_iter = 1
     tol = 1e-6
     diffs = [1.0]
     old_conv = 1.0
@@ -21,12 +21,12 @@ function run_ctm(ts::CTMTensors, chi)
             append!(diffs, diff)
         end
 
+        println("CTM step $(i)， conv = $(diffs[end]), time = $ctm_time")
+
         if i >= min_iter && diffs[end] < tol 
-            println("CTM finished, final step $(i), conv = $(diffs[end]), time = $ctm_time")
+            println("\n ---------- CTM finished --------- \n")
             break
         end
-
-        println("CTM step $(i)， conv = $(diffs[end]), time = $ctm_time")
     end
 
     ts, conv
@@ -54,6 +54,11 @@ end
 
 function rg_step(tensors::CTMTensors, chi)
     tensors, s = left_rg(tensors, chi)
+    tensors, _ = right_rg(tensors, chi)
+    tensors, _ = top_rg(tensors, chi)
+    tensors, _ = bottom_rg(tensors, chi)
+
+    tensors, _ = left_rg(tensors, chi)
     tensors, _ = right_rg(tensors, chi)
     tensors, _ = top_rg(tensors, chi)
     tensors, _ = bottom_rg(tensors, chi)

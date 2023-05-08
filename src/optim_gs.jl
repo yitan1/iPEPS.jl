@@ -19,9 +19,10 @@ end
 
 function run(H, A)
     ts0 = iPEPS.CTMTensors(A,A)
-    ts, s = rg_step(ts0, 50)
+    ts, s = rg_step(ts0, 30)
+    # ts, s1 = rg_step(ts1, 30)
     # ts0 = setproperties(ts0, A = A, Ad = conj(A))
-
+    # ts, s = iPEPS.run_ctm(ts0, 30)
     # conv_ts, s = iPEPS.run_ctm(nograd(ts0), 50)
     # conv_ts = setproperties(conv_ts, A = A, Ad = conj(A))
 
