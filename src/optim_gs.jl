@@ -17,6 +17,20 @@ function optim_GS(H, A0)
     res
 end
 
+function run(H, A)
+    ts0 = iPEPS.CTMTensors(A,A)
+    ts, s = rg_step(ts0, 50)
+    # ts0 = setproperties(ts0, A = A, Ad = conj(A))
+
+    # conv_ts, s = iPEPS.run_ctm(nograd(ts0), 50)
+    # conv_ts = setproperties(conv_ts, A = A, Ad = conj(A))
+
+    # ts, s = iPEPS.run_ctm(conv_ts, 50)
+    E, N = get_energy(H, ts)
+
+    E[1] + E[2]
+end
+
 function get_energy(H, ts)
     A = ts.A 
     Ad = ts.Ad
@@ -25,13 +39,17 @@ function get_energy(H, ts)
     Nv = tr(rov)
     Eh = tr(H[1]*roh)
     Ev = tr(H[2]*rov)
-    E = Eh + Ev
-    N = Nh + Nv
+    E = [Eh, Ev]
+    N = [Nh, Nv]
+
+    gs_E = (Eh/Nh + Ev/Nv)/2
+
+    println("Energy: $gs_E")
 
     E, N
 end
 
-function get_dms(ts; only_gs = false)
+function get_dms(ts; only_gs = true)
     if only_gs
         A    = ts.A
         Ad   = ts.Ad
@@ -50,8 +68,8 @@ function get_dms(ts; only_gs = false)
         E1, E2, E3, E4 = get_all_Es(ts)
     end
 
-    ts_h = [C1, C2, C3, C4, E1l, E1r, E2, E3l, E3r, E4, Al, Ar, Adl, Adr]
-    ts_v = [C1, C2, C3, C4, E1, E2u, E2d, E3, E4u, E4d, Au, Ad, Adu, Add]
+    ts_h = [C1, C2, C3, C4, E1, E1, E2, E3, E3, E4, A, A, Ad, Ad]
+    ts_v = [C1, C2, C3, C4, E1, E2, E2, E3, E4, E4, A, A, Ad, Ad]
     roh = get_dm_h(ts_h...)
     rov = get_dm_v(ts_v...)
 
@@ -96,6 +114,9 @@ function get_dm_h(C1, C2, C3, C4, E1l, E1r, E2, E3l, E3r, E4, Al, Ar, Adl, Adr)
 
     roh = tcon([L,R],[[1,2,3,4,-1,-3],[1,2,3,4,-2,-4]])
 
+    d = size(Al, 5)
+    roh = reshape(roh, d*d, d*d)
+
     return roh
 end
 
@@ -117,7 +138,7 @@ C4 --  E3 -- C3
 function get_dm_v(C1, C2, C3, C4, E1, E2u, E2d, E3, E4u, E4d, Au, Ad, Adu, Add)
     #up
     UL = begin
-        C1E1 = tcon([C1, E1], [[-1,1], [1-2,-3,-4]])
+        C1E1 = tcon([C1, E1], [[-1,1], [1,-2,-3,-4]])
         CEE4 = tcon([C1E1, E4u], [[1,-2,-3,-5], [1,-1,-4,-6]])
         tcon([CEE4, Au], [[-1,-2,1,2,-3,-4], [1,2,-5,-6,-7]])
     end
@@ -140,6 +161,9 @@ function get_dm_v(C1, C2, C3, C4, E1, E2u, E2d, E3, E4u, E4d, Au, Ad, Adu, Add)
     B = tcon([BL, BR], [[-1,1,2,3,-4,4,-6], [-2,1,4,-3,2,3,-5]])
 
     rov = tcon([U,B], [[1,2,3,4,-1,-3], [1,2,3,4,-2,-4]])
+
+    d = size(Au, 5)
+    rov = reshape(rov, d*d, d*d)
 
     return rov
 end
