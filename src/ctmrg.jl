@@ -1,6 +1,6 @@
 function run_ctm(ts::CTMTensors, chi)
-    min_iter = 1
-    max_iter = 1
+    min_iter = 4
+    max_iter = 20
     tol = 1e-6
     diffs = [1.0]
     old_conv = 1.0
@@ -26,6 +26,10 @@ function run_ctm(ts::CTMTensors, chi)
         if i >= min_iter && diffs[end] < tol 
             println("\n ---------- CTM finished --------- \n")
             break
+        end
+
+        if i == max_iter
+            println("\n --------- Not Converged ---------- \n")
         end
     end
 
@@ -58,10 +62,10 @@ function rg_step(tensors::CTMTensors, chi)
     tensors, _ = top_rg(tensors, chi)
     tensors, _ = bottom_rg(tensors, chi)
 
-    tensors, _ = left_rg(tensors, chi)
-    tensors, _ = right_rg(tensors, chi)
-    tensors, _ = top_rg(tensors, chi)
-    tensors, _ = bottom_rg(tensors, chi)
+    # tensors, _ = left_rg(tensors, chi)
+    # tensors, _ = right_rg(tensors, chi)
+    # tensors, _ = top_rg(tensors, chi)
+    # tensors, _ = bottom_rg(tensors, chi)
 
     tensors, s
 end
@@ -244,16 +248,16 @@ function get_projector(R1, R2, chi)
 
     U, S, V = svd(R1 * R2)
     ####### cut off
-    new_chi = count(>=(S[new_chi] - 1.0E-12), S)
+    new_chi = count(>=(S[new_chi] - 1.0E-10), S)
     U1 = U[:, 1:new_chi]
     V1 = V[:, 1:new_chi]
     # S = S./S[1]
     S1 = S[1:new_chi]
 
-
+    # display(S1)
     # cut_off = sum(S[new_chi+1:end]) / sum(S)   
 
-    inv_sqrt_S = sqrt.(S1) |> diagm |> inv
+    inv_sqrt_S = sqrt.(S1) |> diag_inv #|> diagm |> inv
 
     P1 = R2 * V1 * inv_sqrt_S    #(D2,D3)*(D3,chi)*(chi,chi) --> (D2, chi) 
     P2 = inv_sqrt_S * U1' * R1   #(chi,chi)*(chi,D1)*(D1,D2)  --> (chi, D2)

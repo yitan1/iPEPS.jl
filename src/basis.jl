@@ -16,5 +16,10 @@ nograd(x) = x
 # @Zygote.nograd CTMTensors
 
 renormalize(A::AbstractArray) = A ./ maximum(abs, A)
+# renormalize(A::AbstractArray) = A ./ norm(A)
 
+
+function diag_inv(A::AbstractArray)
+    diagm(1 ./ A)
+end
 

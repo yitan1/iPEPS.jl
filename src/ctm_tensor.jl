@@ -25,7 +25,7 @@ function init_ctm(A, Ad)
     C2 = ones(1,1)
     C3 = ones(1,1)
     C4 = ones(1,1)
-    Cs = [C1, C2, C3, C4]
+    Cs = [C1, C2, C3, C4] .|> renormalize
 
     E1 = tcon([A,Ad], [[1,2,-1,3,4],[1,2,-2,3,4]])
     E1 = reshape(E1, 1, 1, D, D)
@@ -39,7 +39,7 @@ function init_ctm(A, Ad)
     E4 = tcon([A,Ad], [[1,2,3,-1,4],[1,2,3,-2,4]])
     E4 = reshape(E4, 1, 1, D, D)
 
-    Es = [E1, E2, E3, E4]
+    Es = [E1, E2, E3, E4] .|> renormalize
 
     Cs, Es
 end

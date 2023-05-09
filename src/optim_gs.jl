@@ -1,9 +1,11 @@
 
 function optim_GS(H, A0)
     function fg!(F,G,x)
-        T = transfer_matrix(x)
-        env = get_envtensor(T; chi = chi, output = false)
-        f(_x) = get_energy(_x, conj(_x), h_hor, h_ver, env; chi = chi) 
+        ts0 = CTMTensors(x, x);
+        println("\n ---- Start to find fixed points ----- \n")
+        ts0, _ = run_ctm(ts0, 30);
+        println("\n ---- End to find fixed points ----- \n")
+        f(_x) = run_energy(H, ts0, _x) 
         y, back = Zygote.pullback(f, x)
         if G !== nothing
             copy!(G, back(1)[1])
@@ -13,18 +15,14 @@ function optim_GS(H, A0)
         end
     end
 
-    res = optimize(Optim.only_fg!(fg!), A, LBFGS(), Optim.Options(x_tol = 1e-6, f_tol = 1e-6, g_tol = 1e-6))
+    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(), Optim.Options(x_tol = 1e-6, f_tol = 1e-6, g_tol = 1e-6))
     res
 end
 
-function run(H, A)
-    ts0 = iPEPS.CTMTensors(A,A)
-    ts, s = rg_step(ts0, 30)
-    # ts, s1 = rg_step(ts1, 30)
-    # ts0 = setproperties(ts0, A = A, Ad = conj(A))
-    # ts, s = iPEPS.run_ctm(ts0, 30)
-    # conv_ts, s = iPEPS.run_ctm(nograd(ts0), 50)
-    # conv_ts = setproperties(conv_ts, A = A, Ad = conj(A))
+function run_energy(H, ts0, A)
+    # ts0 = iPEPS.CTMTensors(A,A)
+    ts0 = setproperties(ts0, A = A, Ad = conj(A))
+    ts, s = run_ctm(ts0, 30)
 
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
     E, N = get_energy(H, ts)
@@ -45,7 +43,8 @@ function get_energy(H, ts)
 
     gs_E = (Eh/Nh + Ev/Nv)/2
 
-    println("Energy: $gs_E")
+    println("gs_Energy: $gs_E, E: $E, N: $N")
+    
 
     E, N
 end
