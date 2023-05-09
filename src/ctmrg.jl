@@ -1,10 +1,11 @@
-function run_ctm(ts::CTMTensors, chi)
+function run_ctm(ts::CTMTensors, chi; conv_fun = nothing)
     min_iter = 4
     max_iter = 20
     tol = 1e-6
     diffs = [1.0]
     old_conv = 1.0
     conv = 1.0
+    
 
     for i = 1:max_iter
         st_time = time()
@@ -14,14 +15,22 @@ function run_ctm(ts::CTMTensors, chi)
         ctm_time = ed_time - st_time
 
         old_conv = conv
-        conv = s
+        if conv_fun !== nothing
+            conv = conv_fun(ts)
+        else
+            conv = s
+        end
 
-        if  length(s) == length(old_conv)
+        if  length(conv) == length(old_conv)
             diff = norm(conv .- old_conv)
             append!(diffs, diff)
         end
 
-        println("CTM step $(i)， conv = $(diffs[end]), time = $ctm_time")
+        if conv_fun !== nothing
+            println("CTM step $(i)， conv = $(diffs[end]), time = $ctm_time, obj = $conv")
+        else
+            println("CTM step $(i)， conv = $(diffs[end]), time = $ctm_time")
+        end
 
         if i >= min_iter && diffs[end] < tol 
             println("\n ---------- CTM finished --------- \n")

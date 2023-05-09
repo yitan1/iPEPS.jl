@@ -19,10 +19,14 @@ d = 4
 A = randn(D,D,D,D,d)
 A = A ./ maximum(abs,A);
 ts0 = iPEPS.CTMTensors(A,A);
-ts0, s = iPEPS.run_ctm(ts0, 30);
+function conv_fun(_x)
+     E, N = iPEPS.get_energy(H,_x)
+     E[1] + E[2]
+end
+ts0, s = iPEPS.run_ctm(ts0, 30, conv_fun = conv_fun);
 e0 = iPEPS.run_energy(H, ts0, A)
 
-gradient(x -> iPEPS.run(H, ts0, x), A)[1]
+gradient(x -> iPEPS.run_energy(H, ts0, x), A)[1]
 
 iPEPS.optim_GS(H, A)
 
