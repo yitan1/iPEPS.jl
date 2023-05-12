@@ -1,22 +1,30 @@
-struct CTMTensors
-    A
-    Ad
-    Cs
-    Es
-    B
-    Bd
-    B_Cs
-    Bd_Cs
-    BB_Cs
-    B_Es
-    Bd_Es
-    BB_Es
+TensorType = Union{AbstractArray, EmptyT}
+
+struct CTMTensors{AT<:TensorType, CT<:TensorType, ET<:TensorType, BT<:TensorType, B_CT<:TensorType, B_ET<:TensorType} 
+    A::AT
+    Ad::AT
+    Cs::Vector{CT}
+    Es::Vector{ET}
+    B::BT
+    Bd::BT
+    B_Cs::Vector{B_CT}
+    Bd_Cs::Vector{B_CT}
+    BB_Cs::Vector{B_CT}
+    B_Es::Vector{B_ET}
+    Bd_Es::Vector{B_ET}
+    BB_Es::Vector{B_ET}
 end
+# function CTMTensors(A::AT, Ad::AT, Cs::Vector{CT}, Es::Vector{ET}, B::EmptyT, B::EmptyT, B_C::Vector{EmptyT}, B_C::Vector{EmptyT}, B_C::Vector{EmptyT}, B_C::Vector{EmptyT}, B_C::Vector{EmptyT}, B_C::Vector{EmptyT})
+#     if B isa EmptyT
+#         CTMTensors{T, T}(A, Ad, Cs, Es, B, B, B_C, B_C, B_C, B_C, B_C, B_C)
+#     end
+# end
 
 function CTMTensors(A, Ad)
     Cs, Es = init_ctm(A,Ad)
-    t0 = EmptyT()
-    CTMTensors(A, Ad, Cs, Es, t0, t0, t0, t0, t0, t0, t0, t0)
+    B = EmptyT()
+    B_C = [B for i = 1:4]
+    CTMTensors(A, Ad, Cs, Es, B, B, B_C, B_C, B_C, B_C, B_C, B_C)
 end
 
 function init_ctm(A, Ad)
@@ -25,7 +33,7 @@ function init_ctm(A, Ad)
     C2 = ones(1,1)
     C3 = ones(1,1)
     C4 = ones(1,1)
-    Cs = [C1, C2, C3, C4] .|> renormalize
+    Cs = Vector{typeof(C1)}([C1, C2, C3, C4]) #.|> renormalize
 
     E1 = tcon([A,Ad], [[1,2,-1,3,4],[1,2,-2,3,4]])
     E1 = reshape(E1, 1, 1, D, D)
@@ -39,7 +47,7 @@ function init_ctm(A, Ad)
     E4 = tcon([A,Ad], [[1,2,3,-1,4],[1,2,3,-2,4]])
     E4 = reshape(E4, 1, 1, D, D)
 
-    Es = [E1, E2, E3, E4] .|> renormalize
+    Es = Vector{typeof(E1)}([E1, E2, E3, E4]) #.|> renormalize
 
     Cs, Es
 end

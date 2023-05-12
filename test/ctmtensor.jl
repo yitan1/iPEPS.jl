@@ -4,11 +4,12 @@ time()
 
 using Accessors
 
-D = 4
+D = 2
 d = 4
 A = randn(D,D,D,D,d)
 A = A/maximum(abs,A);
 ts0 = iPEPS.CTMTensors(A,A);
+@code_warntype iPEPS.right_rg(ts0, 50)
 
 function test_ad(A)
     # st = Base.time()

@@ -10,12 +10,13 @@
 """
 module iPEPS
 
+# using MKL # shoule be the first pkg
 # using Accessors
-using ConstructionBase
+using ConstructionBase 
 using LinearAlgebra
 using OMEinsum 
-using Zygote
-using Optim
+using Zygote#, BackwardsLinalg
+using Optim#, LineSearches
 
 
 # __precompile__(false)
@@ -48,11 +49,12 @@ using Optim
 
 # include("old_ctmrg/contraction.jl")
 
+include("svd_ad.jl")
 include("basis.jl")
-include("ctm_tensor.jl")
+include("tcon.jl")
 include("emptyT.jl")
 include("nested_tensor.jl")
-include("tcon.jl")
+include("ctm_tensor.jl")
 include("ctmrg.jl")
 # include("getCT.jl")
 include("optim_gs.jl")

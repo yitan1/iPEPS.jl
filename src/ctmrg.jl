@@ -1,6 +1,6 @@
 function run_ctm(ts::CTMTensors, chi; conv_fun = nothing)
     min_iter = 4
-    max_iter = 20
+    max_iter = 30
     tol = 1e-6
     diffs = [1.0]
     old_conv = 1.0
@@ -27,18 +27,18 @@ function run_ctm(ts::CTMTensors, chi; conv_fun = nothing)
         end
 
         if conv_fun !== nothing
-            println("CTM step $(i)， conv = $(diffs[end]), time = $ctm_time, obj = $conv")
+            println("CTM step $(i)， diff = $(diffs[end]), time = $ctm_time, obj = $conv")
         else
-            println("CTM step $(i)， conv = $(diffs[end]), time = $ctm_time")
+            println("CTM step $(i)， diff = $(diffs[end]), time = $ctm_time")
         end
 
         if i >= min_iter && diffs[end] < tol 
-            println("\n ---------- CTM finished --------- \n")
+            println("---------- CTM finished ---------")
             break
         end
 
         if i == max_iter
-            println("\n --------- Not Converged ---------- \n")
+            println("--------- Not Converged ----------")
         end
     end
 
@@ -128,7 +128,7 @@ function get_projector_left(ts::CTMTensors, chi)
     E3 = ts.Es[3]
     E4 = ts.Es[4]
 
-    tensors = [C1, C4, E1, E3, E4, E4, A, Ad, A, Ad, chi]
+    tensors = (C1, C4, E1, E3, E4, E4, A, Ad, A, Ad, chi)
 
     get_projector_left(tensors...)
 end
@@ -161,7 +161,7 @@ function get_projector_right(ts::CTMTensors, chi)
     E2 = ts.Es[2]
     E3 = ts.Es[3]
 
-    tensors = [C2, C3, E1, E2, E2, E3, A, Ad, A, Ad, chi]
+    tensors = (C2, C3, E1, E2, E2, E3, A, Ad, A, Ad, chi)
 
     get_projector_right(tensors...)
 end
@@ -194,7 +194,7 @@ function get_projector_top(ts::CTMTensors, chi)
     E2 = ts.Es[2]
     E4 = ts.Es[4]
 
-    tensors = [C1, C2, E1, E1, E2, E4, A, Ad, A, Ad, chi]
+    tensors = (C1, C2, E1, E1, E2, E4, A, Ad, A, Ad, chi)
 
     get_projector_top(tensors...)
 end
@@ -227,7 +227,7 @@ function get_projector_bottom(ts::CTMTensors, chi)
     E3 = ts.Es[3]
     E4 = ts.Es[4]
 
-    tensors = [C3, C4, E2, E3, E3, E4, A, Ad, A, Ad, chi]
+    tensors = (C3, C4, E2, E3, E3, E4, A, Ad, A, Ad, chi)
 
     get_projector_bottom(tensors...)
 end
@@ -257,7 +257,8 @@ function get_projector(R1, R2, chi)
 
     U, S, V = svd(R1 * R2)
     ####### cut off
-    new_chi = count(>=(S[new_chi] - 1.0E-10), S)
+    # new_chi = count(>=(S[new_chi] - 1.0E-12), S)
+    # println(new_chi)
     U1 = U[:, 1:new_chi]
     V1 = V[:, 1:new_chi]
     # S = S./S[1]
@@ -434,8 +435,8 @@ function up_left(ts, C1, E4, C4)
     if C1 isa NestedTensor
         # @set ts.Cs[1]
     else 
-        newCs = [C1, ts.Cs[2], ts.Cs[3], C4]
-        newEs = [ts.Es[1], ts.Es[2], ts.Es[3], E4]
+        newCs = Vector{typeof(C1)}([C1, ts.Cs[2], ts.Cs[3], C4])
+        newEs = Vector{typeof(E4)}([ts.Es[1], ts.Es[2], ts.Es[3], E4])
         ts = setproperties(ts, Cs = newCs, Es = newEs)
     end
 
@@ -446,8 +447,8 @@ function up_right(ts, C2, E2, C3)
     if C2 isa NestedTensor
         # @set ts.Cs[1]
     else 
-        newCs = [ts.Cs[1], C2, C3, ts.Cs[4]]
-        newEs = [ts.Es[1], E2, ts.Es[3], ts.Es[4]]
+        newCs = Vector{typeof(C2)}([ts.Cs[1], C2, C3, ts.Cs[4]])
+        newEs = Vector{typeof(E2)}([ts.Es[1], E2, ts.Es[3], ts.Es[4]])
         ts = setproperties(ts, Cs = newCs, Es = newEs)
     end
 
@@ -458,8 +459,8 @@ function up_top(ts, C1, E1, C2)
     if C1 isa NestedTensor
         # @set ts.Cs[1]
     else 
-        newCs = [C1, C2, ts.Cs[3], ts.Cs[4]]
-        newEs = [E1, ts.Es[2], ts.Es[3], ts.Es[4]]
+        newCs = Vector{typeof(C1)}([C1, C2, ts.Cs[3], ts.Cs[4]])
+        newEs = Vector{typeof(E1)}([E1, ts.Es[2], ts.Es[3], ts.Es[4]])
         ts = setproperties(ts, Cs = newCs, Es = newEs)
     end
 
@@ -470,8 +471,8 @@ function up_bottom(ts, C4, E3, C3)
     if C4 isa NestedTensor
         # @set ts.Cs[1]
     else 
-        newCs = [ts.Cs[1], ts.Cs[2], C3, C4]
-        newEs = [ts.Es[1], ts.Es[2], E3, ts.Es[4]]
+        newCs = Vector{typeof(C4)}([ts.Cs[1], ts.Cs[2], C3, C4])
+        newEs = Vector{typeof(E3)}([ts.Es[1], ts.Es[2], E3, ts.Es[4]])
         ts = setproperties(ts, Cs = newCs, Es = newEs)
     end
 
