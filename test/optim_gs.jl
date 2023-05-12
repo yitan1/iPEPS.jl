@@ -5,6 +5,7 @@ using iPEPS
 using LinearAlgebra
 using Zygote
 using NPZ
+using ProfileView 
 
 SI = op("SI", "Spinhalf") 
 Sx = op("Sx", "Spinhalf")
@@ -52,8 +53,13 @@ function conv_fun(_x)
      E[1] + E[2]
 end
 ts0, s = iPEPS.run_ctm(ts0, 50, conv_fun = conv_fun);
-e0 = iPEPS.run_energy(H, ts0, 50, A)
+ProfileView.@profview iPEPS.run_energy(H, ts0, 50, A)
 
-gradient(x -> iPEPS.run_energy(H, ts0, x), A)[1]
+ProfileView.@profview gradient(x -> iPEPS.run_energy(H, ts0, 50, x), A)
 
 iPEPS.optim_GS(H, A, 50)
+ 
+ using ProfileView
+ ProfileView.@profview profile_test(10)
+
+ 

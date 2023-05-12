@@ -1,1 +1,8 @@
-a = [1,2]
+[optim]
+methods = LBFGS()
+max_iter = 100
+
+[ctmrg]
+min_iter = 4
+max_iter = 30
+tol = 1e-6

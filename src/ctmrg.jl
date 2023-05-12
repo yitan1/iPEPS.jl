@@ -14,6 +14,8 @@ function run_ctm(ts::CTMTensors, chi; conv_fun = nothing)
 
         ctm_time = ed_time - st_time
 
+        # s1 = nograd(s)
+        # ts1 = nograd(ts)
         old_conv = conv
         if conv_fun !== nothing
             conv = conv_fun(ts)
@@ -27,19 +29,19 @@ function run_ctm(ts::CTMTensors, chi; conv_fun = nothing)
         end
 
         if conv_fun !== nothing
-            println("CTM step $(i)， diff = $(diffs[end]), time = $ctm_time, obj = $conv")
+            @printf("CTM step %3d, diff = %.4e, time = %.4f, obj = %.6f \n",i, diffs[end], ctm_time, conv)
         else
-            println("CTM step $(i)， diff = $(diffs[end]), time = $ctm_time")
+            @printf("CTM step %3d, diff = %.4e, time = %.4f \n", i, diffs[end], ctm_time)
         end
 
         if i >= min_iter && diffs[end] < tol 
             println("---------- CTM finished ---------")
+            if i == max_iter
+                println("--------- Not Converged ----------")
+            end
             break
         end
 
-        if i == max_iter
-            println("--------- Not Converged ----------")
-        end
     end
 
     ts, conv

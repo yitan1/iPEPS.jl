@@ -61,7 +61,7 @@ function optim_GS(H, A0, chi)
     # optimizer = L_BFGS_B(1024, 17)
     # res = optimizer(Optim.only_fg!(fg!), A0, m=20, factr=1e7, pgtol=1e-5, iprint=-1, maxfun=15000, maxiter=15000)
 
-    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(), Optim.Options( g_tol=1e-6, callback = verbose, iterations = 2))
+    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(), inplace = false, Optim.Options( g_tol=1e-6, callback = verbose, iterations = 100 ,show_trace = true))
 
     res
 end
