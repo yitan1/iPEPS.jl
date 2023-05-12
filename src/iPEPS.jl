@@ -49,9 +49,10 @@ using Optim#, LineSearches
 
 # include("old_ctmrg/contraction.jl")
 
+include("tcon.jl")
+include("model.jl")
 include("svd_ad.jl")
 include("basis.jl")
-include("tcon.jl")
 include("emptyT.jl")
 include("nested_tensor.jl")
 include("ctm_tensor.jl")

@@ -1,6 +1,6 @@
 function run_ctm(ts::CTMTensors, chi; conv_fun = nothing)
     min_iter = 4
-    max_iter = 30
+    max_iter = 10
     tol = 1e-6
     diffs = [1.0]
     old_conv = 1.0
@@ -18,7 +18,7 @@ function run_ctm(ts::CTMTensors, chi; conv_fun = nothing)
         # ts1 = nograd(ts)
         old_conv = conv
         if conv_fun !== nothing
-            conv = conv_fun(ts)
+            conv = conv_fun(ts) 
         else
             conv = s
         end
@@ -36,10 +36,10 @@ function run_ctm(ts::CTMTensors, chi; conv_fun = nothing)
 
         if i >= min_iter && diffs[end] < tol 
             println("---------- CTM finished ---------")
-            if i == max_iter
-                println("--------- Not Converged ----------")
-            end
             break
+        end
+        if i == max_iter && diffs[end] > tol 
+            println("--------- Not Converged ----------")
         end
 
     end
@@ -254,12 +254,16 @@ function get_projector_bottom(C3, C4, E2, E3l, E3r, E4, Al, Adl, Ar, Adr, chi)
 end
 
 function get_projector(R1, R2, chi)
-    # BUG: potentional; should be size(R2,2)
     new_chi = min(chi, size(R1, 2))
 
     U, S, V = svd(R1 * R2)
+    # @show S
     ####### cut off
-    # new_chi = count(>=(S[new_chi] - 1.0E-12), S)
+    tol = 1e-10
+    if chi < size(S,1) && S[new_chi] > tol 
+        new_chi = count(>=(S[new_chi] - tol), S)
+        # @show new_chi, S[chi:new_chi]
+    end
     # println(new_chi)
     U1 = U[:, 1:new_chi]
     V1 = V[:, 1:new_chi]

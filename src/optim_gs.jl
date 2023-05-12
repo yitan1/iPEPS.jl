@@ -24,15 +24,15 @@ function optim_GS(H, A0, chi)
     function fg!(F,G,x)
         x = renormalize(x)
 
-        # if cached_g !== nothing && cached_x !== nothing && norm(x - cached_x) < 1e-14
-        #     println("Restart to find x")
-        #     if G !== nothing
-        #         copy!(G, cached_g)
-        #     end
-        #     if F !== nothing
-        #         return cached_y
-        #     end
-        # end
+        if cached_g !== nothing && cached_x !== nothing && norm(x - cached_x) < 1e-14
+            println("Restart to find x")
+            if G !== nothing
+                copy!(G, cached_g)
+            end
+            if F !== nothing
+                return cached_y
+            end
+        end
 
         ts0 = CTMTensors(x, x);
         conv_fun(_x) = get_gs_energy(H, _x)
@@ -40,14 +40,14 @@ function optim_GS(H, A0, chi)
         ts0, _ = run_ctm(ts0, chi; conv_fun = conv_fun);
         println("---- End to find fixed points ----- \n")
         f(_x) = run_energy(H, ts0, chi, _x) 
-        @time y, back = Zygote.pullback(f, x)
+        y, back = Zygote.pullback(f, x)
 
         println("Finish autodiff")
         cached_x = x
         cached_y = y
 
         if G !== nothing
-            @time g = back(1)[1]
+            g = back(1)[1]
             cached_g = g
             # @show g
             copy!(G, g)
@@ -61,7 +61,7 @@ function optim_GS(H, A0, chi)
     # optimizer = L_BFGS_B(1024, 17)
     # res = optimizer(Optim.only_fg!(fg!), A0, m=20, factr=1e7, pgtol=1e-5, iprint=-1, maxfun=15000, maxiter=15000)
 
-    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(), inplace = false, Optim.Options( g_tol=1e-6, callback = verbose, iterations = 100 ,show_trace = true))
+    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(m=20), inplace = false, Optim.Options(g_tol=1e-6, callback = verbose, iterations = 100 ,show_trace = true))
 
     res
 end
@@ -76,11 +76,11 @@ function run_energy(H, ts0, chi, A)
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
     E, N = get_energy(H, ts)
 
-    # gs_E = (E[1]/N[1] + E[2]/N[2])/2
+    gs_E = sum(E) |> real
     # @printf("Gs_Energy: %.10g \n", sum(E))
     # println("E: $E, N: $N")
 
-    E[1] + E[2]
+    gs_E
 end
 
 function get_gs_energy(H, ts)
