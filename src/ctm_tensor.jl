@@ -1,6 +1,6 @@
 TensorType = Union{AbstractArray, EmptyT}
 
-struct CTMTensors{AT<:TensorType, CT<:TensorType, ET<:TensorType, BT<:TensorType, B_CT<:TensorType, B_ET<:TensorType} 
+struct CTMTensors{AT, CT, ET, BT, B_CT, B_ET} 
     A::AT
     Ad::AT
     Cs::Vector{CT}
@@ -14,11 +14,49 @@ struct CTMTensors{AT<:TensorType, CT<:TensorType, ET<:TensorType, BT<:TensorType
     Bd_Es::Vector{B_ET}
     BB_Es::Vector{B_ET}
 end
-# function CTMTensors(A::AT, Ad::AT, Cs::Vector{CT}, Es::Vector{ET}, B::EmptyT, B::EmptyT, B_C::Vector{EmptyT}, B_C::Vector{EmptyT}, B_C::Vector{EmptyT}, B_C::Vector{EmptyT}, B_C::Vector{EmptyT}, B_C::Vector{EmptyT})
-#     if B isa EmptyT
-#         CTMTensors{T, T}(A, Ad, Cs, Es, B, B, B_C, B_C, B_C, B_C, B_C, B_C)
-#     end
-# end
+
+function get_all_A(ts::CTMTensors)
+    if ts.B isa EmptyT
+        return ts.A
+    else 
+        nested_A = [ts.A, ts.B, EmptyT(), EmptyT()] |> NestedTensor
+        nested_A
+    end
+end
+
+function get_all_Ad(ts::CTMTensors)
+    if ts.B isa EmptyT
+        return ts.Ad
+    else 
+        nested_Ad = [ts.Ad, EmptyT(), ts.Bd, EmptyT()] |> NestedTensor
+        nested_Ad
+    end
+end
+
+function get_all_Cs(ts::CTMTensors)
+    if ts.B isa EmptyT
+        return ts.Cs
+    else 
+        nested_Cs = Vector{NestedTensor}(undef, 4)
+        for i = 1:4
+            nested_Cs[i] = [ts.Cs[i], ts.B_Cs[i], ts.Bd_Cs[i], ts.BB_Cs[i]] |> NestedTensor
+        end
+        return nested_Cs
+    end
+end
+
+function get_all_Es(ts::CTMTensors)
+    if ts.B isa EmptyT
+        return ts.Es
+    else 
+        nested_Es = Vector{NestedTensor}(undef, 4)
+        for i = 1:4
+            nested_Es[i] = [ts.Es[i], ts.B_Es[i], ts.Bd_Es[i], ts.BB_Es[i]] |> NestedTensor
+        end
+        return nested_Es
+    end
+
+end
 
 function CTMTensors(A, Ad)
     Cs, Es = init_ctm(A,Ad)

@@ -57,7 +57,9 @@ include("emptyT.jl")
 include("nested_tensor.jl")
 include("ctm_tensor.jl")
 include("ctmrg.jl")
+include("evaluation.jl")
 # include("getCT.jl")
 include("optim_gs.jl")
+include("optim_es.jl")
 
 end

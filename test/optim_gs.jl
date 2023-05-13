@@ -6,6 +6,7 @@ using LinearAlgebra
 using Zygote
 using NPZ
 using ProfileView 
+# ProfileView.@profview profile_test(10)
 
 H = iPEPS.honeycomb(0.15, 0.15)
 
@@ -31,7 +32,5 @@ gradient(x -> iPEPS.run_energy(H, ts0, 50, x), A)
 
 iPEPS.optim_GS(H, A, 30)
  
- using ProfileView
- ProfileView.@profview profile_test(10)
 
  

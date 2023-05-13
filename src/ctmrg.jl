@@ -257,7 +257,7 @@ function get_projector(R1, R2, chi)
     new_chi = min(chi, size(R1, 2))
 
     U, S, V = svd(R1 * R2)
-    # @show S
+    # @show S 
     ####### cut off
     tol = 1e-10
     if chi < size(S,1) && S[new_chi] > tol 
@@ -282,28 +282,27 @@ function get_projector(R1, R2, chi)
 end
 
 function proj_left(ts, P, Pd)
-    # A    = get_all_A(ts)
-    # Ad   = get_all_Ad(ts)
-    # C1, C2, C3, C4 = get_all_Cs(ts)
-    # E1, E2, E3, E4 = get_all_Es(ts)
-    A = ts.A
-    Ad = ts.Ad
-    C1 = ts.Cs[1]
-    C2 = ts.Cs[2]
-    C3 = ts.Cs[3]
-    C4 = ts.Cs[4]
-    E1 = ts.Es[1]
-    E2 = ts.Es[2]
-    E3 = ts.Es[3]
-    E4 = ts.Es[4]
-
-    D = size(A, 1)
+    A    = get_all_A(ts)
+    Ad   = get_all_Ad(ts)
+    C1, C2, C3, C4 = get_all_Cs(ts)
+    E1, E2, E3, E4 = get_all_Es(ts)
+    # A = ts.A
+    # Ad = ts.Ad
+    # C1 = ts.Cs[1]
+    # C2 = ts.Cs[2]
+    # C3 = ts.Cs[3]
+    # C4 = ts.Cs[4]
+    # E1 = ts.Es[1]
+    # E2 = ts.Es[2]
+    # E3 = ts.Es[3]
+    # E4 = ts.Es[4]
 
     newC1 = begin
         C1E1 = tcon([C1, E1], [[-2, 1], [1, -1, -3, -4]])
         CEP = reshape(C1E1, size(C1E1, 1), :) * P
         permutedims(CEP, (2,1))
     end
+
     newC4 = begin
         C4E3 = tcon([C4, E3], [[-1, 1], [1, -4, -2, -3]])
         Pd * reshape(C4E3, :, size(C4E3, 4))
@@ -312,7 +311,7 @@ function proj_left(ts, P, Pd)
     newE4 = begin
         E4A = tcon([E4, A], [[-1, -3, 1, -6], [-2, 1, -4, -5, -7]])
         EAAd = tcon([E4A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-3, 1, -6, -8, 2]])
-        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), D, D)
+        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
         EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
@@ -321,27 +320,26 @@ function proj_left(ts, P, Pd)
 end
 
 function proj_right(ts, P, Pd)
-    # A    = get_all_A(ts)
-    # Ad   = get_all_Ad(ts)
-    # C1, C2, C3, C4 = get_all_Cs(ts)
-    # E1, E2, E3, E4 = get_all_Es(ts)
-    A = ts.A
-    Ad = ts.Ad
-    C1 = ts.Cs[1]
-    C2 = ts.Cs[2]
-    C3 = ts.Cs[3]
-    C4 = ts.Cs[4]
-    E1 = ts.Es[1]
-    E2 = ts.Es[2]
-    E3 = ts.Es[3]
-    E4 = ts.Es[4]
-
-    D = size(A, 1)
+    A    = get_all_A(ts)
+    Ad   = get_all_Ad(ts)
+    C1, C2, C3, C4 = get_all_Cs(ts)
+    E1, E2, E3, E4 = get_all_Es(ts)
+    # A = ts.A
+    # Ad = ts.Ad
+    # C1 = ts.Cs[1]
+    # C2 = ts.Cs[2]
+    # C3 = ts.Cs[3]
+    # C4 = ts.Cs[4]
+    # E1 = ts.Es[1]
+    # E2 = ts.Es[2]
+    # E3 = ts.Es[3]
+    # E4 = ts.Es[4]
 
     newC2 = begin
         C2E1 = tcon([C2, E1], [[1, -2], [-1, 1, -3, -4]])
         reshape(C2E1, size(C2E1, 1), :) * P
     end
+
     newC3 = begin
         C3E3 = tcon([C3, E3], [[-1, 1], [-4, 1, -2, -3]])
         Pd * reshape(C3E3, :, size(C3E3, 4))
@@ -350,7 +348,7 @@ function proj_right(ts, P, Pd)
     newE2 = begin
         E2A = tcon([E2, A], [[-1, -3, 1, -6], [-2, -5, -4, 1, -7]])
         EAAd = tcon([E2A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-3, -8, -6, 1, 2]])
-        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), D, D)
+        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
         EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
@@ -359,22 +357,20 @@ function proj_right(ts, P, Pd)
 end
 
 function proj_top(ts, P, Pd)
-    # A    = get_all_A(ts)
-    # Ad   = get_all_Ad(ts)
-    # C1, C2, C3, C4 = get_all_Cs(ts)
-    # E1, E2, E3, E4 = get_all_Es(ts)
-    A = ts.A
-    Ad = ts.Ad
-    C1 = ts.Cs[1]
-    C2 = ts.Cs[2]
-    C3 = ts.Cs[3]
-    C4 = ts.Cs[4]
-    E1 = ts.Es[1]
-    E2 = ts.Es[2]
-    E3 = ts.Es[3]
-    E4 = ts.Es[4]
-
-    D = size(A, 1)
+    A    = get_all_A(ts)
+    Ad   = get_all_Ad(ts)
+    C1, C2, C3, C4 = get_all_Cs(ts)
+    E1, E2, E3, E4 = get_all_Es(ts)
+    # A = ts.A
+    # Ad = ts.Ad
+    # C1 = ts.Cs[1]
+    # C2 = ts.Cs[2]
+    # C3 = ts.Cs[3]
+    # C4 = ts.Cs[4]
+    # E1 = ts.Es[1]
+    # E2 = ts.Es[2]
+    # E3 = ts.Es[3]
+    # E4 = ts.Es[4]
 
     newC1 = begin
         C1E4 = tcon([C1, E4], [[1, -2], [1, -1, -3, -4]])
@@ -389,7 +385,7 @@ function proj_top(ts, P, Pd)
     newE1 = begin
         E1A = tcon([E1, A], [[-1, -3, 1, -6], [1, -2, -5, -4, -7]])
         EAAd = tcon([E1A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [1, -3, -8, -6, 2]])
-        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), D, D)
+        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
         EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
@@ -398,22 +394,20 @@ function proj_top(ts, P, Pd)
 end
 
 function proj_bottom(ts, P, Pd)
-    # A    = get_all_A(ts)
-    # Ad   = get_all_Ad(ts)
-    # C1, C2, C3, C4 = get_all_Cs(ts)
-    # E1, E2, E3, E4 = get_all_Es(ts)
-    A = ts.A
-    Ad = ts.Ad
-    C1 = ts.Cs[1]
-    C2 = ts.Cs[2]
-    C3 = ts.Cs[3]
-    C4 = ts.Cs[4]
-    E1 = ts.Es[1]
-    E2 = ts.Es[2]
-    E3 = ts.Es[3]
-    E4 = ts.Es[4]
-
-    D = size(A, 1)
+    A    = get_all_A(ts)
+    Ad   = get_all_Ad(ts)
+    C1, C2, C3, C4 = get_all_Cs(ts)
+    E1, E2, E3, E4 = get_all_Es(ts)
+    # A = ts.A
+    # Ad = ts.Ad
+    # C1 = ts.Cs[1]
+    # C2 = ts.Cs[2]
+    # C3 = ts.Cs[3]
+    # C4 = ts.Cs[4]
+    # E1 = ts.Es[1]
+    # E2 = ts.Es[2]
+    # E3 = ts.Es[3]
+    # E4 = ts.Es[4]
 
     newC4 = begin
         C4E4 = tcon([C4, E4], [[1, -2], [-1, 1, -3, -4]])
@@ -429,7 +423,7 @@ function proj_bottom(ts, P, Pd)
     newE3 = begin
         E3A = tcon([E3, A], [[-1, -3, 1, -6], [-5, -2, 1, -4, -7]])
         EAAd = tcon([E3A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-8, -3, 1, -6, 2]])
-        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), D, D)
+        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
         EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
@@ -439,7 +433,22 @@ end
 
 function up_left(ts, C1, E4, C4)
     if C1 isa NestedTensor
-        # @set ts.Cs[1]
+        px = 1
+        C1 = shift(C1, -px)
+        E4 = shift(E4, -px)
+        C4 = shift(C4, -px)
+
+        newCs = Vector([C1[1], ts.Cs[2], ts.Cs[3], C4[1]])
+        newB_Cs = Vector([C1[2], ts.B_Cs[2], ts.B_Cs[3], C4[2]])
+        newBd_Cs = Vector([C1[3], ts.Bd_Cs[2], ts.Bd_Cs[3], C4[3]])
+        newBB_Cs = Vector([C1[4], ts.BB_Cs[2], ts.BB_Cs[3], C4[4]])
+    
+        newEs = Vector([ts.Es[1], ts.Es[2], ts.Es[3], E4[1]])
+        newB_Es = Vector([ts.B_Es[1], ts.B_Es[2], ts.B_Es[3], E4[2]])
+        newBd_Es = Vector([ts.Bd_Es[1], ts.Bd_Es[2], ts.Bd_Es[3], E4[3]])
+        newBB_Es = Vector([ts.BB_Es[1], ts.BB_Es[2], ts.BB_Es[3], E4[4]])
+
+        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es)
     else 
         newCs = Vector{typeof(C1)}([C1, ts.Cs[2], ts.Cs[3], C4])
         newEs = Vector{typeof(E4)}([ts.Es[1], ts.Es[2], ts.Es[3], E4])
@@ -451,7 +460,22 @@ end
 
 function up_right(ts, C2, E2, C3)
     if C2 isa NestedTensor
-        # @set ts.Cs[1]
+        px = 1
+        C2 = shift(C2, px)
+        E2 = shift(E2, px)
+        C3 = shift(C3, px)
+
+        newCs = Vector([ts.Cs[1], C2[1], C3[1], ts.Cs[4]])
+        newB_Cs = Vector([ts.B_Cs[1], C2[2], C3[2], ts.B_Cs[4]])
+        newBd_Cs = Vector([ts.Bd_Cs[1], C2[3], C3[3], ts.Bd_Cs[4]])
+        newBB_Cs = Vector([ts.BB_Cs[1], C2[4], C3[4], ts.BB_Cs[4]])
+    
+        newEs = Vector([ts.Es[1], E2[1], ts.Es[3], ts.Es[4]])
+        newB_Es = Vector([ts.B_Es[1], E2[2], ts.B_Es[3], ts.B_Es[4]])
+        newBd_Es = Vector([ts.Bd_Es[1], E2[3], ts.Bd_Es[3], ts.Bd_Es[4]])
+        newBB_Es = Vector([ts.BB_Es[1], E2[4], ts.BB_Es[3], ts.BB_Es[4]])
+
+        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es)
     else 
         newCs = Vector{typeof(C2)}([ts.Cs[1], C2, C3, ts.Cs[4]])
         newEs = Vector{typeof(E2)}([ts.Es[1], E2, ts.Es[3], ts.Es[4]])
@@ -463,7 +487,22 @@ end
 
 function up_top(ts, C1, E1, C2)
     if C1 isa NestedTensor
-        # @set ts.Cs[1]
+        py = 1
+        C1 = shift(C1, -py)
+        E1 = shift(E1, -py)
+        C2 = shift(C2, -py)
+
+        newCs = Vector([C1[1], C2[1], ts.Cs[3], ts.Cs[4]])
+        newB_Cs = Vector([C1[2], C2[2], ts.B_Cs[3], ts.B_Cs[4]])
+        newBd_Cs = Vector([C1[3], C2[3], ts.Bd_Cs[3], ts.Bd_Cs[4]])
+        newBB_Cs = Vector([C1[4], C2[4], ts.BB_Cs[3], ts.BB_Cs[4]])
+    
+        newEs = Vector([E1[1], ts.Es[2], ts.Es[3], ts.Es[4]])
+        newB_Es = Vector([E1[2], ts.B_Es[2], ts.B_Es[3], ts.B_Es[4]])
+        newBd_Es = Vector([E1[3], ts.Bd_Es[2], ts.Bd_Es[3], ts.Bd_Es[4]])
+        newBB_Es = Vector([E1[4], ts.BB_Es[2], ts.BB_Es[3], ts.BB_Es[4]])
+
+        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es)
     else 
         newCs = Vector{typeof(C1)}([C1, C2, ts.Cs[3], ts.Cs[4]])
         newEs = Vector{typeof(E1)}([E1, ts.Es[2], ts.Es[3], ts.Es[4]])
@@ -475,12 +514,28 @@ end
 
 function up_bottom(ts, C4, E3, C3)
     if C4 isa NestedTensor
-        # @set ts.Cs[1]
-    else 
+        py = 1
+        C4 = shift(C4, py)
+        E3 = shift(E3, py)
+        C3 = shift(C3, py)
+        newCs = Vector([ts.Cs[1], ts.Cs[2], C3[1], C4[1]])
+        newB_Cs = Vector([ts.B_Cs[1], ts.B_Cs[2], C3[2], C4[2]])
+        newBd_Cs = Vector([ts.Bd_Cs[1], ts.Bd_Cs[2], C3[3], C4[3]])
+        newBB_Cs = Vector([ts.BB_Cs[1], ts.BB_Cs[2], C3[4], C4[4]])
+
+        newEs = Vector([ts.Es[1], ts.Es[2], E3[1], ts.Es[4]])
+        newB_Es = Vector([ts.B_Es[1], ts.B_Es[2], E3[2], ts.B_Es[4]])
+        newBd_Es = Vector([ts.Bd_Es[1], ts.Bd_Es[2], E3[3], ts.Bd_Es[4]])
+        newBB_Es = Vector([ts.BB_Es[1], ts.BB_Es[2], E3[4], ts.BB_Es[4]])
+
+        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es)
+    else
         newCs = Vector{typeof(C4)}([ts.Cs[1], ts.Cs[2], C3, C4])
         newEs = Vector{typeof(E3)}([ts.Es[1], ts.Es[2], E3, ts.Es[4]])
         ts = setproperties(ts, Cs = newCs, Es = newEs)
     end
+    # ts1 = setproperties(ts, Cs = newCs, B_Cs = newB_Cs, Bd_Cs = newBd_Cs, BB_Cs = newBB_Cs, 
+                            # Es = newEs, B_Es = newB_Es, Bd_Es = newBd_Es, BB_Es = newBB_Es)
 
     ts
 end

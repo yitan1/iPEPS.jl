@@ -1,4 +1,5 @@
 using iPEPS
+using OMEinsum
 using Zygote
 A = [rand(5,5,5) for i = 1:4]
 B = [rand(5,5,5) for i = 1:4];
@@ -26,8 +27,9 @@ end
 gradient(f1, A, B)
 
 
-ts = [rand(5,5,5), rand(5,5,5), rand(5,5,5), rand(5,5,5)];
+ts = [rand(5,5), rand(5,5), rand(5,5), rand(5,5)];
 A = iPEPS.NestedTensor(ts);
+
 B = deepcopy(A);
 C = [A,B];
 r0 =wrap_ncon([A,B], ((-1,1,2), (1,2,-2)), (-1,-2));
@@ -35,7 +37,9 @@ r1 =wrap_ncon(((-1,1,2), (1,2,-2)), (-1,-2) , A, B);
 
 
 A, B, C = rand(5,5,5,5), rand(5,5,5), rand(5,5,5);
-wrapped_ncon([A,B,C], ( (-1,-2,1,2), (1,2,3) , (3,-3,-4)), (-1,-2,-3,-4));
+wrap_ncon([A,B,C], ( (-1,-2,1,2), (1,2,3) , (3,-3,-4)), (-1,-2,-3,-4));
 
 
 B = iPEPS.EmptyT()
+
+iPEPS.tcon([A, B], [[-1,1,2,-3], [1,2,-2]])
