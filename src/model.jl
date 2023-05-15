@@ -6,8 +6,8 @@ const SI = Float64[1 0; 0 1]
     # sm = [0 0; 1 0]
 
 function honeycomb(Jx = 1, Jy = 1)
-    hh = Jx*2*kron(kron(SI, Sx), kron(Sx, SI)) .+ ( kron(kron(Sz, Sz), kron(SI, SI) ) .+ kron(kron(SI, SI), kron(Sz, Sz)) ) / 2  .|> real
-    hv = Jy*2*kron(kron(SI, Sy), kron(Sy, SI)) .+ ( kron(kron(Sz, Sz), kron(SI, SI) )  .+ kron(kron(SI, SI), kron(Sz, Sz)) ) / 2  .|> real
+    hh = Jx*kron(kron(SI, Sx), kron(Sx, SI)) .+ ( kron(kron(Sz, Sz), kron(SI, SI) ) .+ kron(kron(SI, SI), kron(Sz, Sz)) ) / 2 /2  .|> real
+    hv = Jy*kron(kron(SI, Sy), kron(Sy, SI)) .+ ( kron(kron(Sz, Sz), kron(SI, SI) )  .+ kron(kron(SI, SI), kron(Sz, Sz)) ) / 2  /2 .|> real
 
     [-hh, -hv]
 end

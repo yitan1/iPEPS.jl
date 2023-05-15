@@ -1,7 +1,8 @@
-function run_ctm(ts::CTMTensors, chi; conv_fun = nothing)
-    min_iter = 4
-    max_iter = 10
-    tol = 1e-6
+function run_ctm(ts::CTMTensors; conv_fun = nothing)
+    chi = get(ts.Params, "chi", 30)
+    min_iter = get(ts.Params, "min_iter", 4)
+    max_iter = get(ts.Params, "max_iter", 20)
+    tol = get(ts.Params, "rg_tol", 1e-6)
     diffs = [1.0]
     old_conv = 1.0
     conv = 1.0
@@ -299,19 +300,19 @@ function proj_left(ts, P, Pd)
 
     newC1 = begin
         C1E1 = tcon([C1, E1], [[-2, 1], [1, -1, -3, -4]])
-        CEP = reshape(C1E1, size(C1E1, 1), :) * P
-        permutedims(CEP, (2,1))
+        CEP = wrap_reshape(C1E1, size(C1E1, 1), :) * P
+        wrap_permutedims(CEP, (2,1))
     end
 
     newC4 = begin
         C4E3 = tcon([C4, E3], [[-1, 1], [1, -4, -2, -3]])
-        Pd * reshape(C4E3, :, size(C4E3, 4))
+        Pd * wrap_reshape(C4E3, :, size(C4E3, 4))
     end
 
     newE4 = begin
         E4A = tcon([E4, A], [[-1, -3, 1, -6], [-2, 1, -4, -5, -7]])
         EAAd = tcon([E4A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-3, 1, -6, -8, 2]])
-        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
+        EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
         EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
@@ -337,18 +338,18 @@ function proj_right(ts, P, Pd)
 
     newC2 = begin
         C2E1 = tcon([C2, E1], [[1, -2], [-1, 1, -3, -4]])
-        reshape(C2E1, size(C2E1, 1), :) * P
+        wrap_reshape(C2E1, size(C2E1, 1), :) * P
     end
 
     newC3 = begin
         C3E3 = tcon([C3, E3], [[-1, 1], [-4, 1, -2, -3]])
-        Pd * reshape(C3E3, :, size(C3E3, 4))
+        Pd * wrap_reshape(C3E3, :, size(C3E3, 4))
     end
 
     newE2 = begin
         E2A = tcon([E2, A], [[-1, -3, 1, -6], [-2, -5, -4, 1, -7]])
         EAAd = tcon([E2A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-3, -8, -6, 1, 2]])
-        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
+        EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
         EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
@@ -374,18 +375,18 @@ function proj_top(ts, P, Pd)
 
     newC1 = begin
         C1E4 = tcon([C1, E4], [[1, -2], [1, -1, -3, -4]])
-        reshape(C1E4, size(C1E4, 1), :) * P
+        wrap_reshape(C1E4, size(C1E4, 1), :) * P
     end
 
     newC2 = begin
         C2E2 = tcon([C2, E2], [[-1, 1], [1, -4, -2, -3]])
-        Pd * reshape(C2E2, :, size(C2E2, 4))
+        Pd * wrap_reshape(C2E2, :, size(C2E2, 4))
     end
 
     newE1 = begin
         E1A = tcon([E1, A], [[-1, -3, 1, -6], [1, -2, -5, -4, -7]])
         EAAd = tcon([E1A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [1, -3, -8, -6, 2]])
-        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
+        EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
         EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
@@ -411,19 +412,19 @@ function proj_bottom(ts, P, Pd)
 
     newC4 = begin
         C4E4 = tcon([C4, E4], [[1, -2], [-1, 1, -3, -4]])
-        reshape(C4E4, size(C4E4, 1), :) * P
+        wrap_reshape(C4E4, size(C4E4, 1), :) * P
     end
 
     newC3 = begin
         C3E2 = tcon([C3, E2], [[1, -1], [-4, 1, -2, -3]])
-        CEP = Pd * reshape(C3E2, :, size(C3E2, 4))
-        permutedims(CEP, (2,1))
+        CEP = Pd * wrap_reshape(C3E2, :, size(C3E2, 4))
+        wrap_permutedims(CEP, (2,1))
     end
 
     newE3 = begin
         E3A = tcon([E3, A], [[-1, -3, 1, -6], [-5, -2, 1, -4, -7]])
         EAAd = tcon([E3A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-8, -3, 1, -6, 2]])
-        EAAd = reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
+        EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
         EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
@@ -433,7 +434,7 @@ end
 
 function up_left(ts, C1, E4, C4)
     if C1 isa NestedTensor
-        px = 1
+        px = get(ts.Params, "px", .0)
         C1 = shift(C1, -px)
         E4 = shift(E4, -px)
         C4 = shift(C4, -px)
@@ -448,7 +449,7 @@ function up_left(ts, C1, E4, C4)
         newBd_Es = Vector([ts.Bd_Es[1], ts.Bd_Es[2], ts.Bd_Es[3], E4[3]])
         newBB_Es = Vector([ts.BB_Es[1], ts.BB_Es[2], ts.BB_Es[3], E4[4]])
 
-        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es)
+        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es, ts.Params)
     else 
         newCs = Vector{typeof(C1)}([C1, ts.Cs[2], ts.Cs[3], C4])
         newEs = Vector{typeof(E4)}([ts.Es[1], ts.Es[2], ts.Es[3], E4])
@@ -460,7 +461,7 @@ end
 
 function up_right(ts, C2, E2, C3)
     if C2 isa NestedTensor
-        px = 1
+        px = get(ts.Params, "px", .0)
         C2 = shift(C2, px)
         E2 = shift(E2, px)
         C3 = shift(C3, px)
@@ -475,7 +476,7 @@ function up_right(ts, C2, E2, C3)
         newBd_Es = Vector([ts.Bd_Es[1], E2[3], ts.Bd_Es[3], ts.Bd_Es[4]])
         newBB_Es = Vector([ts.BB_Es[1], E2[4], ts.BB_Es[3], ts.BB_Es[4]])
 
-        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es)
+        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es, ts.Params)
     else 
         newCs = Vector{typeof(C2)}([ts.Cs[1], C2, C3, ts.Cs[4]])
         newEs = Vector{typeof(E2)}([ts.Es[1], E2, ts.Es[3], ts.Es[4]])
@@ -487,7 +488,7 @@ end
 
 function up_top(ts, C1, E1, C2)
     if C1 isa NestedTensor
-        py = 1
+        py = get(ts.Params, "py", .0)
         C1 = shift(C1, -py)
         E1 = shift(E1, -py)
         C2 = shift(C2, -py)
@@ -502,7 +503,7 @@ function up_top(ts, C1, E1, C2)
         newBd_Es = Vector([E1[3], ts.Bd_Es[2], ts.Bd_Es[3], ts.Bd_Es[4]])
         newBB_Es = Vector([E1[4], ts.BB_Es[2], ts.BB_Es[3], ts.BB_Es[4]])
 
-        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es)
+        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es, ts.Params)
     else 
         newCs = Vector{typeof(C1)}([C1, C2, ts.Cs[3], ts.Cs[4]])
         newEs = Vector{typeof(E1)}([E1, ts.Es[2], ts.Es[3], ts.Es[4]])
@@ -514,7 +515,7 @@ end
 
 function up_bottom(ts, C4, E3, C3)
     if C4 isa NestedTensor
-        py = 1
+        py = get(ts.Params, "py", .0)
         C4 = shift(C4, py)
         E3 = shift(E3, py)
         C3 = shift(C3, py)
@@ -528,7 +529,7 @@ function up_bottom(ts, C4, E3, C3)
         newBd_Es = Vector([ts.Bd_Es[1], ts.Bd_Es[2], E3[3], ts.Bd_Es[4]])
         newBB_Es = Vector([ts.BB_Es[1], ts.BB_Es[2], E3[4], ts.BB_Es[4]])
 
-        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es)
+        ts = CTMTensors(ts.A, ts.Ad, newCs, newEs, ts.B, ts.Bd, newB_Cs, newBd_Cs, newBB_Cs, newB_Es, newBd_Es, newBB_Es, ts.Params)
     else
         newCs = Vector{typeof(C4)}([ts.Cs[1], ts.Cs[2], C3, C4])
         newEs = Vector{typeof(E3)}([ts.Es[1], ts.Es[2], E3, ts.Es[4]])

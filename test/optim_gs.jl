@@ -24,8 +24,8 @@ A = dropdims(A, dims = 1)
 A = permutedims(A, (3,4,5,2,1));
 
 ts0 = iPEPS.CTMTensors(A,A);
-conv_fun(_x) = iPEPS.get_gs_energy(H,_x)
-ts0, s = iPEPS.run_ctm(ts0, 30, conv_fun = conv_fun);
+conv_fun(_x) = iPEPS.get_gs_energy(_x, H)
+@time ts3, s = iPEPS.run_ctm(ts0, 50, conv_fun = conv_fun);
 iPEPS.run_energy(H, ts0, 30, A)
 
 gradient(x -> iPEPS.run_energy(H, ts0, 50, x), A)

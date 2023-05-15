@@ -17,12 +17,18 @@ using BliContractor
 
 
 using TOML
-cf = TOML.parsefile("src/config.toml")
+@time cfg = TOML.parsefile("src/config.toml")
+
+using JLD2
+filename = "abc"*"hello"*".jld2"
 a = ((1,2,3),  (2,-2))
-a = 0
+b = pi/5
+jldsave("test1_$(filename)_$b"; a)
+load("test"*filename, "a")
 A = rand(10,10);
 u,s,v = svd(A)
 
+similar([A,A])
 #######################
 D = 100
 A = rand(D,D);
@@ -89,7 +95,8 @@ end
 
 ##############################
 
-@macroexpand @tensor out[p1,p2,p3,p4] := B[p1, p2, m1]*C[m1, p3, p4]
+@macroexpand @tensor out[-1,-2,-3,-4] := B[1, -2, -1]*C[1, -3, -4]
+ncon()
 
 Tullio.@tensor F[a,b,c] := A[a,e,f,c,f,g]*B[g,b,e] 
 # + C[c,a,b]

@@ -13,6 +13,8 @@ struct CTMTensors{AT, CT, ET, BT, B_CT, B_ET}
     B_Es::Vector{B_ET}
     Bd_Es::Vector{B_ET}
     BB_Es::Vector{B_ET}
+
+    Params::Dict{String, Any}
 end
 
 function get_all_A(ts::CTMTensors)
@@ -37,10 +39,7 @@ function get_all_Cs(ts::CTMTensors)
     if ts.B isa EmptyT
         return ts.Cs
     else 
-        nested_Cs = Vector{NestedTensor}(undef, 4)
-        for i = 1:4
-            nested_Cs[i] = [ts.Cs[i], ts.B_Cs[i], ts.Bd_Cs[i], ts.BB_Cs[i]] |> NestedTensor
-        end
+        nested_Cs = [ [ts.Cs[i], ts.B_Cs[i], ts.Bd_Cs[i], ts.BB_Cs[i]] |> NestedTensor for i=1:4]
         return nested_Cs
     end
 end
@@ -49,20 +48,19 @@ function get_all_Es(ts::CTMTensors)
     if ts.B isa EmptyT
         return ts.Es
     else 
-        nested_Es = Vector{NestedTensor}(undef, 4)
-        for i = 1:4
-            nested_Es[i] = [ts.Es[i], ts.B_Es[i], ts.Bd_Es[i], ts.BB_Es[i]] |> NestedTensor
-        end
+        nested_Es = [ [ts.Es[i], ts.B_Es[i], ts.Bd_Es[i], ts.BB_Es[i]] |> NestedTensor for i = 1:4]
         return nested_Es
     end
 
 end
 
+CTMTensors(A) = CTMTensors(A, conj(A))
 function CTMTensors(A, Ad)
-    Cs, Es = init_ctm(A,Ad)
+    Cs, Es = init_ctm(A, Ad)
     B = EmptyT()
     B_C = [B for i = 1:4]
-    CTMTensors(A, Ad, Cs, Es, B, B, B_C, B_C, B_C, B_C, B_C, B_C)
+    Params = TOML.parsefile("src/config.toml")
+    CTMTensors(A, Ad, Cs, Es, B, B, B_C, B_C, B_C, B_C, B_C, B_C, Params)
 end
 
 function init_ctm(A, Ad)

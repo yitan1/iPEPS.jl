@@ -1,8 +1,12 @@
-[optim]
-methods = LBFGS()
-max_iter = 100
+# [optim]
+# methods = "LBFGS()"
+# max_iter = 100
 
-[ctmrg]
+# [ctmrg]
+out_prefix = "test"
+name = "honeycomb"
+
+chi = 30
 min_iter = 4
 max_iter = 30
-tol = 1e-6
+rg_tol = 1e-6

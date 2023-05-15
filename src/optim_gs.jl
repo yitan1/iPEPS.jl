@@ -1,4 +1,4 @@
-function optim_GS(H, A0, chi)
+function optim_GS(H, A0)
     energies = Float64[]
     gradnorms = Float64[]
 
@@ -33,12 +33,12 @@ function optim_GS(H, A0, chi)
             end
         end
 
-        ts0 = CTMTensors(x, x);
+        ts0 = CTMTensors(x)
         conv_fun(_x) = get_gs_energy(H, _x)
         println("\n ---- Start to find fixed points -----")
-        ts0, _ = run_ctm(ts0, chi; conv_fun = conv_fun);
+        ts0, _ = run_ctm(ts0; conv_fun = conv_fun)
         println("---- End to find fixed points ----- \n")
-        f(_x) = run_gs(H, ts0, chi, _x) 
+        f(_x) = run_gs(ts0, H, _x) 
         y, back = Zygote.pullback(f, x)
 
         println("Finish autodiff")
@@ -65,15 +65,14 @@ function optim_GS(H, A0, chi)
     res
 end
 
-function run_gs(H, ts0, chi, A)
-    # ts0 = iPEPS.CTMTensors(A,A)
+function run_gs(ts0::CTMTensors, H, A)
     ts0 = setproperties(ts0, A = A, Ad = conj(A))
 
-    conv_fun(_x) = get_gs_energy(H, _x)
-    ts, s = run_ctm(ts0, chi, conv_fun = conv_fun)
+    conv_fun(_x) = get_gs_energy(_x, H)
+    ts, s = run_ctm(ts0, conv_fun = conv_fun)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
-    gs_E = get_gs_energy(H, ts)
+    gs_E = get_gs_energy(ts, H)
 
     # gs_E = sum(E) |> real
     # @printf("Gs_Energy: %.10g \n", sum(E))

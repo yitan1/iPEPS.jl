@@ -1,6 +1,7 @@
 using iPEPS
 using OMEinsum
 using Zygote
+using LinearAlgebra
 A = [rand(5,5,5) for i = 1:4]
 B = [rand(5,5,5) for i = 1:4];
 
@@ -36,10 +37,16 @@ r0 =wrap_ncon([A,B], ((-1,1,2), (1,2,-2)), (-1,-2));
 r1 =wrap_ncon(((-1,1,2), (1,2,-2)), (-1,-2) , A, B);
 
 
-A, B, C = rand(5,5,5,5), rand(5,5,5), rand(5,5,5);
-wrap_ncon([A,B,C], ( (-1,-2,1,2), (1,2,3) , (3,-3,-4)), (-1,-2,-3,-4));
+A, B, C = rand(5,5), rand(5,5), rand(5,5)
+D = rand(5,5)
+D = iPEPS.EmptyT()
+ts = [A,B,C,D] |> iPEPS.NestedTensor
 
-
-B = iPEPS.EmptyT()
-
-iPEPS.tcon([A, B], [[-1,1,2,-3], [1,2,-2]])
+function f(ns, x)
+    y = (ns*x)
+    E = iPEPS.wrap_tr(y) #|> iPEPS.NestedTensor
+    # E = iPEPS.tcon([ns, x], [[-1,1], [1,-2]])
+    E[4] |> sum
+end
+f(ts, D)
+gradient(x -> f(ts, x), D)

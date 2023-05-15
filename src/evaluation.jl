@@ -1,23 +1,25 @@
-function get_gs_energy(H, ts)
-    E, _ = get_energy(H, ts)
+function get_gs_energy(ts::CTMTensors, H)
+    E, _ = get_E_N(ts, H)
     E[1] + E[2]
 end
 
-function get_es_energy(H, ts)
+function get_es_energy(ts::CTMTensors, H)
     roh, rov = get_dms(ts, only_gs = false)
-    Nh = tr(roh)
-    Nv = tr(rov)
+    Nh = wrap_tr(roh)  |> real
+    Nv = wrap_tr(rov) |> real
     roh = roh / Nh
     rov = rov / Nv
-    Eh = tr(H[1]*roh)
-    Ev = tr(H[2]*rov)
+    Eh = wrap_tr(H[1]*roh) |> real
+    Ev = wrap_tr(H[2]*rov) |> real
+    # @show rov
     E = Eh + Ev
     N = Nh + Nv
+    @show E[1], E[4]
 
     E[4]
 end
 
-function get_energy(H, ts)
+function get_E_N(ts::CTMTensors, H)
     roh, rov = get_dms(ts)
     Nh = tr(roh)
     Nv = tr(rov)
@@ -31,7 +33,48 @@ function get_energy(H, ts)
     E, N
 end
 
-function get_dms(ts; only_gs = true)
+function get_gs_norm(ts::CTMTensors)
+    A = ts.A
+    Ad = ts.Ad
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+
+    n_dm = get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
+
+    ndm_Ad = tcon([n_dm, Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
+    nrm0 = tcon([ndm_Ad, A], [[1,2,3,4,5], [1,2,3,4,5]])
+
+    nrm0[1]
+end
+
+function get_all_norm(ts::CTMTensors)
+    A    = get_all_A(ts)
+    Ad   = get_all_Ad(ts)
+    C1, C2, C3, C4 = get_all_Cs(ts)
+    E1, E2, E3, E4 = get_all_Es(ts)
+    n_dm = get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
+
+    ndm_A = tcon([n_dm, A], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
+    all_norm = tcon([ndm_A, Ad], [[1,2,3,4,5], [1,2,3,4,5]])
+
+    all_norm, ndm_A[2]
+end
+
+function get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
+    C1E1 = tcon([C1, E1], [[-1,1], [1,-2,-3,-4]])
+    CEC2 = tcon([C1E1, C2], [[-1,1,-3,-4], [1,-2]])
+    CECE4 = tcon([CEC2, E4], [[1,-2,-3,-5], [1,-1,-4,-6]])
+
+    C4E3 = tcon([C4, E3], [[-1, 1], [1, -2, -3, -4]])
+    CEC3 = tcon([C4E3, C3], [[-1,1,-3,-4], [-2,1]])
+    CECE2 = tcon([CEC3, E2], [[-1,1,-3,-5], [-2,1,-4,-6]])
+
+    n_dm = tcon([CECE4, CECE2], [[1,2, -1,-2,-5,-6], [1,2, -3, -4, -7, -8]])
+
+    n_dm
+end
+
+function get_dms(ts::CTMTensors; only_gs = true)
     if only_gs
         A    = ts.A
         Ad   = ts.Ad
@@ -43,15 +86,22 @@ function get_dms(ts; only_gs = true)
         E2   = ts.Es[2]
         E3   = ts.Es[3]
         E4   = ts.Es[4]
+
+        ts_h = [C1, C2, C3, C4, E1, E1, E2, E3, E3, E4, A, A, Ad, Ad]
+        ts_v = [C1, C2, C3, C4, E1, E2, E2, E3, E4, E4, A, A, Ad, Ad]
     else
         A    = get_all_A(ts)
         Ad   = get_all_Ad(ts)
         C1, C2, C3, C4 = get_all_Cs(ts)
         E1, E2, E3, E4 = get_all_Es(ts)
+        px = get(ts.Params, "px", .0)
+        py = get(ts.Params, "py", .0)
+
+        ts_h = [C1, shift(C2, px), shift(C3, px), C4, E1, shift(E1,px), shift(E2, px), E3, shift(E3, px), E4, A, shift(A, px), Ad, shift(Ad, px)]
+
+        ts_v = [C1, C2, shift(C3, py), shift(C4, py), E1, E2, shift(E2, py), shift(E3, py), E4, shift(E4, py), A, shift(A, py), Ad, shift(Ad, py)]
     end
 
-    ts_h = [C1, C2, C3, C4, E1, E1, E2, E3, E3, E4, A, A, Ad, Ad]
-    ts_v = [C1, C2, C3, C4, E1, E2, E2, E3, E4, E4, A, A, Ad, Ad]
     roh = get_dm_h(ts_h...)
     rov = get_dm_v(ts_v...)
 
@@ -97,7 +147,7 @@ function get_dm_h(C1, C2, C3, C4, E1l, E1r, E2, E3l, E3r, E4, Al, Ar, Adl, Adr)
     roh = tcon([L,R],[[1,2,3,4,-1,-3],[1,2,3,4,-2,-4]])
 
     d = size(Al, 5)
-    roh = reshape(roh, d*d, d*d)
+    roh = wrap_reshape(roh, d*d, d*d)
 
     return roh
 end
@@ -145,7 +195,7 @@ function get_dm_v(C1, C2, C3, C4, E1, E2u, E2d, E3, E4u, E4d, Au, Ad, Adu, Add)
     rov = tcon([U,B], [[1,2,3,4,-1,-3], [1,2,3,4,-2,-4]])
 
     d = size(Au, 5)
-    rov = reshape(rov, d*d, d*d)
+    rov = wrap_reshape(rov, d*d, d*d)
 
     return rov
 end
