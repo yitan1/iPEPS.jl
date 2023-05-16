@@ -7,7 +7,13 @@ function optim_GS(H, A0)
     cached_g = nothing
 
     # println("$(@__DIR__)/config.toml")
-    cfg = TOML.parsefile("$(@__DIR__)/config.toml")
+    if ispath("config.toml")
+        cfg = TOML.parsefile("config.toml")
+        println("load custom config file")
+    else
+        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+        println("load daufult config file")
+    end
     display(cfg)
     gs_name = get_gs_name(cfg)
 

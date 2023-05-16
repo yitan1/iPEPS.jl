@@ -36,4 +36,17 @@ include("evaluation.jl")
 include("optim_gs.jl")
 include("optim_es.jl")
 
+# function __init__()
+#     if ispath("config.toml")
+#         cfg = TOML.parsefile("config.toml")
+#         println("load custom config file")
+#     else
+#         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+#         println("load daufult config file")
+#     end
+#     display(cfg)
+
+#     nothing
+# end
+
 end
