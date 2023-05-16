@@ -1,6 +1,5 @@
-# using PhyOperators
 using iPEPS
-# using MKL
+using MKL
 # using Optim
 using LinearAlgebra
 using Zygote
@@ -8,9 +7,11 @@ using NPZ
 using ProfileView 
 # ProfileView.@profview profile_test(10)
 
-H = iPEPS.honeycomb(0.15, 0.15)
+H = iPEPS.honeycomb(1, 1);
 
-A = iPEPS.init_gs() .|> real
+A = iPEPS.init_hb_gs() |> real;
+
+iPEPS.compute_gs_energy(A, H)
 
 A - permutedims(conj(A), (3,2,1,4,5)) 
 
@@ -30,7 +31,7 @@ iPEPS.run_energy(H, ts0, 30, A)
 
 gradient(x -> iPEPS.run_energy(H, ts0, 50, x), A)
 
-iPEPS.optim_GS(H, A, 30)
+iPEPS.optim_GS(H, A)
  
 
  

@@ -1,41 +1,48 @@
-function optim_es(ts::CTMTensors, H, px, py)
+function optim_es(ts0::CTMTensors, H, px, py)
     ## normalize gs
-    ts = normalize_gs(ts)
+    ts = normalize_gs(ts0)
 
     H = substract_gs_energy(ts, H)
 
-    basis = get_tangent_basis(ts)
-
     #basis
-    out_prefix = get(ts.Params, "out_prefix", "none")
-    jldsave("$(out_prefix)_basis.jld2"; basis = basis)
-    println("saved the basis to $(out_prefix)_basis.jld2")
+    basis_name = get_basis_name(ts.Params)
+    # post = ".jld2"
+    if ispath(basis_name)
+        basis = load(basis_name, "basis")
+        println("the basis exists, skip calculation")
+    else
+        basis = get_tangent_basis(ts)
+        jldsave(basis_name; basis = basis)
+        println("saved the basis to $(basis_name)")
+    end
 
     basis_dim = size(basis, 2)
     H = zeros(ComplexF64, basis_dim, basis_dim)
     N = zeros(ComplexF64, basis_dim, basis_dim)
 
+    ts.Params["px"] = px*pi
+    ts.Params["px"] = py*pi
+
     for i = 1:basis_dim
         println("Starting simulation of basis vector $(i)/$(basis_dim)")
-        gH, gN = get_es_grad(H, ts.A, basis[:,i], px, py)
+        gH, gN = get_es_grad(ts, H, basis[:,i])
         H[:, i] = basis' * gH
         N[:, i] = basis' * gN
         println("Finish basis vector of $(i)/$(basis_dim)")
     end
     
-    jldsave("$(out_prefix)_es_$(px)_$(py).jld2"; H = H, N = N)
-    println("saved (H, N) to $(out_prefix)_es_$(px)_$(py).jld2")
+    es_name = get_es_name(ts.Params, px, py)
+    jldsave(es_name; H = H, N = N)
+    println("saved (H, N) to $(es_name)")
 
     H, N
 end
 
-function get_es_grad(H, A, Bi, px, py)
+function get_es_grad(ts0::CTMTensors, H, Bi)
     B = reshape(Bi, size(A))
-    ts0 = CTMTensors(A)
-    ts0.Params["px"] = px
-    ts0.Params["px"] = py
+    Cs, Es = init_ctm(ts.A, ts.Ad)
 
-    ts1 = setproperties(ts0, B = B, Bd = conj(B))
+    ts1 = setproperties(ts0, Cs = Cs, Es = Es, B = B, Bd = conj(B))
 
     println("\n ---- Start to find fixed points -----")
     ts1, _ = run_ctm(ts1)
@@ -97,4 +104,3 @@ function get_tangent_basis(ts::CTMTensors)
     
     basis
 end
-

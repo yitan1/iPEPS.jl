@@ -4,9 +4,13 @@
 
 # [ctmrg]
 out_prefix = "test"
-name = "honeycomb"
+model = "hb"
 
-chi = 30
+D = 4
+chi = 100
+
+resume = false
+
 min_iter = 4
 max_iter = 30
 rg_tol = 1e-6

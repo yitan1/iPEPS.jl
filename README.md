@@ -5,20 +5,21 @@
 
 
 - Basis file: 
-
-    1. model.jl: construct Hamiltonian
-    2. svd_ad.jl: svd for zygote extend
-    3. tcon.jl: wrap the contraction function
+          
+    1. io.jl: create dir and file 
+    2. tcon.jl: wrap the contraction function
+    3. model.jl: construct Hamiltonian
+    4. svd_ad.jl: svd for zygote extend
+    5. basis.jl: 
 
 - Struct file: 
 
-    1. ipeps.jl 
-    2. emptyT.jl: convenient struct for contraction 
-    3. nested_tensor.jl: tensor with [T, T_B, T_Bd, T_Bd]
-    4. ctm_tensor.jl: Struct of Corner transfer matrix
+    1. emptyT.jl: convenient struct for contraction 
+    2. nested_tensor.jl: tensor with [T, T_B, T_Bd, T_Bd]
+    3. ctm_tensor.jl: Struct of Corner transfer matrix
 
 - Optimization file:
 
     1. ctmrg.jl: update ctm_tensor
-    2. optim_gs.jl: optimize the ground state and excited state
-    3. optim_es.jl
+    2. optim_gs.jl: optimize the ground state 
+    3. optim_es.jl: optimize the excited state

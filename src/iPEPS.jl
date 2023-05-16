@@ -22,6 +22,7 @@ using Optim#, LineSearches
 
 # __precompile__(false)
 
+include("io.jl")
 include("tcon.jl")
 include("model.jl")
 include("svd_ad.jl")

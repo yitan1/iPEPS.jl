@@ -1,3 +1,18 @@
+function compute_gs_energy(A::AbstractArray, H)
+    ts0 = CTMTensors(A)
+    println("\n ---- Start to find fixed points -----")
+    # conv_fun(_x) = get_gs_energy(_x, H)
+    conv_fun = nothing
+    ts, _ = run_ctm(ts0; conv_fun = conv_fun)
+    println("---- End to find fixed points ----- \n")
+
+    # ts = normalize_gs(ts0)
+    nrm0 = get_gs_norm(ts::CTMTensors)
+    @show nrm0
+
+    get_gs_energy(ts, H), nrm0
+end
+
 function get_gs_energy(ts::CTMTensors, H)
     E, _ = get_E_N(ts, H)
     E[1] + E[2]
@@ -14,7 +29,7 @@ function get_es_energy(ts::CTMTensors, H)
     # @show rov
     E = Eh + Ev
     N = Nh + Nv
-    @show E[1], E[4]
+    # @show E[1], E[4]
 
     E[4]
 end

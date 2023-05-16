@@ -21,6 +21,7 @@ using TOML
 
 using JLD2
 filename = "abc"*"hello"*".jld2"
+a = $filename
 a = ((1,2,3),  (2,-2))
 b = pi/5
 jldsave("test1_$(filename)_$b"; a)

@@ -12,7 +12,7 @@ function honeycomb(Jx = 1, Jy = 1)
     [-hh, -hv]
 end
 
-function init_gs()
+function init_hb_gs(D = 4)
     Q_op = zeros(ComplexF64,2,2,2,2,2)
     Q_op[1,1,1,:,:] = SI
     Q_op[1,2,2,:,:] = Sx
@@ -27,5 +27,25 @@ function init_gs()
     # A = tcon([T, T], [[-1,1,-4,-5], [-3,1,-2,-6]]) # YY
     A = tcon([T, T], [[-1,-2,1,-5], [-3,-4,1,-6]]) # ZZ
     A = reshape(A, 2, 2, 2, 2, 4)
+
+    if D == 4
+        phi = 0.24*pi
+        a = tan(phi)
+        R_op = zeros(ComplexF64,2,2,2,2,2)
+        R_op[1,1,1,:,:] = SI
+        R_op[1,2,2,:,:] = Sx*a
+        R_op[2,1,2,:,:] = Sy*a
+        R_op[2,2,1,:,:] = Sz*a
+
+        RR = tcon([R_op, R_op], [[-1,-2,1,-5,-7,], [-3,-4,1,-6,-8,]])
+        dRR = size(RR)
+        RR = reshape(RR, dRR[1],dRR[2], dRR[3],dRR[4], dRR[5]*dRR[6], dRR[7]*dRR[8])
+
+        A = tcon([RR,A], [[-1, -3, -5, -7, -9, 1], [-2, -4, -6, -8, 1]])
+        D1 = size(A,1)
+        D2 = size(A,2)
+        A = reshape(A, D1*D2, D1*D2, D1*D2, D1*D2, size(A,9))
+    end
+
     A
 end
