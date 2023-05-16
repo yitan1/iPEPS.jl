@@ -17,6 +17,7 @@ using BliContractor
 
 
 using TOML
+@__DIR__
 @time cfg = TOML.parsefile("src/config.toml")
 
 using JLD2

@@ -6,7 +6,8 @@ function optim_GS(H, A0)
     cached_y = nothing 
     cached_g = nothing
 
-    cfg = TOML.parsefile("src/config.toml")
+    # println("$(@__DIR__)/config.toml")
+    cfg = TOML.parsefile("$(@__DIR__)/config.toml")
     display(cfg)
     gs_name = get_gs_name(cfg)
 

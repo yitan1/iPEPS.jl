@@ -59,7 +59,7 @@ function CTMTensors(A, Ad)
     Cs, Es = init_ctm(A, Ad)
     B = EmptyT()
     B_C = [B for i = 1:4]
-    Params = TOML.parsefile("src/config.toml")
+    Params = TOML.parsefile("$(@__DIR__)/config.toml")
     CTMTensors(A, Ad, Cs, Es, B, B, B_C, B_C, B_C, B_C, B_C, B_C, Params)
 end
 
