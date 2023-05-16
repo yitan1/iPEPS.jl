@@ -22,6 +22,8 @@ using Optim#, LineSearches
 
 # __precompile__(false)
 
+export optim_gs, optim_es, honeycomb, init_hb_gs
+
 include("io.jl")
 include("tcon.jl")
 include("model.jl")
@@ -36,17 +38,16 @@ include("evaluation.jl")
 include("optim_gs.jl")
 include("optim_es.jl")
 
-# function __init__()
-#     if ispath("config.toml")
-#         cfg = TOML.parsefile("config.toml")
-#         println("load custom config file")
-#     else
-#         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
-#         println("load daufult config file")
-#     end
-#     display(cfg)
+function __init__()
+    if ispath("config.toml")
+        cur_path = pwd()
+        println("Exist custom config file in $cur_path")
+    else
+        default_path = "$(@__DIR__)/default_config.toml"
+        println("Custom config is NOT EXIST! It will load daufult config file in $default_path")
+    end
 
-#     nothing
-# end
+    nothing
+end
 
 end

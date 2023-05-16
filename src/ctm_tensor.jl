@@ -64,7 +64,7 @@ function CTMTensors(A, Ad)
         println("load custom config file")
     else
         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
-        println("load daufult config file")
+        println("load dafault config file")
     end
     CTMTensors(A, Ad, Cs, Es, B, B, B_C, B_C, B_C, B_C, B_C, B_C, cfg)
 end

@@ -28,6 +28,7 @@ function get_dir(params)
     dir = "$(cur_path)/simulation/$(model)_$(pre)_D$(D)_X$(X)"
     
     if ! ispath(dir)
+        println("$dir does not exist, and will be created")
         mkpath(dir)
     end
 

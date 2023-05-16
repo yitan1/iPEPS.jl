@@ -3,7 +3,7 @@
 # max_iter = 100
 
 # [ctmrg]
-out_prefix = "test"
+out_prefix = "default"
 model = "hb"
 
 D = 4

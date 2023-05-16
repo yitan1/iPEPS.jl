@@ -9,11 +9,11 @@ function optim_es(ts0::CTMTensors, H, px, py)
     # post = ".jld2"
     if ispath(basis_name)
         basis = load(basis_name, "basis")
-        println("the basis exists, skip calculation")
+        println("The basis has existed, skip calculation")
     else
         basis = get_tangent_basis(ts)
         jldsave(basis_name; basis = basis)
-        println("saved the basis to $(basis_name)")
+        println("Saved the basis to $(basis_name)")
     end
 
     basis_dim = size(basis, 2)
@@ -33,7 +33,7 @@ function optim_es(ts0::CTMTensors, H, px, py)
     
     es_name = get_es_name(ts.Params, px, py)
     jldsave(es_name; H = H, N = N)
-    println("saved (H, N) to $(es_name)")
+    println("Saved (H, N) to $(es_name)")
 
     H, N
 end

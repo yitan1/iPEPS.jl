@@ -1,4 +1,4 @@
-function optim_GS(H, A0)
+function optim_gs(H, A0)
     energies = Float64[]
     gradnorms = Float64[]
 
