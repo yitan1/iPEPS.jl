@@ -8,8 +8,6 @@ A = randn(2,2,2,2,2);
 
 res = optim_gs(H, A, "")
 
-using JLD2 
-
 optim_es(H, 0., 0., "")   
 
 

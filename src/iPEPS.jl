@@ -22,7 +22,7 @@ using Optim#, LineSearches
 
 # __precompile__(false)
 
-export optim_gs, optim_es, honeycomb, init_hb_gs, ising
+export optim_gs, optim_es, honeycomb, init_hb_gs, ising, make_es_path
 
 include("io.jl")
 include("tcon.jl")

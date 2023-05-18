@@ -1,3 +1,21 @@
+function make_es_path(step = 0.1)
+    n = Int(1/step)
+    kx1 = ones(n-1)
+    kx2 = collect(1:-step:(0+step))
+    kx3 = collect(0:step:(1-step))
+    kx4 = collect(1:-step:(0.5))
+    ky1 = collect(0:step:(1-step))
+    ky2 = collect(1:-step:(0+step))
+    ky3 = zeros(n-1)
+    ky4 = collect(0:step:0.5)
+
+    kx = [kx1; kx2; kx3; kx4]
+
+    ky = [ky1; ky2; ky3; ky4]
+
+    kx, ky
+end
+
 function evaluate_es(px, py, filename::String)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
@@ -15,12 +33,14 @@ function evaluate_es(px, py, cfg::Dict)
     effH = load(es_name, "effH")
     effN = load(es_name, "effN")
 
+    nrmB_cut = get(cfg, "nrmB_cut", 1e-3)
+
     H = (effH + effH') /2 
     N = (effN + effN') /2
     ev_N, P = eigen(N)
     idx = sortperm(real.(ev_N))[end:-1:1]
     ev_N = ev_N[idx]
-    selected = (ev_N/maximum(ev_N) ) .> 1e-3
+    selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
     P = P[:,idx]
     P = P[:,selected]
     N2 = P' * N * P
