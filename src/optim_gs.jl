@@ -1,4 +1,18 @@
-function optim_gs(H, A0)
+function optim_gs(H, A0, filename::String; m = 10, g_tol=1e-6, iterations = 200)
+    # println("$(@__DIR__)/config.toml")
+    if ispath(filename)
+        cfg = TOML.parsefile(filename)
+        println("load custom config file at $(filename)")
+    else
+        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+        println("load daufult config file")
+    end
+    display(cfg)
+
+    optim_gs(H, A0, cfg; m = m, g_tol= g_tol, iterations = iterations)
+end
+
+function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
     energies = Float64[]
     gradnorms = Float64[]
 
@@ -6,16 +20,9 @@ function optim_gs(H, A0)
     cached_y = nothing 
     cached_g = nothing
 
-    # println("$(@__DIR__)/config.toml")
-    if ispath("config.toml")
-        cfg = TOML.parsefile("config.toml")
-        println("load custom config file")
-    else
-        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
-        println("load daufult config file")
-    end
-    display(cfg)
     gs_name = get_gs_name(cfg)
+
+    ts0 = CTMTensors(cfg)
 
     function verbose(xk)
         if cached_y !== nothing && cached_g !== nothing 
@@ -53,12 +60,13 @@ function optim_gs(H, A0)
             end
         end
 
-        ts0 = CTMTensors(x)
+        Cs, Es = init_ctm(x)
+        ts = setproperties(ts0, Cs = Cs, Es = Es, A = x, Ad = conj(x))
         conv_fun(_x) = get_gs_energy(_x, H)[1]
         println("\n ---- Start to find fixed points -----")
-        ts0, _ = run_ctm(ts0; conv_fun = conv_fun)
+        ts, _ = run_ctm(ts; conv_fun = conv_fun)
         println("---- End to find fixed points ----- \n")
-        f(_x) = run_gs(ts0, H, _x) 
+        f(_x) = run_gs(ts, H, _x) 
         y, back = Zygote.pullback(f, x)
 
         println("Finish autodiff")
@@ -80,7 +88,7 @@ function optim_gs(H, A0)
     # optimizer = L_BFGS_B(1024, 17)
     # res = optimizer(Optim.only_fg!(fg!), A0, m=20, factr=1e7, pgtol=1e-5, iprint=-1, maxfun=15000, maxiter=15000)
 
-    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(m=10), Optim.Options(x_tol = 0.0, f_tol = 0.0, g_tol=1e-6, callback = verbose, iterations = 200, extended_trace = true))
+    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(m=m), Optim.Options(x_tol = 0.0, f_tol = 0.0, g_tol=g_tol, callback = verbose, iterations = iterations, extended_trace = true))
 
     res
 end

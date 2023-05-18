@@ -1,11 +1,16 @@
-function evaluate_es(px, py)
-    if ispath("config.toml")
-        cfg = TOML.parsefile("config.toml")
-        println("load custom config file")
+function evaluate_es(px, py, filename::String)
+    if ispath(filename)
+        cfg = TOML.parsefile(filename)
+        println("load custom config file at $(filename)")
     else
         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
         println("load dafault config file")
     end
+    display(cfg)
+
+    evaluate_es(px, py, cfg)
+end
+function evaluate_es(px, py, cfg::Dict)
     es_name = get_es_name(cfg, px, py)
     effH = load(es_name, "effH")
     effN = load(es_name, "effN")
@@ -23,9 +28,31 @@ function evaluate_es(px, py)
     eigen(H2,N2)
 end
 
-function optim_es(A, H, px, py)
+function optim_es(H, px, py, filename::String)
+    if ispath(filename)
+        cfg = TOML.parsefile(filename)
+        println("load custom config file at $(filename)")
+    else
+        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+        println("load daufult config file")
+    end
+    display(cfg)
+
+    optim_es(H, px, py, cfg)
+end
+
+function optim_es(H, px, py, cfg::Dict)
+    gs_name = get_gs_name(cfg)
+    if ispath(gs_name)
+        A = load(gs_name, "A")
+        println("load existed ground state at $(gs_name)")
+    else
+        println("File of ground state is NOT existed, please run 'optim_gs(...) ' ")
+        return nothing
+    end
+
     A = renormalize(A)
-    ts0 = CTMTensors(A)
+    ts0 = CTMTensors(A, cfg)
     ts, _ = run_ctm(ts0)
     
     optim_es(ts, H, px, py)

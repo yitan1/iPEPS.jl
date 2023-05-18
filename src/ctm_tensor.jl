@@ -54,21 +54,21 @@ function get_all_Es(ts::CTMTensors)
 
 end
 
-CTMTensors(A) = CTMTensors(A, conj(A))
-function CTMTensors(A, Ad)
+function CTMTensors(cfg::Dict)
+    A = EmptyT()
+    CE = [A for i = 1:4]
+    CTMTensors(A, A, CE, CE, A, A, CE, CE, CE, CE, CE, CE, cfg)
+end
+
+CTMTensors(A, cfg) = CTMTensors(A, conj(A), cfg)
+function CTMTensors(A, Ad, cfg)
     Cs, Es = init_ctm(A, Ad)
     B = EmptyT()
     B_C = [B for i = 1:4]
-    if ispath("config.toml")
-        cfg = TOML.parsefile("config.toml")
-        println("load custom config file")
-    else
-        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
-        println("load dafault config file")
-    end
     CTMTensors(A, Ad, Cs, Es, B, B, B_C, B_C, B_C, B_C, B_C, B_C, cfg)
 end
 
+init_ctm(A) = init_ctm(A, conj(A))
 function init_ctm(A, Ad)
     D = size(A,1)
     C1 = ones(1,1)

@@ -38,16 +38,16 @@ include("evaluation.jl")
 include("optim_gs.jl")
 include("optim_es.jl")
 
-function __init__()
-    if ispath("config.toml")
-        cur_path = pwd()
-        println("Exist custom config file in $cur_path")
-    else
-        default_path = "$(@__DIR__)/default_config.toml"
-        println("Custom config is NOT EXIST! It will load daufult config file in $default_path")
-    end
+# function __init__()
+#     if ispath("config.toml")
+#         cur_path = pwd()
+#         println("Exist custom config file in $cur_path")
+#     else
+#         default_path = "$(@__DIR__)/default_config.toml"
+#         println("Custom config is NOT EXIST! It will load daufult config file in $default_path")
+#     end
 
-    nothing
-end
+#     nothing
+# end
 
 end
