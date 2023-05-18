@@ -5,9 +5,26 @@ const SI = Float64[1 0; 0 1]
     # sp = [0 1; 0 0]
     # sm = [0 0; 1 0]
 
+function tout(a, b)
+    c = tcon([a, b], [[-1,-3], [-2, -4]])
+    dim = size(c)
+    c = reshape(c, dim[1]*dim[2], dim[3]*dim[4])
+    return c
+end
+
+function ising(h = 3)
+    H = -tout(Sx, Sx) * 2 .- h* tout(Sz, SI) / 2 .- h*tout(SI, Sz) / 2
+
+    [H, H]
+end
+
+function heisenberg()
+    
+end
+
 function honeycomb(Jx = 1, Jy = 1)
-    hh = Jx*kron(kron(SI, Sx), kron(Sx, SI)) .+ ( kron(kron(Sz, Sz), kron(SI, SI) ) .+ kron(kron(SI, SI), kron(Sz, Sz)) ) / 2 /2  .|> real
-    hv = Jy*kron(kron(SI, Sy), kron(Sy, SI)) .+ ( kron(kron(Sz, Sz), kron(SI, SI) )  .+ kron(kron(SI, SI), kron(Sz, Sz)) ) / 2  /2 .|> real
+    hh = Jx*tout(tout(SI, Sx), tout(Sx, SI)) .+ ( tout(tout(Sz, Sz), tout(SI, SI) ) .+ tout(tout(SI, SI), tout(Sz, Sz)) ) / 2 /2  .|> real
+    hv = Jy*tout(tout(SI, Sy), tout(Sy, SI)) .+ ( tout(tout(Sz, Sz), tout(SI, SI) )  .+ tout(tout(SI, SI), tout(Sz, Sz)) ) / 2  /2 .|> real
 
     [-hh, -hv]
 end

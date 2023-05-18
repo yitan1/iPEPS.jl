@@ -1,3 +1,35 @@
+function evaluate_es(px, py)
+    if ispath("config.toml")
+        cfg = TOML.parsefile("config.toml")
+        println("load custom config file")
+    else
+        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+        println("load dafault config file")
+    end
+    es_name = get_es_name(cfg, px, py)
+    effH = load(es_name, "effH")
+    effN = load(es_name, "effN")
+
+    H = (effH + effH') /2 
+    N = (effN + effN') /2
+    ev_N, P = eigen(N)
+    idx = sortperm(real.(ev_N))[end:-1:1]
+    ev_N = ev_N[idx]
+    selected = (ev_N/maximum(ev_N) ) .> 1e-3
+    P = P[:,idx]
+    P = P[:,selected]
+    N2 = P' * N * P
+    H2 = P' * H * P
+    eigen(H2,N2)
+end
+
+function optim_es(A, H, px, py)
+    A = renormalize(A)
+    ts0 = CTMTensors(A)
+    ts, _ = run_ctm(ts0)
+    
+    optim_es(ts, H, px, py)
+end
 function optim_es(ts0::CTMTensors, H, px, py)
     ## normalize gs
     ts = normalize_gs(ts0)
@@ -17,8 +49,8 @@ function optim_es(ts0::CTMTensors, H, px, py)
     end
 
     basis_dim = size(basis, 2)
-    H = zeros(ComplexF64, basis_dim, basis_dim)
-    N = zeros(ComplexF64, basis_dim, basis_dim)
+    effH = zeros(ComplexF64, basis_dim, basis_dim)
+    effN = zeros(ComplexF64, basis_dim, basis_dim)
 
     ts.Params["px"] = px*pi
     ts.Params["px"] = py*pi
@@ -26,21 +58,22 @@ function optim_es(ts0::CTMTensors, H, px, py)
     for i = 1:basis_dim
         println("Starting simulation of basis vector $(i)/$(basis_dim)")
         gH, gN = get_es_grad(ts, H, basis[:,i])
-        H[:, i] = basis' * gH
-        N[:, i] = basis' * gN
+        gH = conj(gH)
+        effH[:, i] = basis' * gH
+        effN[:, i] = basis' * gN
         println("Finish basis vector of $(i)/$(basis_dim)")
     end
     
     es_name = get_es_name(ts.Params, px, py)
-    jldsave(es_name; H = H, N = N)
-    println("Saved (H, N) to $(es_name)")
+    jldsave(es_name; effH = effH, effN = effN)
+    println("Saved (effH, effN) to $(es_name)")
 
-    H, N
+    effH, effN
 end
 
 function get_es_grad(ts0::CTMTensors, H, Bi)
-    B = reshape(Bi, size(A))
-    Cs, Es = init_ctm(ts.A, ts.Ad)
+    B = reshape(Bi, size(ts0.A))
+    Cs, Es = init_ctm(ts0.A, ts0.Ad)
 
     ts1 = setproperties(ts0, Cs = Cs, Es = Es, B = B, Bd = conj(B))
 
@@ -58,9 +91,9 @@ end
 
 function run_es(ts0::CTMTensors, H, B)
 
-    ts0 = setproperties(ts0, B = B, Bd = conj(B))
+    ts1 = setproperties(ts0, B = B, Bd = conj(B))
 
-    ts, s = run_ctm(ts0)
+    ts, s = run_ctm(ts1)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
     E = get_es_energy(ts, H)
@@ -80,7 +113,7 @@ function normalize_gs(ts::CTMTensors)
 end
 
 function substract_gs_energy(ts::CTMTensors, H)
-    gs_E = get_gs_energy(ts, H)
+    gs_E, _ = get_gs_energy(ts, H)
     gs_E = gs_E / 2
 
     newH = similar(H)

@@ -35,7 +35,13 @@ wrap_tr(A::NestedTensor) = [tr(A[i]) for i = eachindex(A)] |> NestedTensor
 # end
 
 # renormalize(A::NestedTensor) = [renormalize(A[i]) for i in eachindex(A)] |> NestedTensor
-renormalize(A::NestedTensor) = renormalize.(A.data) |> NestedTensor
+function renormalize(A::NestedTensor) 
+    factor = maximum(abs, A[1])
+    # @show factor
+    A = A * (1 / factor)
+
+    A        
+end
 
 function tcon(ind_xs, ind_y, A::NestedTensor, B::NestedTensor)
     res1 = tcon(ind_xs, ind_y, A[1], B[1])

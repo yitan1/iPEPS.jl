@@ -12,13 +12,10 @@ using Zygote
 using MKL
 using TensorOperations, TensorRules
 using OMEinsum
-using Tullio
-using BliContractor
-
 
 using TOML
 @__DIR__
-@time cfg = TOML.parsefile("src/config.toml")
+@time cfg = TOML.parsefile("src/default_config.toml")
 
 using JLD2
 filename = "abc"*"hello"*".jld2"

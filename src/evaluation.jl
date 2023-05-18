@@ -14,38 +14,35 @@ function compute_gs_energy(A::AbstractArray, H)
 end
 
 function get_gs_energy(ts::CTMTensors, H)
-    E, _ = get_E_N(ts, H)
-    E[1] + E[2]
-end
-
-function get_es_energy(ts::CTMTensors, H)
-    roh, rov = get_dms(ts, only_gs = false)
-    Nh = wrap_tr(roh)  |> real
-    Nv = wrap_tr(rov) |> real
-    roh = roh / Nh
-    rov = rov / Nv
-    Eh = wrap_tr(H[1]*roh) |> real
-    Ev = wrap_tr(H[2]*rov) |> real
-    # @show rov
-    E = Eh + Ev
-    N = Nh + Nv
-    # @show E[1], E[4]
-
-    E[4]
-end
-
-function get_E_N(ts::CTMTensors, H)
     roh, rov = get_dms(ts)
     Nh = tr(roh)
     Nv = tr(rov)
+    Na = (Nh + Nv)/2
+
     roh = roh ./ Nh
     rov = rov ./ Nv
     Eh = tr(H[1]*roh)
     Ev = tr(H[2]*rov)
-    E = [Eh, Ev]
-    N = [Nh, Nv]
+    
+    E = Eh + Ev
 
-    E, N
+    E, Na
+end
+
+function get_es_energy(ts::CTMTensors, H)
+    roh, rov = get_dms(ts, only_gs = false)
+    Nh = wrap_tr(roh[1])  |> real
+    Nv = wrap_tr(rov[1])  |> real
+    Na = (Nh + Nv)/2
+    roh = roh * (1 / Nh)
+    rov = rov * (1 / Nv)
+    Eh = wrap_tr(H[1]*roh) |> real
+    Ev = wrap_tr(H[2]*rov) |> real
+
+    E = Eh + Ev
+    # @show E[1], E[4]
+
+    E[4]
 end
 
 function get_gs_norm(ts::CTMTensors)
@@ -72,7 +69,9 @@ function get_all_norm(ts::CTMTensors)
     ndm_A = tcon([n_dm, A], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
     all_norm = tcon([ndm_A, Ad], [[1,2,3,4,5], [1,2,3,4,5]])
 
-    all_norm, ndm_A[2]
+    Nb = ndm_A[2]/ all_norm[1][1]
+
+    all_norm, Nb
 end
 
 function get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)

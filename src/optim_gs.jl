@@ -54,7 +54,7 @@ function optim_gs(H, A0)
         end
 
         ts0 = CTMTensors(x)
-        conv_fun(_x) = get_gs_energy(_x, H)
+        conv_fun(_x) = get_gs_energy(_x, H)[1]
         println("\n ---- Start to find fixed points -----")
         ts0, _ = run_ctm(ts0; conv_fun = conv_fun)
         println("---- End to find fixed points ----- \n")
@@ -80,7 +80,7 @@ function optim_gs(H, A0)
     # optimizer = L_BFGS_B(1024, 17)
     # res = optimizer(Optim.only_fg!(fg!), A0, m=20, factr=1e7, pgtol=1e-5, iprint=-1, maxfun=15000, maxiter=15000)
 
-    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(m=20), inplace = false, Optim.Options(g_tol=1e-6, callback = verbose, iterations = 100, extended_trace = true))
+    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(m=10), Optim.Options(x_tol = 0.0, f_tol = 0.0, g_tol=1e-6, callback = verbose, iterations = 200, extended_trace = true))
 
     res
 end
@@ -88,11 +88,11 @@ end
 function run_gs(ts0::CTMTensors, H, A)
     ts0 = setproperties(ts0, A = A, Ad = conj(A))
 
-    conv_fun(_x) = get_gs_energy(_x, H)
+    conv_fun(_x) = get_gs_energy(_x, H)[1]
     ts, s = run_ctm(ts0, conv_fun = conv_fun)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
-    gs_E = get_gs_energy(ts, H)
+    gs_E, _ = get_gs_energy(ts, H)
 
     # gs_E = sum(E) |> real
     # @printf("Gs_Energy: %.10g \n", sum(E))

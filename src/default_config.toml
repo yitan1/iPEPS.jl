@@ -4,12 +4,12 @@
 
 # [ctmrg]
 out_prefix = "default"
-model = "hb"
+model = "ising"
 
-D = 4
-chi = 100
+D = 2
+chi = 30
 
-resume = false
+resume = true
 
 min_iter = 4
 max_iter = 30
