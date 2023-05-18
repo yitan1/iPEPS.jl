@@ -1,0 +1,19 @@
+function plot_band(n, filename)
+    if ispath(filename)
+        cfg = TOML.parsefile(filename)
+        println("load custom config file at $(filename)")
+    else
+        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+        println("load dafault config file")
+    end
+    display(cfg)
+
+    px, py = make_es_path()
+    E = zeros(n, length(px))
+    for i in eachindex(px)
+        Ei, vi = evaluate_es(px[i], py[i], cfg)
+        E[:,i] = real.(Ei[1:n])
+    end
+
+    E
+end

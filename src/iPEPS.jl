@@ -22,7 +22,7 @@ using Optim#, LineSearches
 
 # __precompile__(false)
 
-export optim_gs, optim_es, honeycomb, init_hb_gs, ising, make_es_path
+export optim_gs, optim_es, honeycomb, init_hb_gs, ising, make_es_path, plot_band
 
 include("io.jl")
 include("tcon.jl")
@@ -37,6 +37,7 @@ include("evaluation.jl")
 # include("getCT.jl")
 include("optim_gs.jl")
 include("optim_es.jl")
+include("plot.jl")
 
 # function __init__()
 #     if ispath("config.toml")
