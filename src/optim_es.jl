@@ -1,16 +1,19 @@
 function make_es_path(step = 0.1)
     n = Int(1/step)
+
     kx1 = ones(n-1)
-    kx2 = collect(1:-step:(0+step))
-    kx3 = collect(0:step:(1-step))
-    kx4 = collect(1:-step:(0.5))
-    ky1 = collect(0:step:(1-step))
-    ky2 = collect(1:-step:(0+step))
-    ky3 = zeros(n-1)
-    ky4 = collect(0:step:0.5)
+    ky1 = collect( (0+step):step:(1-step) ) 
+
+    kx2 = collect(1:-step:0) 
+    ky2 = collect(1:-step:0)
+
+    kx3 = collect((0+step):step:(1-step)) 
+    ky3 = zeros(n-1) 
+
+    kx4 = collect(1:-step:(0.5 + step)) 
+    ky4 = collect(0:step:(0.5-step) ) 
 
     kx = [kx1; kx2; kx3; kx4]
-
     ky = [ky1; ky2; ky3; ky4]
 
     kx, ky
@@ -103,7 +106,7 @@ function optim_es(ts0::CTMTensors, H, px, py)
     ts.Params["px"] = py*pi
 
     for i = 1:basis_dim
-        fprint("Starting simulation of basis vector $(i)/$(basis_dim)")
+        fprint(" \n Starting simulation of basis vector $(i)/$(basis_dim)")
         gH, gN = get_es_grad(ts, H, basis[:,i])
         gH = conj(gH)
         effH[:, i] = basis' * gH
