@@ -17,6 +17,6 @@ function print_cfg(cfg::Dict)
     vals = get.(Ref(cfg), keys, missing)
 
     for i in eachindex(keys)
-        println("$(keys[i]) -> $(vals[i])") 
+        @printf("    %-10s =   %s \n", keys[i], vals[i]) 
     end
 end

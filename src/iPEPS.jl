@@ -39,6 +39,7 @@ include("evaluation.jl")
 # include("getCT.jl")
 include("optim_gs.jl")
 include("optim_es.jl")
+include("expectation.jl")
 include("plot.jl")
 
 # function __init__()
