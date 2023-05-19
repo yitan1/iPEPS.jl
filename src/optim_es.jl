@@ -1,15 +1,15 @@
 function make_es_path(step = 0.1)
     n = Int(1/step)
-
-    kx1 = ones(n-1)
-    ky1 = collect( (0+step):step:(1-step) ) 
-
-    kx2 = collect(1:-step:0) 
-    ky2 = collect(1:-step:0)
-
+    # (1, 0) -> (1, 1)
+    kx1 = ones(n-1)  # [1, 1]
+    ky1 = collect( (0+step):step:(1-step) ) # (0, 1)
+    # [1, 1] -> [0, 0]
+    kx2 = collect(1:-step:0) # [1, 0]
+    ky2 = collect(1:-step:0) # [1, 0]
+    # (0,0) -> (1,0)
     kx3 = collect((0+step):step:(1-step)) 
     ky3 = zeros(n-1) 
-
+    # [1,0] -> (0.5, 0.5)
     kx4 = collect(1:-step:(0.5 + step)) 
     ky4 = collect(0:step:(0.5-step) ) 
 
