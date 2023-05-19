@@ -36,11 +36,11 @@ function run_ctm(ts::CTMTensors; conv_fun = nothing)
         end
 
         if i >= min_iter && diffs[end] < tol 
-            println("---------- CTM finished ---------")
+            fprint("---------- CTM finished ---------")
             break
         end
         if i == max_iter && diffs[end] > tol 
-            println("--------- Not Converged ----------")
+            fprint("--------- Not Converged ----------")
         end
 
     end
@@ -58,11 +58,11 @@ end
 #     end
 
 #     if i >= min_iter && diffs[end] < tol 
-#         println("CTM finished, final step $(i), conv = $(diffs[end]), time = $ctm_time")
+#         fprint("CTM finished, final step $(i), conv = $(diffs[end]), time = $ctm_time")
 #         break
 #     end
 
-#     println("CTM step $(i)， conv = $(diffs[end]), time = $ctm_time")
+#     fprint("CTM step $(i)， conv = $(diffs[end]), time = $ctm_time")
 
 #     return 
 # end
@@ -265,7 +265,7 @@ function get_projector(R1, R2, chi)
         new_chi = count(>=(S[new_chi] - tol), S)
         # @show new_chi, S[chi:new_chi]
     end
-    # println(new_chi)
+    # fprint(new_chi)
     U1 = U[:, 1:new_chi]
     V1 = V[:, 1:new_chi]
     # S = S./S[1]

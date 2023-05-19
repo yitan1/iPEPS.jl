@@ -1,10 +1,10 @@
 function compute_gs_energy(A::AbstractArray, H)
     ts0 = CTMTensors(A)
-    println("\n ---- Start to find fixed points -----")
+    fprint("\n ---- Start to find fixed points -----")
     # conv_fun(_x) = get_gs_energy(_x, H)
     conv_fun = nothing
     ts, _ = run_ctm(ts0; conv_fun = conv_fun)
-    println("---- End to find fixed points ----- \n")
+    fprint("---- End to find fixed points ----- \n")
 
     # ts = normalize_gs(ts0)
     nrm0 = get_gs_norm(ts::CTMTensors)

@@ -19,12 +19,12 @@ end
 function evaluate_es(px, py, filename::String)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
-        println("load custom config file at $(filename)")
+        fprint("load custom config file at $(filename)")
     else
         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
-        println("load dafault config file")
+        fprint("load dafault config file")
     end
-    display(cfg)
+    print_cfg(cfg)
 
     evaluate_es(px, py, cfg)
 end
@@ -51,12 +51,12 @@ end
 function optim_es(H, px, py, filename::String)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
-        println("load custom config file at $(filename)")
+        fprint("load custom config file at $(filename)")
     else
         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
-        println("load daufult config file")
+        fprint("load daufult config file")
     end
-    display(cfg)
+    print_cfg(cfg)
 
     optim_es(H, px, py, cfg)
 end
@@ -65,9 +65,9 @@ function optim_es(H, px, py, cfg::Dict)
     gs_name = get_gs_name(cfg)
     if ispath(gs_name)
         A = load(gs_name, "A")
-        println("load existed ground state at $(gs_name)")
+        fprint("load existed ground state at $(gs_name)")
     else
-        println("File of ground state is NOT existed, please run 'optim_gs(...) ' ")
+        fprint("File of ground state is NOT existed, please run 'optim_gs(...) ' ")
         return nothing
     end
 
@@ -88,11 +88,11 @@ function optim_es(ts0::CTMTensors, H, px, py)
     # post = ".jld2"
     if ispath(basis_name)
         basis = load(basis_name, "basis")
-        println("The basis has existed, skip calculation")
+        fprint("The basis has existed, skip calculation")
     else
         basis = get_tangent_basis(ts)
         jldsave(basis_name; basis = basis)
-        println("Saved the basis to $(basis_name)")
+        fprint("Saved the basis to $(basis_name)")
     end
 
     basis_dim = size(basis, 2)
@@ -103,17 +103,17 @@ function optim_es(ts0::CTMTensors, H, px, py)
     ts.Params["px"] = py*pi
 
     for i = 1:basis_dim
-        println("Starting simulation of basis vector $(i)/$(basis_dim)")
+        fprint("Starting simulation of basis vector $(i)/$(basis_dim)")
         gH, gN = get_es_grad(ts, H, basis[:,i])
         gH = conj(gH)
         effH[:, i] = basis' * gH
         effN[:, i] = basis' * gN
-        println("Finish basis vector of $(i)/$(basis_dim)")
+        fprint("Finish basis vector of $(i)/$(basis_dim)")
     end
     
     es_name = get_es_name(ts.Params, px, py)
     jldsave(es_name; effH = effH, effN = effN)
-    println("Saved (effH, effN) to $(es_name)")
+    fprint("Saved (effH, effN) to $(es_name)")
 
     effH, effN
 end
@@ -124,14 +124,14 @@ function get_es_grad(ts0::CTMTensors, H, Bi)
 
     ts1 = setproperties(ts0, Cs = Cs, Es = Es, B = B, Bd = conj(B))
 
-    println("\n ---- Start to find fixed points -----")
+    fprint("\n ---- Start to find fixed points -----")
     ts1, _ = run_ctm(ts1)
-    println("---- End to find fixed points ----- \n")
+    fprint("---- End to find fixed points ----- \n")
     f(_x) = run_es(ts1, H, _x) 
     (y, ts), back = Zygote.pullback(f, B)
     gradH = back((1, nothing))[1]
     all_norm, gradN = get_all_norm(ts)
-    println("Energy: $y \nNorm: $(all_norm[1][1]), $(all_norm[4][1]) ")
+    fprint("Energy: $y \nNorm: $(all_norm[1][1]), $(all_norm[4][1]) ")
     
     gradH[:], gradN[:]
 end
@@ -146,7 +146,7 @@ function run_es(ts0::CTMTensors, H, B)
     E = get_es_energy(ts, H)
 
     # @printf("Gs_Energy: %.10g \n", sum(E))
-    # println("E: $E, N: $N")
+    # fprint("E: $E, N: $N")
 
     E, ts
 end

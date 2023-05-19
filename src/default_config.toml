@@ -7,12 +7,14 @@ out_prefix = "default"
 model = "ising"
 
 D = 2
-chi = 50
+chi = 30
 
-resume = true
+resume = false
+
+nrmB_cut = 1e-3
 
 min_iter = 4
 max_iter = 30
 rg_tol = 1e-6
 
-nrmB_cut = 1e-2
+

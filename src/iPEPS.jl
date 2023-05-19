@@ -15,6 +15,7 @@ module iPEPS
 using ConstructionBase 
 using TOML
 using JLD2
+using Printf
 using LinearAlgebra
 using OMEinsum 
 using Zygote
@@ -24,6 +25,7 @@ using Optim#, LineSearches
 
 export optim_gs, optim_es, honeycomb, init_hb_gs, ising, make_es_path, plot_band
 
+include("printing.jl")
 include("io.jl")
 include("tcon.jl")
 include("model.jl")

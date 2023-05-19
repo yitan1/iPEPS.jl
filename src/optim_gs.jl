@@ -1,13 +1,13 @@
 function optim_gs(H, A0, filename::String; m = 10, g_tol=1e-6, iterations = 200)
-    # println("$(@__DIR__)/config.toml")
+    # fprint("$(@__DIR__)/config.toml")
     if ispath(filename)
         cfg = TOML.parsefile(filename)
-        println("load custom config file at $(filename)")
+        fprint("load custom config file at $(filename)")
     else
         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
-        println("load daufult config file")
+        fprint("load daufult config file")
     end
-    display(cfg)
+    print_cfg(cfg)
 
     optim_gs(H, A0, cfg; m = m, g_tol= g_tol, iterations = iterations)
 end
@@ -29,9 +29,9 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
             append!(energies, cached_y)
             append!(gradnorms, norm(cached_g))
         end
-        println(" # ======================== #")
-        println(" #      Step completed      #")
-        println(" # ======================== #")
+        fprint(" # ======================== #")
+        fprint(" #      Step completed      #")
+        fprint(" # ======================== #")
         [@printf(" Step %3d  E: %0.8f  |grad|: %0.8f \n", i, E, gradnorms[i]) for (i, E) in enumerate(energies)]
         jldsave(gs_name; A = xk.metadata["x"], xk = xk, energies = energies, gradnorms = gradnorms)
 
@@ -43,7 +43,7 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
         gradnorms = load(gs_name, "gradnorms")
         A0 = load(gs_name, "A")
         xk = load(gs_name, "xk")
-        println("Resuming existing simulation")
+        fprint("Resuming existing simulation")
         verbose(xk)
     end
 
@@ -51,7 +51,7 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
         x = renormalize(x)
 
         if cached_g !== nothing && cached_x !== nothing && norm(x - cached_x) < 1e-14
-            println("Restart to find x")
+            fprint("Restart to find x")
             if G !== nothing
                 copy!(G, cached_g)
             end
@@ -63,13 +63,13 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
         Cs, Es = init_ctm(x)
         ts = setproperties(ts0, Cs = Cs, Es = Es, A = x, Ad = conj(x))
         conv_fun(_x) = get_gs_energy(_x, H)[1]
-        println("\n ---- Start to find fixed points -----")
+        fprint("\n ---- Start to find fixed points -----")
         ts, _ = run_ctm(ts; conv_fun = conv_fun)
-        println("---- End to find fixed points ----- \n")
+        fprint("---- End to find fixed points ----- \n")
         f(_x) = run_gs(ts, H, _x) 
         y, back = Zygote.pullback(f, x)
 
-        println("Finish autodiff")
+        fprint("Finish autodiff")
         cached_x = x
         cached_y = y
 
@@ -104,6 +104,6 @@ function run_gs(ts0::CTMTensors, H, A)
 
     # gs_E = sum(E) |> real
     # @printf("Gs_Energy: %.10g \n", sum(E))
-    # println("E: $E, N: $N")
+    # fprint("E: $E, N: $N")
     gs_E
 end
