@@ -13,6 +13,7 @@ Base.reshape(A::EmptyT, ::Vararg{Union{Colon, Int64}}) = A
 Base.size(::EmptyT) = (0,)
 Base.size(A::EmptyT, ::Int64) = 0
 Base.permutedims(A::EmptyT, perm) = A
+Base.length(A::EmptyT) = 0
 
 tcon(ind_xs, ind_y, A::EmptyT, ::EmptyT) = A
 tcon(ind_xs, ind_y, A::EmptyT, B) = A

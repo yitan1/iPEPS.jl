@@ -313,7 +313,7 @@ function proj_left(ts, P, Pd)
         E4A = tcon([E4, A], [[-1, -3, 1, -6], [-2, 1, -4, -5, -7]])
         EAAd = tcon([E4A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-3, 1, -6, -8, 2]])
         EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
-        EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
+        EPd = tcon([Pd, EAAd], [[-1, 1], [1, -2, -3, -4]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
 
@@ -350,7 +350,7 @@ function proj_right(ts, P, Pd)
         E2A = tcon([E2, A], [[-1, -3, 1, -6], [-2, -5, -4, 1, -7]])
         EAAd = tcon([E2A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-3, -8, -6, 1, 2]])
         EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
-        EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
+        EPd = tcon([Pd, EAAd], [[-1, 1], [1, -2, -3, -4]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
 
@@ -387,7 +387,7 @@ function proj_top(ts, P, Pd)
         E1A = tcon([E1, A], [[-1, -3, 1, -6], [1, -2, -5, -4, -7]])
         EAAd = tcon([E1A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [1, -3, -8, -6, 2]])
         EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
-        EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
+        EPd = tcon([Pd, EAAd], [[-1, 1], [1, -2, -3, -4]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
 
@@ -425,7 +425,7 @@ function proj_bottom(ts, P, Pd)
         E3A = tcon([E3, A], [[-1, -3, 1, -6], [-5, -2, 1, -4, -7]])
         EAAd = tcon([E3A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-8, -3, 1, -6, 2]])
         EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
-        EPd = tcon([EAAd, Pd], [[1, -2, -3, -4], [-1, 1]])
+        EPd = tcon([Pd, EAAd], [[-1, 1], [1, -2, -3, -4]])
         tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
     end
 
