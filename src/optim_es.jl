@@ -76,7 +76,8 @@ function optim_es(H, px, py, cfg::Dict)
 
     A = renormalize(A)
     ts0 = CTMTensors(A, cfg)
-    ts, _ = run_ctm(ts0)
+    conv_fun(_x) = get_gs_energy(_x, H)[1]
+    ts, _ = run_ctm(ts0, conv_fun = conv_fun)
     
     optim_es(ts, H, px, py)
 end
