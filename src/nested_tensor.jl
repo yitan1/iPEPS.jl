@@ -45,10 +45,10 @@ end
 
 function tcon(ind_xs, ind_y, A::NestedTensor, B::NestedTensor)
     res1 = tcon(ind_xs, ind_y, A[1], B[1])
-    res2 = tcon(ind_xs, ind_y, A[1], B[2]) .+ tcon(ind_xs, ind_y, A[2], B[1])
-    res3 = tcon(ind_xs, ind_y, A[1], B[3]) .+ tcon(ind_xs, ind_y, A[3], B[1])
-    res4 = tcon(ind_xs, ind_y, A[1], B[4]) .+ tcon(ind_xs, ind_y, A[4], B[1]) .+ 
-            tcon(ind_xs, ind_y, A[2], B[3]) .+ tcon(ind_xs, ind_y, A[3], B[2])
+    res2 = tcon(ind_xs, ind_y, A[1], B[2]) + tcon(ind_xs, ind_y, A[2], B[1])
+    res3 = tcon(ind_xs, ind_y, A[1], B[3]) + tcon(ind_xs, ind_y, A[3], B[1])
+    res4 = tcon(ind_xs, ind_y, A[1], B[4]) + tcon(ind_xs, ind_y, A[4], B[1]) + 
+            tcon(ind_xs, ind_y, A[2], B[3]) + tcon(ind_xs, ind_y, A[3], B[2])
 
     NestedTensor([res1, res2, res3, res4])
 end
