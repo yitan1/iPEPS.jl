@@ -52,7 +52,7 @@ function evaluate_es(px, py, cfg::Dict)
     H2 = (H2 + H2') /2 
     N2 = (N2 + N2') /2
     es, vecs = eigen(H2,N2)
-    idx = sortperm(real.(ev_N))[end:-1:1]
+    ixs = sortperm(real.(ev_N))[end:-1:1]
     es = es[ixs]
     vecs = vecs[:,ixs]
 
