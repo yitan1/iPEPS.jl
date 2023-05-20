@@ -7,7 +7,7 @@ out_prefix = "default"
 model = "ising"
 
 D = 2
-chi = 30
+chi = 50
 
 resume = false
 

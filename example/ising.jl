@@ -11,7 +11,7 @@ res = optim_gs(H, A, "")
 px, py = make_es_path()
 
 # for i in eachindex(px)
-    optim_es(H, px[1], py[1], "")
+    optim_es(H, 1, 1, "")
 # end   
 
-
+plot_band(4, "")
