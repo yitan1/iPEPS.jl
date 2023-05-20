@@ -51,9 +51,20 @@ end
 f(ts, D)
 gradient(x -> f(ts, x), D)
 
-
-C1 = [rand(ComplexF64, 100,100) for i = 1:4] |> iPEPS.NestedTensor;
-E4 = [rand(ComplexF64, 100,100,4,4) for i = 1:4] |> iPEPS.NestedTensor;
+function f()
+    C1 = [rand(ComplexF64, 100,100) for i = 1:4] |> iPEPS.NestedTensor;
+    C2 = [rand(ComplexF64, 100,100) for i = 1:4] |> iPEPS.NestedTensor;
+    C3 = [rand(ComplexF64, 100,100) for i = 1:4] |> iPEPS.NestedTensor;
+    C4 = [rand(ComplexF64, 100,100) for i = 1:4] |> iPEPS.NestedTensor;
+    E1 = [rand(ComplexF64, 100,100,4,4) for i = 1:4] |> iPEPS.NestedTensor;
+    E2 = [rand(ComplexF64, 100,100,4,4) for i = 1:4] |> iPEPS.NestedTensor;
+    E3 = [rand(ComplexF64, 100,100,4,4) for i = 1:4] |> iPEPS.NestedTensor;
+    E4 = [rand(ComplexF64, 100,100,4,4) for i = 1:4] |> iPEPS.NestedTensor;
+    A = [rand(4, 4, 4, 4, 4), rand(4,4,4,4,4), iPEPS.EmptyT(), iPEPS.EmptyT()] |> iPEPS.NestedTensor;
+    Ad = [rand(4, 4, 4, 4, 4), iPEPS.EmptyT(), rand(4,4,4,4,4), iPEPS.EmptyT()] |> iPEPS.NestedTensor;
+    [C1,C2, C3, C4, E1, E2, E3, E4]
+end
+@allocated f()
 
 A = [rand(4, 4, 4, 4, 4), rand(4,4,4,4,4), iPEPS.EmptyT(), iPEPS.EmptyT()] |> iPEPS.NestedTensor;
 Ad = [rand(4, 4, 4, 4, 4), iPEPS.EmptyT(), rand(4,4,4,4,4), iPEPS.EmptyT()] |> iPEPS.NestedTensor;

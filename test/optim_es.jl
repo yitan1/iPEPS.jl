@@ -1,10 +1,11 @@
 using iPEPS
 using Zygote
 using ConstructionBase
+using TOML
 
 H = iPEPS.honeycomb(0.15, 0.15);
 
-A = iPEPS.init_gs() .|> real;
+A = iPEPS.init_hb_gs() .|> real;
 
 D = 2
 d = 4
@@ -15,7 +16,9 @@ B = randn(size(A));
 
 H, N = iPEPS.optim_es(ts1, H, pi/5, pi/5)
 
-ts0 = iPEPS.CTMTensors(A,A);
+cfg = TOML.parsefile("src/default_config.toml");
+
+ts0 = iPEPS.CTMTensors(A,cfg);
 ts0 = iPEPS.normalize_gs(ts0);
 H = iPEPS.substract_gs_energy(ts0, H);
 ts1, s = iPEPS.run_ctm(ts0);

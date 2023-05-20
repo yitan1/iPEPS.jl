@@ -35,6 +35,7 @@ function evaluate_es(px, py, cfg::Dict)
     es_name = get_es_name(cfg, px, py)
     effH = load(es_name, "effH")
     effN = load(es_name, "effN")
+    fprint("load H and N at $es_name")
 
     nrmB_cut = get(cfg, "nrmB_cut", 1e-3)
 
