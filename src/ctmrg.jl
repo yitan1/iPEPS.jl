@@ -266,27 +266,27 @@ function get_projector(R1, R2, chi)
         # @show new_chi, S[chi:new_chi]
     end
     # fprint(new_chi)
-    U1 = U[:, 1:new_chi]
-    V1 = V[:, 1:new_chi]
+    U = U[:, 1:new_chi]
+    V = V[:, 1:new_chi]
     # S = S./S[1]
-    S1 = S[1:new_chi]
+    S = S[1:new_chi]
 
     # display(S1)
     # cut_off = sum(S[new_chi+1:end]) / sum(S)   
 
-    inv_sqrt_S = sqrt.(S1) |> diag_inv #|> diagm |> inv
+    inv_sqrt_S = sqrt.(S) |> diag_inv #|> diagm |> inv
 
-    P1 = R2 * V1 * inv_sqrt_S    #(D2,D3)*(D3,chi)*(chi,chi) --> (D2, chi) 
-    P2 = inv_sqrt_S * U1' * R1   #(chi,chi)*(chi,D1)*(D1,D2)  --> (chi, D2)
+    P1 = R2 * V * inv_sqrt_S    #(D2,D3)*(D3,chi)*(chi,chi) --> (D2, chi) 
+    P2 = inv_sqrt_S * U' * R1   #(chi,chi)*(chi,D1)*(D1,D2)  --> (chi, D2)
 
-    P1, P2, S1
+    P1, P2, S
 end
 
 function proj_left(ts, P, Pd)
     A    = get_all_A(ts)
     Ad   = get_all_Ad(ts)
-    C1, C2, C3, C4 = get_all_Cs(ts)
-    E1, E2, E3, E4 = get_all_Es(ts)
+    C1, _, _, C4 = get_all_Cs(ts)
+    E1, _, E3, E4 = get_all_Es(ts)
     # A = ts.A
     # Ad = ts.Ad
     # C1 = ts.Cs[1]
@@ -323,8 +323,8 @@ end
 function proj_right(ts, P, Pd)
     A    = get_all_A(ts)
     Ad   = get_all_Ad(ts)
-    C1, C2, C3, C4 = get_all_Cs(ts)
-    E1, E2, E3, E4 = get_all_Es(ts)
+    _, C2, C3, _ = get_all_Cs(ts)
+    E1, E2, E3, _ = get_all_Es(ts)
     # A = ts.A
     # Ad = ts.Ad
     # C1 = ts.Cs[1]
@@ -360,8 +360,8 @@ end
 function proj_top(ts, P, Pd)
     A    = get_all_A(ts)
     Ad   = get_all_Ad(ts)
-    C1, C2, C3, C4 = get_all_Cs(ts)
-    E1, E2, E3, E4 = get_all_Es(ts)
+    C1, C2, _, _ = get_all_Cs(ts)
+    E1, E2, _, E4 = get_all_Es(ts)
     # A = ts.A
     # Ad = ts.Ad
     # C1 = ts.Cs[1]

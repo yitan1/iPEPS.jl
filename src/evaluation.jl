@@ -1,9 +1,8 @@
 function compute_gs_energy(A::AbstractArray, H)
-    ts0 = CTMTensors(A)
+    ts = CTMTensors(A)
     fprint("\n ---- Start to find fixed points -----")
     # conv_fun(_x) = get_gs_energy(_x, H)
-    conv_fun = nothing
-    ts, _ = run_ctm(ts0; conv_fun = conv_fun)
+    ts, _ = run_ctm(ts; conv_fun = nothing)
     fprint("---- End to find fixed points ----- \n")
 
     # ts = normalize_gs(ts0)
@@ -33,7 +32,7 @@ function get_es_energy(ts::CTMTensors, H)
     roh, rov = get_dms(ts, only_gs = false)
     Nh = wrap_tr(roh[1])  |> real
     Nv = wrap_tr(rov[1])  |> real
-    Na = (Nh + Nv)/2
+
     roh = roh * (1 / Nh)
     rov = rov * (1 / Nv)
     Eh = wrap_tr(H[1]*roh) |> real
@@ -101,8 +100,8 @@ function get_dms(ts::CTMTensors; only_gs = true)
         E3   = ts.Es[3]
         E4   = ts.Es[4]
 
-        ts_h = [C1, C2, C3, C4, E1, E1, E2, E3, E3, E4, A, A, Ad, Ad]
-        ts_v = [C1, C2, C3, C4, E1, E2, E2, E3, E4, E4, A, A, Ad, Ad]
+        ts_h = (C1, C2, C3, C4, E1, E1, E2, E3, E3, E4, A, A, Ad, Ad)
+        ts_v = (C1, C2, C3, C4, E1, E2, E2, E3, E4, E4, A, A, Ad, Ad)
     else
         A    = get_all_A(ts)
         Ad   = get_all_Ad(ts)
@@ -111,9 +110,9 @@ function get_dms(ts::CTMTensors; only_gs = true)
         px = get(ts.Params, "px", .0)
         py = get(ts.Params, "py", .0)
 
-        ts_h = [C1, shift(C2, px), shift(C3, px), C4, E1, shift(E1,px), shift(E2, px), E3, shift(E3, px), E4, A, shift(A, px), Ad, shift(Ad, px)]
+        ts_h = (C1, shift(C2, px), shift(C3, px), C4, E1, shift(E1,px), shift(E2, px), E3, shift(E3, px), E4, A, shift(A, px), Ad, shift(Ad, px))
 
-        ts_v = [C1, C2, shift(C3, py), shift(C4, py), E1, E2, shift(E2, py), shift(E3, py), E4, shift(E4, py), A, shift(A, py), Ad, shift(Ad, py)]
+        ts_v = (C1, C2, shift(C3, py), shift(C4, py), E1, E2, shift(E2, py), shift(E3, py), E4, shift(E4, py), A, shift(A, py), Ad, shift(Ad, py))
     end
 
     roh = get_dm_h(ts_h...)

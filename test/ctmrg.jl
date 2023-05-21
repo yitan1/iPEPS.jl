@@ -1,3 +1,34 @@
+using iPEPS
+using TOML
+using BenchmarkTools
+using ConstructionBase
+
+H = ising();
+
+cfg = TOML.parsefile("src/default_config.toml");
+
+chi = 50
+D = 2
+d = 2
+A = randn(D,D,D,D,d) |> iPEPS.renormalize;
+
+ts0 = iPEPS.CTMTensors(A, cfg);
+
+conv_fun(_x) = iPEPS.get_gs_energy(_x, H)[1];
+@time ts01, _ = iPEPS.run_ctm(ts0, conv_fun = conv_fun);
+
+B = randn(size(A));
+
+ts1 = setproperties(ts0, B = B, Bd = conj(B));
+ts1.Params["px"] = 0.3*pi;
+ts1.Params["px"] = 0.3*pi;
+
+@time ts11 = iPEPS.run_ctm(ts1);
+
+@time optim_es(ts0, H, 0.3, 0.3);
+
+
+
 function test()
     H = honeycomb(1,1)
     cfg = TOML.parsefile("config.toml")

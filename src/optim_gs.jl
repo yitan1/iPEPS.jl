@@ -66,8 +66,8 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
         fprint("\n ---- Start to find fixed points -----")
         ts, _ = run_ctm(ts; conv_fun = conv_fun)
         fprint("---- End to find fixed points ----- \n")
-        f(_x) = run_gs(ts, H, _x) 
-        y, back = Zygote.pullback(f, x)
+        # f(_x) = run_gs(ts, H, _x) 
+        y, back = Zygote.pullback(_x -> run_gs(ts, H, _x), x)
 
         fprint("Finish autodiff")
         cached_x = x
@@ -93,11 +93,11 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
     res
 end
 
-function run_gs(ts0::CTMTensors, H, A)
-    ts0 = setproperties(ts0, A = A, Ad = conj(A))
+function run_gs(ts::CTMTensors, H, A)
+    ts = setproperties(ts, A = A, Ad = conj(A))
 
     conv_fun(_x) = get_gs_energy(_x, H)[1]
-    ts, s = run_ctm(ts0, conv_fun = conv_fun)
+    ts, s = run_ctm(ts, conv_fun = conv_fun)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
     gs_E, _ = get_gs_energy(ts, H)

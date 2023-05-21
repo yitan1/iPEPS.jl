@@ -83,15 +83,15 @@ function optim_es(H, px, py, cfg::Dict)
     end
 
     A = renormalize(A)
-    ts0 = CTMTensors(A, cfg)
+    ts = CTMTensors(A, cfg)
     conv_fun(_x) = get_gs_energy(_x, H)[1]
-    ts, _ = run_ctm(ts0, conv_fun = conv_fun)
+    ts, _ = run_ctm(ts, conv_fun = conv_fun)
     
     optim_es(ts, H, px, py)
 end
-function optim_es(ts0::CTMTensors, H, px, py)
+function optim_es(ts::CTMTensors, H, px, py)
     ## normalize gs
-    ts = normalize_gs(ts0)
+    ts = normalize_gs(ts)
 
     H = substract_gs_energy(ts, H)
 
@@ -130,29 +130,29 @@ function optim_es(ts0::CTMTensors, H, px, py)
     effH, effN
 end
 
-function get_es_grad(ts0::CTMTensors, H, Bi)
-    B = reshape(Bi, size(ts0.A))
-    Cs, Es = init_ctm(ts0.A, ts0.Ad)
+function get_es_grad(ts::CTMTensors, H, Bi)
+    B = reshape(Bi, size(ts.A))
+    Cs, Es = init_ctm(ts.A, ts.Ad)
 
-    ts1 = setproperties(ts0, Cs = Cs, Es = Es, B = B, Bd = conj(B))
+    ts = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
 
     fprint("\n ---- Start to find fixed points -----")
-    ts1, _ = run_ctm(ts1)
+    ts, _ = run_ctm(ts)
     fprint("---- End to find fixed points ----- \n")
-    f(_x) = run_es(ts1, H, _x) 
-    (y, ts), back = Zygote.pullback(f, B)
-    gradH = back((1, nothing))[1]
+    # f(_x) = run_es(ts1, H, _x) 
+    (y, ts), back = Zygote.pullback(x -> run_es(ts, H, x), B)
+    @time gradH = back((1, nothing))[1]
     all_norm, gradN = get_all_norm(ts)
     fprint("Energy: $y \nNorm: $(all_norm[1][1]), $(all_norm[4][1]) ")
     
     gradH[:], gradN[:]
 end
 
-function run_es(ts0::CTMTensors, H, B)
+function run_es(ts::CTMTensors, H, B)
 
-    ts1 = setproperties(ts0, B = B, Bd = conj(B))
+    ts = setproperties(ts, B = B, Bd = conj(B))
 
-    ts, s = run_ctm(ts1)
+    ts, s = run_ctm(ts)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
     E = get_es_energy(ts, H)
@@ -166,9 +166,9 @@ end
 function normalize_gs(ts::CTMTensors)
     nrm = get_gs_norm(ts)
     A1 = ts.A ./ sqrt(abs(nrm))
-    ts1 = setproperties(ts, A = A1, Ad = conj(A1))
+    ts = setproperties(ts, A = A1, Ad = conj(A1))
 
-    ts1
+    ts
 end
 
 function substract_gs_energy(ts::CTMTensors, H)

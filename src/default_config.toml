@@ -3,11 +3,11 @@
 # max_iter = 100
 
 # [ctmrg]
-out_prefix = "default"
+out_prefix = "test"
 model = "ising"
 
 D = 2
-chi = 50
+chi = 30
 
 resume = false
 
