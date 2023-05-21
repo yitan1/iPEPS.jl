@@ -18,7 +18,7 @@ using JLD2
 using Printf
 using LinearAlgebra
 using OMEinsum 
-using Zygote
+using Zygote, ChainRulesCore
 using Optim#, LineSearches
 
 # __precompile__(false)

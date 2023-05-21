@@ -1,7 +1,11 @@
 using iPEPS
+using Zygote
+using LinearAlgebra
+using OMEinsum
 using TOML
 using BenchmarkTools
 using ConstructionBase
+using ProfileView
 
 H = ising();
 
@@ -23,11 +27,30 @@ ts1 = setproperties(ts0, B = B, Bd = conj(B));
 ts1.Params["px"] = 0.3*pi;
 ts1.Params["px"] = 0.3*pi;
 
-@time ts11 = iPEPS.run_ctm(ts1);
+@time ts11, _ = iPEPS.run_ctm(ts1);
 
-@time optim_es(ts0, H, 0.3, 0.3);
+# ProfileView.@profview 
+@code_warntype iPEPS.get_es_grad(ts0, H, B);
 
+@time iPEPS.run_es(ts11, H, B);
+@time y, back = Zygote.pullback(x -> iPEPS.run_es(ts11, H, x), B);
+@time gradH = back((1, nothing))[1];
 
+function f(A, B)
+    # C = iPEPS.tcon([A, B], [[-1, 1], [1, -2]]);
+    # C = EinCode([[-1, 1], [1, -2]] , [-1, -2])(A, B);
+    # C = ein"ij,jk -> ik"(A, B)
+    # C = einsum(EinCode([[-1, 1], [1, -2]] , [-1, -2]),(A,B))
+    C = A*B
+    tr(C)
+end
+x = rand(1000,1000);
+y = rand(1000,1000);
+@code_warntype f(x, y);
+@time f(x, y);
+f1 = _x -> f(_x, y);
+@time gradient(f1, x);
+@code_warntype gradient(_x -> f(_x, y), x);
 
 function test()
     H = honeycomb(1,1)

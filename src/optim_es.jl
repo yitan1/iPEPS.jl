@@ -140,8 +140,8 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     ts, _ = run_ctm(ts)
     fprint("---- End to find fixed points ----- \n")
     # f(_x) = run_es(ts1, H, _x) 
-    (y, ts), back = Zygote.pullback(x -> run_es(ts, H, x), B)
-    @time gradH = back((1, nothing))[1]
+    @time (y, ts), back = Zygote.pullback(x -> run_es(ts, H, x), B)
+    gradH = back((1, nothing))[1]
     all_norm, gradN = get_all_norm(ts)
     fprint("Energy: $y \nNorm: $(all_norm[1][1]), $(all_norm[4][1]) ")
     
