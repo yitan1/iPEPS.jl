@@ -18,7 +18,7 @@ ChainRulesCore.@non_differentiable get(::Any...)
 #     return n, back
 # end
 
-renormalize(A::AbstractArray) = A ./ maximum(abs, A)
+renormalize(A::AbstractArray) = A ./ maximum(abs.(A))
 # renormalize(A::AbstractArray) = A ./ norm(A)
 
 

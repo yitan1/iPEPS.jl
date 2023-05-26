@@ -3,15 +3,15 @@
 # max_iter = 100
 
 # [ctmrg]
-out_prefix = "test"
+out_prefix = "default"
 model = "ising"
 
 D = 2
-chi = 30
+chi = 50
 
 resume = false
 
-nrmB_cut = 1e-3
+nrmB_cut = 1e-1
 
 min_iter = 4
 max_iter = 30

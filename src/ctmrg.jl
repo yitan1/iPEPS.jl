@@ -15,17 +15,15 @@ function run_ctm(ts::CTMTensors; conv_fun = nothing)
 
         ctm_time = ed_time - st_time
 
-        # s1 = nograd(s)
-        # ts1 = nograd(ts)
         old_conv = conv
         if conv_fun !== nothing
-            conv = conv_fun(ts) 
+            conv = Zygote.@ignore conv_fun(ts) 
         else
-            conv = s
+            conv = Zygote.@ignore s
         end
 
         if  length(conv) == length(old_conv)
-            diff = norm(conv .- old_conv)
+            diff = Zygote.@ignore norm(conv .- old_conv)
             append!(diffs, diff)
         end
 
@@ -261,9 +259,9 @@ function get_projector(R1, R2, chi)
     # @show S 
     ####### cut off
     tol = 1e-10
-    if chi < size(S,1) && S[new_chi] > tol 
+    if chi < size(S,1) && S[new_chi] > 1e-5 
         new_chi = count(>=(S[new_chi] - tol), S)
-        # @show new_chi, S[chi:new_chi]
+        # @show new_chi, S
     end
     # fprint(new_chi)
     U = U[:, 1:new_chi]
@@ -434,7 +432,7 @@ end
 
 function up_left(ts, C1, E4, C4)
     if C1 isa NestedTensor
-        px = get(ts.Params, "px", .0)
+        px = get(ts.Params, "px", .0f0)
         C1 = shift(C1, -px)
         E4 = shift(E4, -px)
         C4 = shift(C4, -px)
@@ -461,7 +459,7 @@ end
 
 function up_right(ts, C2, E2, C3)
     if C2 isa NestedTensor
-        px = get(ts.Params, "px", .0)
+        px = get(ts.Params, "px", .0f0)
         C2 = shift(C2, px)
         E2 = shift(E2, px)
         C3 = shift(C3, px)
@@ -488,7 +486,7 @@ end
 
 function up_top(ts, C1, E1, C2)
     if C1 isa NestedTensor
-        py = get(ts.Params, "py", .0)
+        py = get(ts.Params, "py", .0f0)
         C1 = shift(C1, -py)
         E1 = shift(E1, -py)
         C2 = shift(C2, -py)
@@ -515,7 +513,7 @@ end
 
 function up_bottom(ts, C4, E3, C3)
     if C4 isa NestedTensor
-        py = get(ts.Params, "py", .0)
+        py = get(ts.Params, "py", .0f0)
         C4 = shift(C4, py)
         E3 = shift(E3, py)
         C3 = shift(C3, py)

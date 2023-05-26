@@ -11,9 +11,11 @@ H = ising();
 
 cfg = TOML.parsefile("src/default_config.toml");
 
-chi = 50
+# chi = 50
 D = 2
 d = 2
+using Random
+rng = MersenneTwister(4);
 A = randn(D,D,D,D,d) |> iPEPS.renormalize;
 
 ts0 = iPEPS.CTMTensors(A, cfg);
@@ -30,26 +32,31 @@ ts1.Params["px"] = 0.3*pi;
 @time ts11, _ = iPEPS.run_ctm(ts1);
 
 # ProfileView.@profview 
-@code_warntype iPEPS.get_es_grad(ts0, H, B);
+ iPEPS.get_es_grad(ts0, H, B);
 
 @time iPEPS.run_es(ts11, H, B);
 @time y, back = Zygote.pullback(x -> iPEPS.run_es(ts11, H, x), B);
 @time gradH = back((1, nothing))[1];
+@time gradH1 = back((1, nothing))[1];
+
 
 function f(A, B)
     # C = iPEPS.tcon([A, B], [[-1, 1], [1, -2]]);
     # C = EinCode([[-1, 1], [1, -2]] , [-1, -2])(A, B);
     # C = ein"ij,jk -> ik"(A, B)
     # C = einsum(EinCode([[-1, 1], [1, -2]] , [-1, -2]),(A,B))
+    A = iPEPS.renormalize(A)
+    B = iPEPS.renormalize(B)
     C = A*B
+    C = iPEPS.renormalize(C)
     tr(C)
 end
-x = rand(1000,1000);
-y = rand(1000,1000);
+x = randn(Float32, 100,100);
+y = randn(Float32, 100,100);
 @code_warntype f(x, y);
-@time f(x, y);
-f1 = _x -> f(_x, y);
-@time gradient(f1, x);
+@time f(x, y)
+f1 = _x -> iPEPS.f1(_x, y);
+@time fx1 = gradient(f1, x)[1];
 @code_warntype gradient(_x -> f(_x, y), x);
 
 function test()

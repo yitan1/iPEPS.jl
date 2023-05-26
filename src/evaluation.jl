@@ -1,5 +1,5 @@
-function compute_gs_energy(A::AbstractArray, H)
-    ts = CTMTensors(A)
+function compute_gs_energy(A::AbstractArray, H, cfg)
+    ts = CTMTensors(A, cfg)
     fprint("\n ---- Start to find fixed points -----")
     # conv_fun(_x) = get_gs_energy(_x, H)
     ts, _ = run_ctm(ts; conv_fun = nothing)
@@ -73,6 +73,35 @@ function get_all_norm(ts::CTMTensors)
     all_norm, Nb
 end
 
+function get_all_norm1(ts::CTMTensors)
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+    B_C1, B_C2, B_C3, B_C4 = ts.B_Cs
+    B_E1, B_E2, B_E3, B_E4 = ts.B_Es
+    Bd_C1, Bd_C2, Bd_C3, Bd_C4 = ts.Bd_Cs
+    Bd_E1, Bd_E2, Bd_E3, Bd_E4 = ts.Bd_Es
+    n_tensors = [C1, C2, C3, C4, E1, E2, E3, E4]
+    B_tensors = [B_C1, B_C2, B_C3, B_C4, B_E1, B_E2, B_E3, B_E4]
+    Bd_tensors = [Bd_C1, Bd_C2, Bd_C3, Bd_C4, Bd_E1, Bd_E2, Bd_E3, Bd_E4]
+
+    n_dm = get_single_dm(n_tensors...)
+    B_dm = zeros(size(n_dm))
+    for i = 1:8
+        cur_tensors    = deepcopy(n_tensors)
+        cur_tensors[i] = B_tensors[i]
+        new_dm         = get_single_dm(cur_tensors...)
+        B_dm           = B_dm + new_dm
+    end
+
+    ndm_Ad = tcon([n_dm, ts.Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
+    nrm0 = tcon([ndm_Ad, ts.A], [[1,2,3,4,5], [1,2,3,4,5]])
+
+    nrmB_open = (tcon([n_dm, ts.B], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]) +
+            tcon([B_dm, ts.A], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]) ) / nrm0[1]
+
+    nrm0[1], nrmB_open
+end
+
 function get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
     C1E1 = tcon([C1, E1], [[-1,1], [1,-2,-3,-4]])
     CEC2 = tcon([C1E1, C2], [[-1,1,-3,-4], [1,-2]])
@@ -107,8 +136,8 @@ function get_dms(ts::CTMTensors; only_gs = true)
         Ad   = get_all_Ad(ts)
         C1, C2, C3, C4 = get_all_Cs(ts)
         E1, E2, E3, E4 = get_all_Es(ts)
-        px = get(ts.Params, "px", .0)
-        py = get(ts.Params, "py", .0)
+        px = get(ts.Params, "px", .0f0)
+        py = get(ts.Params, "py", .0f0)
 
         ts_h = (C1, shift(C2, px), shift(C3, px), C4, E1, shift(E1,px), shift(E2, px), E3, shift(E3, px), E4, A, shift(A, px), Ad, shift(Ad, px))
 

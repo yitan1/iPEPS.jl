@@ -71,10 +71,10 @@ end
 init_ctm(A) = init_ctm(A, conj(A))
 function init_ctm(A, Ad)
     D = size(A,1)
-    C1 = ones(1,1)
-    C2 = ones(1,1)
-    C3 = ones(1,1)
-    C4 = ones(1,1)
+    C1 = ones(Float32, 1,1)
+    C2 = ones(Float32, 1,1)
+    C3 = ones(Float32, 1,1)
+    C4 = ones(Float32, 1,1)
     Cs = Vector{typeof(C1)}([C1, C2, C3, C4]) #.|> renormalize
 
     E1 = tcon([A,Ad], [[1,2,-1,3,4],[1,2,-2,3,4]])

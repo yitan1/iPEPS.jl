@@ -111,8 +111,8 @@ function optim_es(ts::CTMTensors, H, px, py)
     effH = zeros(ComplexF64, basis_dim, basis_dim)
     effN = zeros(ComplexF64, basis_dim, basis_dim)
 
-    ts.Params["px"] = px*pi
-    ts.Params["px"] = py*pi
+    ts.Params["px"] = px*pi |> Float32
+    ts.Params["px"] = py*pi |> Float32
 
     for i = 1:basis_dim
         fprint(" \n Starting simulation of basis vector $(i)/$(basis_dim)")
@@ -141,7 +141,7 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     fprint("---- End to find fixed points ----- \n")
     # f(_x) = run_es(ts1, H, _x) 
     @time (y, ts), back = Zygote.pullback(x -> run_es(ts, H, x), B)
-    gradH = back((1, nothing))[1]
+    @time gradH = back((1, nothing))[1]
     all_norm, gradN = get_all_norm(ts)
     fprint("Energy: $y \nNorm: $(all_norm[1][1]), $(all_norm[4][1]) ")
     

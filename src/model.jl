@@ -1,7 +1,7 @@
-const Sx = Float64[0 1; 1 0]/2
-const Sy = ComplexF64[0 -1im; 1im 0]/2
-const Sz = Float64[1 0; 0 -1]/2
-const SI = Float64[1 0; 0 1]
+const Sx = Float32[0 1; 1 0]/2
+const Sy = ComplexF32[0 -1im; 1im 0]/2
+const Sz = Float32[1 0; 0 -1]/2
+const SI = Float32[1 0; 0 1]
     # sp = [0 1; 0 0]
     # sm = [0 0; 1 0]
 
@@ -30,12 +30,12 @@ function honeycomb(Jx = 1, Jy = 1)
 end
 
 function init_hb_gs(D = 4)
-    Q_op = zeros(ComplexF64,2,2,2,2,2)
+    Q_op = zeros(ComplexF32,2,2,2,2,2)
     Q_op[1,1,1,:,:] = SI
     Q_op[1,2,2,:,:] = Sx
     Q_op[2,1,2,:,:] = Sy
     Q_op[2,2,1,:,:] = Sz
-    ux, uy, uz = 1/sqrt(3), 1/sqrt(3), 1/sqrt(3)
+    ux, uy, uz = 1/sqrt(3f0), 1/sqrt(3f0), 1/sqrt(3f0)
     s111 = 1/sqrt(2+2*uz)*[1 + uz, ux + im*uy]
 
     T = tcon([Q_op, s111], [[-1,-2,-3,-4,1], [1]])
@@ -46,9 +46,9 @@ function init_hb_gs(D = 4)
     A = reshape(A, 2, 2, 2, 2, 4)
 
     if D == 4
-        phi = 0.24*pi
+        phi = 0.24f0*pi
         a = tan(phi)
-        R_op = zeros(ComplexF64,2,2,2,2,2)
+        R_op = zeros(ComplexF32,2,2,2,2,2)
         R_op[1,1,1,:,:] = SI
         R_op[1,2,2,:,:] = Sx*a
         R_op[2,1,2,:,:] = Sy*a

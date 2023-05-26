@@ -13,8 +13,8 @@ function optim_gs(H, A0, filename::String; m = 10, g_tol=1e-6, iterations = 200)
 end
 
 function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
-    energies = Float64[]
-    gradnorms = Float64[]
+    energies = Float32[]
+    gradnorms = Float32[]
 
     cached_x = nothing
     cached_y = nothing 
