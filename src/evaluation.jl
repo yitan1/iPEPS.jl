@@ -39,7 +39,7 @@ function get_es_energy(ts::CTMTensors, H)
     Ev = wrap_tr(H[2]*rov) |> real
 
     E = Eh + Ev
-    # @show E[1], E[4]
+    @show E[1], E[4]
 
     E[4]
 end
@@ -68,9 +68,12 @@ function get_all_norm(ts::CTMTensors)
     ndm_A = tcon([n_dm, A], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
     all_norm = tcon([ndm_A, Ad], [[1,2,3,4,5], [1,2,3,4,5]])
 
-    Nb = ndm_A[2]/ all_norm[1][1]
+    envB = ndm_A[2]/ all_norm[1][1]
 
-    all_norm, Nb
+    Nb = tcon([ndm_A[2], ts.Bd], [[1,2,3,4,5], [1,2,3,4,5]])
+    Nb = Nb/ all_norm[1][1]
+
+    Nb[1], envB
 end
 
 function get_all_norm1(ts::CTMTensors)
@@ -82,7 +85,7 @@ function get_all_norm1(ts::CTMTensors)
     Bd_E1, Bd_E2, Bd_E3, Bd_E4 = ts.Bd_Es
     n_tensors = [C1, C2, C3, C4, E1, E2, E3, E4]
     B_tensors = [B_C1, B_C2, B_C3, B_C4, B_E1, B_E2, B_E3, B_E4]
-    Bd_tensors = [Bd_C1, Bd_C2, Bd_C3, Bd_C4, Bd_E1, Bd_E2, Bd_E3, Bd_E4]
+    # Bd_tensors = [Bd_C1, Bd_C2, Bd_C3, Bd_C4, Bd_E1, Bd_E2, Bd_E3, Bd_E4]
 
     n_dm = get_single_dm(n_tensors...)
     B_dm = zeros(size(n_dm))
@@ -99,7 +102,9 @@ function get_all_norm1(ts::CTMTensors)
     nrmB_open = (tcon([n_dm, ts.B], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]) +
             tcon([B_dm, ts.A], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]) ) / nrm0[1]
 
-    nrm0[1], nrmB_open
+    Nb = tcon([nrmB_open, ts.Bd], [[1,2,3,4,5], [1,2,3,4,5]])
+
+    Nb[1], nrmB_open
 end
 
 function get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
@@ -150,7 +155,7 @@ function get_dms(ts::CTMTensors; only_gs = true)
     return roh, rov
 end
 """
-    get_dm_hor
+    get_dm_h
 
 return density matrix(d,d,d,d) of following diagram
 ```

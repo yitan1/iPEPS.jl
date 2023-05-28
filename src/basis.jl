@@ -4,7 +4,7 @@ import LinearAlgebra: norm, tr
 ChainRulesCore.@non_differentiable time(::Any...)
 ChainRulesCore.@non_differentiable Printf.format(::Any...)
 ChainRulesCore.@non_differentiable append!(::Any...)
-ChainRulesCore.@non_differentiable maximum(::Any...)
+# ChainRulesCore.@non_differentiable maximum(::Any...)
 ChainRulesCore.@non_differentiable get(::Any...)
 
 # nograd(x) = x

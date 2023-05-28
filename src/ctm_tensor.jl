@@ -22,7 +22,7 @@ function get_all_A(ts::CTMTensors)
         return ts.A
     else 
         nested_A = [ts.A, ts.B, EmptyT(), EmptyT()] |> NestedTensor
-        nested_A
+        return nested_A
     end
 end
 
@@ -31,7 +31,7 @@ function get_all_Ad(ts::CTMTensors)
         return ts.Ad
     else 
         nested_Ad = [ts.Ad, EmptyT(), ts.Bd, EmptyT()] |> NestedTensor
-        nested_Ad
+        return nested_Ad
     end
 end
 
@@ -71,10 +71,10 @@ end
 init_ctm(A) = init_ctm(A, conj(A))
 function init_ctm(A, Ad)
     D = size(A,1)
-    C1 = ones(Float32, 1,1)
-    C2 = ones(Float32, 1,1)
-    C3 = ones(Float32, 1,1)
-    C4 = ones(Float32, 1,1)
+    C1 = ones(eltype(A), 1,1)
+    C2 = ones(eltype(A), 1,1)
+    C3 = ones(eltype(A), 1,1)
+    C4 = ones(eltype(A), 1,1)
     Cs = Vector{typeof(C1)}([C1, C2, C3, C4]) #.|> renormalize
 
     E1 = tcon([A,Ad], [[1,2,-1,3,4],[1,2,-2,3,4]])

@@ -84,9 +84,18 @@ function optim_es(H, px, py, cfg::Dict)
 
     A = renormalize(A)
     ts = CTMTensors(A, cfg)
+
+    cfg_back = deepcopy(cfg)
+    ts.Params["max_iter"] = 30
+    ts.Params["rg_tol"] = 1e-12
     conv_fun(_x) = get_gs_energy(_x, H)[1]
     ts, _ = run_ctm(ts, conv_fun = conv_fun)
-    
+
+    ts.Params["max_iter"] = 30
+    ts.Params["rg_tol"] = 1e-12
+
+    ts = setproperties(ts, Params = cfg_back)
+
     optim_es(ts, H, px, py)
 end
 function optim_es(ts::CTMTensors, H, px, py)
@@ -98,21 +107,23 @@ function optim_es(ts::CTMTensors, H, px, py)
     #basis
     basis_name = get_basis_name(ts.Params)
     # post = ".jld2"
-    if ispath(basis_name)
+    if ispath(basis_name) && ts.Params["basis"]
         basis = load(basis_name, "basis")
         fprint("The basis has existed, skip calculation")
     else
         basis = get_tangent_basis(ts)
         jldsave(basis_name; basis = basis)
         fprint("Saved the basis to $(basis_name)")
+        # error()
     end
 
-    basis_dim = size(basis, 2)
+    basis = ComplexF32.(basis) # ！！！！ convert Complex
+    basis_dim = size(basis, 2) 
     effH = zeros(ComplexF64, basis_dim, basis_dim)
     effN = zeros(ComplexF64, basis_dim, basis_dim)
 
-    ts.Params["px"] = px*pi |> Float32
-    ts.Params["px"] = py*pi |> Float32
+    ts.Params["px"] = convert(eltype(ts.A), px*pi)
+    ts.Params["px"] = convert(eltype(ts.A), py*pi)
 
     for i = 1:basis_dim
         fprint(" \n Starting simulation of basis vector $(i)/$(basis_dim)")
@@ -130,6 +141,37 @@ function optim_es(ts::CTMTensors, H, px, py)
     effH, effN
 end
 
+function optim_es1(ts::CTMTensors, H, px, py)
+        ## normalize gs
+        ts = normalize_gs(ts)
+
+        H = substract_gs_energy(ts, H)
+    
+        #basis
+        basis_name = get_basis_name(ts.Params)
+        # post = ".jld2"
+        if ispath(basis_name) && ts.Params["basis"]
+            basis = load(basis_name, "basis")
+            fprint("The basis has existed, skip calculation")
+        else
+            basis = get_tangent_basis(ts)
+            jldsave(basis_name; basis = basis)
+            fprint("Saved the basis to $(basis_name)")
+        end
+    
+        basis = ComplexF32.(basis) # ！！！！ convert Complex
+        basis_dim = size(basis, 2) 
+        effH = zeros(ComplexF64, basis_dim, basis_dim)
+        effN = zeros(ComplexF64, basis_dim, basis_dim)
+    
+        ts.Params["px"] = Float32(px*pi)
+        ts.Params["px"] = Float32(py*pi)
+    
+        f = x -> get_es_grad(ts, H, x)
+        
+        vals , vec = geneigsolve(f, 32, 3, :LM, ishermitian = true)
+end
+
 function get_es_grad(ts::CTMTensors, H, Bi)
     B = reshape(Bi, size(ts.A))
     Cs, Es = init_ctm(ts.A, ts.Ad)
@@ -140,12 +182,12 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     ts, _ = run_ctm(ts)
     fprint("---- End to find fixed points ----- \n")
     # f(_x) = run_es(ts1, H, _x) 
-    @time (y, ts), back = Zygote.pullback(x -> run_es(ts, H, x), B)
-    @time gradH = back((1, nothing))[1]
-    all_norm, gradN = get_all_norm(ts)
-    fprint("Energy: $y \nNorm: $(all_norm[1][1]), $(all_norm[4][1]) ")
+    (y, ts1), back = Zygote.pullback(x -> run_es(ts, H, x), B)
+    gradH = back((1, nothing))[1]
+    Nb, gradN = get_all_norm(ts1)
+    fprint("Energy: $y \nNormB: $(Nb) ")
     
-    gradH[:], gradN[:]
+    conj(gradH[:])/2, gradN[:]/2
 end
 
 function run_es(ts::CTMTensors, H, B)
@@ -157,16 +199,21 @@ function run_es(ts::CTMTensors, H, B)
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
     E = get_es_energy(ts, H)
 
+    # Nb, gradN = get_all_norm(ts)
     # @printf("Gs_Energy: %.10g \n", sum(E))
-    # fprint("E: $E, N: $N")
+    # fprint("Energy: $E \nNormB: $(Nb) ")
 
     E, ts
 end
 
 function normalize_gs(ts::CTMTensors)
     nrm = get_gs_norm(ts)
+    fprint("Gs Norm: $nrm")
     A1 = ts.A ./ sqrt(abs(nrm))
     ts = setproperties(ts, A = A1, Ad = conj(A1))
+
+    nrm = get_gs_norm(ts)
+    fprint("Gs Norm: $nrm")
 
     ts
 end
@@ -178,6 +225,9 @@ function substract_gs_energy(ts::CTMTensors, H)
     newH = similar(H)
     newH[1] = H[1] .- gs_E* Matrix{eltype(H[1])}(I, size(H[1]))
     newH[2] = H[2] .- gs_E* Matrix{eltype(H[2])}(I, size(H[2]))
+    fprint("Substracting $gs_E from Hamiltonian")
+
+    # @show get_gs_energy(ts, newH)[1]
 
     newH
 end
@@ -193,6 +243,8 @@ function get_tangent_basis(ts::CTMTensors)
 
     ndm_Ad = reshape(ndm_Ad, 1, :)
     basis = nullspace(ndm_Ad)   #(dD^4, dD^4-1) 
+
+    # @show basis' * ndm_Ad[:]
     
     basis
 end
