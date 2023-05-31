@@ -25,3 +25,31 @@ renormalize(A::AbstractArray) = A ./ maximum(abs.(A))
 function diag_inv(A::AbstractArray)
     diagm(1 ./ A)
 end
+
+function wrap_svd(A, n = Inf)
+    u,s,v = svd(A)
+    ix = sortperm(s)[end:-1:1]
+    s = s[ix]
+    u = u[:,ix]
+    v = v[:,ix]
+
+    u,s,v = cutoff_matrix(u,s,v, 1e-12, n)
+    
+    u,s, v
+end
+
+function cutoff_matrix(u,s,v, cutoff, n)
+    n_above_cutoff = count(>(cutoff), s/maximum(s))
+    n = min(n, n_above_cutoff) |> Int
+
+    if n < Inf && size(s,1) > n
+        if  s[n] > 1e-5 
+            n = count(>=(s[n] - cutoff), s)
+        end
+        u = u[:, 1:n]
+        s = s[1:n]
+        v = v[:, 1:n]
+    end
+
+    u,s,v
+end

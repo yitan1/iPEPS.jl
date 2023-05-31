@@ -12,7 +12,7 @@ d = 4
 chi = 30
 A = randn(D,D,D,D,d);
 
-B = randn(size(A));
+B = randn(size(A)) .|> ComplexF64;
 
 H, N = iPEPS.optim_es(ts1, H, pi/5, pi/5)
 
@@ -24,7 +24,7 @@ H = iPEPS.substract_gs_energy(ts0, H);
 ts1, s = iPEPS.run_ctm(ts0);
 
 basis = iPEPS.get_tangent_basis(ts0);
-B = reshape(basis[:,6], size(A));
+B = reshape(basis[:,6], size(A)) ;
 
 basis' * B[:]
 

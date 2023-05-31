@@ -36,28 +36,34 @@ for i = 1:3
 end
 f
 
+optim_es(H, 0.5,0.5, "")
+iPEPS.evaluate_es(0.5,0.5,"")
+
 
 using NPZ, JLD2
-bs = npzread("test_basis.npz")["basis"];
-v1 = reshape(bs[:, 9], 2,2,2,2,2)
-v1 = permutedims(v1, (3,4,5,2,1));
 
-A =  load("simulation/ising_default_D2_X50/gs.jld2", "A");
-# A = iPEPS.renormalize(A);
-ts0 = iPEPS.CTMTensors(A, cfg);
-conv_fun(_x) = iPEPS.get_gs_energy(_x, H)[1];
-ts, _ = iPEPS.run_ctm(ts, conv_fun = conv_fun);
+effH = npzread("31_0.5_0.5.npz")["H"]
+effN = npzread("31_0.5_0.5.npz")["N"]
 
-B = reshape(bs1[:,1], size(A));
-ts1 = setproperties(ts0, B = B, Bd = conj(B));
-ts1.Params["px"] = 0.3*pi;
-ts1.Params["px"] = 0.3*pi;
-@time ts11, _ = iPEPS.run_ctm(ts1);
+effH = load("simulation/ising_default_D2_X30/es_0.5_0.5.jld2", "effH")
+effN = load("simulation/ising_default_D2_X30/es_0.5_0.5.jld2", "effN")
 
-n0 ,nb = iPEPS.get_all_norm(ts11);
-n01, nb1 = iPEPS.get_all_norm1(ts11);
+H = (effH + effH') /2 
+N = (effN + effN') /2
+ev_N, P = eigen(N)
 
-_, dA = iPEPS.get_tangent_basis(ts);
-dA[:]'*v1[:]
+idx = sortperm(real.(ev_N))[end:-1:1]
+ev_N = ev_N[idx]
+selected = (ev_N/maximum(ev_N) ) .> 1e-3
+P = P[:,idx]
+P = P[:,selected]
+N2 = P' * N * P
+H2 = P' * H * P
+H2 = (H2 + H2') /2 
+N2 = (N2 + N2') /2
+es, vecs = eigen(H2,N2)
+ixs = sortperm(real.(es))
+es = es[ixs]
+vecs = vecs[:,ixs]
 
-bs1 = load("simulation/ising_default_D2_X50/basis.jld2", "basis");
+es, vecs

@@ -255,19 +255,19 @@ end
 function get_projector(R1, R2, chi)
     new_chi = min(chi, size(R1, 2))
 
-    U, S, V = svd(R1 * R2)
+    U, S, V = wrap_svd(R1 * R2, new_chi)
     # @show S 
     ####### cut off
-    tol = 1e-10
-    if chi < size(S,1) && S[new_chi] > 1e-5 
-        new_chi = count(>=(S[new_chi] - tol), S)
-        # @show new_chi, S
-    end
-    # fprint(new_chi)
-    U = U[:, 1:new_chi]
-    V = V[:, 1:new_chi]
-    # S = S./S[1]
-    S = S[1:new_chi]
+    # tol = 1e-10
+    # if chi < size(S,1) && S[new_chi] > 1e-5 
+    #     new_chi = count(>=(S[new_chi] - tol), S)
+    #     # @show new_chi, S
+    # end
+    # # fprint(new_chi)
+    # U = U[:, 1:new_chi]
+    # V = V[:, 1:new_chi]
+    # # S = S./S[1]
+    # S = S[1:new_chi]
 
     # display(S1)
     # cut_off = sum(S[new_chi+1:end]) / sum(S)   

@@ -65,7 +65,7 @@ function get_all_norm(ts::CTMTensors)
     E1, E2, E3, E4 = get_all_Es(ts)
     n_dm = get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
 
-    ndm_A = tcon([n_dm, A], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
+    ndm_A = tcon([n_dm, A], [[1,2,3,4,-1,-2,-3,-4], [1,2,3,4,-5]])
     all_norm = tcon([ndm_A, Ad], [[1,2,3,4,5], [1,2,3,4,5]])
 
     envB = ndm_A[2]/ all_norm[1][1]
@@ -99,8 +99,8 @@ function get_all_norm1(ts::CTMTensors)
     ndm_Ad = tcon([n_dm, ts.Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
     nrm0 = tcon([ndm_Ad, ts.A], [[1,2,3,4,5], [1,2,3,4,5]])
 
-    nrmB_open = (tcon([n_dm, ts.B], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]) +
-            tcon([B_dm, ts.A], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]) ) / nrm0[1]
+    nrmB_open = (tcon([n_dm, ts.B], [[1,2,3,4,-1,-2,-3,-4], [1,2,3,4,-5]]) +
+            tcon([B_dm, ts.A], [[1,2,3,4,-1,-2,-3,-4], [1,2,3,4,-5]]) ) / nrm0[1]
 
     Nb = tcon([nrmB_open, ts.Bd], [[1,2,3,4,5], [1,2,3,4,5]])
 

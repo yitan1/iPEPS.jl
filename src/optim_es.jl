@@ -117,20 +117,32 @@ function optim_es(ts::CTMTensors, H, px, py)
         # error()
     end
 
-    basis = ComplexF32.(basis) # ！！！！ convert Complex
+    basis = complex(basis) # ！！！！ convert Complex
     basis_dim = size(basis, 2) 
     effH = zeros(ComplexF64, basis_dim, basis_dim)
     effN = zeros(ComplexF64, basis_dim, basis_dim)
 
     ts.Params["px"] = convert(eltype(ts.A), px*pi)
-    ts.Params["px"] = convert(eltype(ts.A), py*pi)
+    ts.Params["py"] = convert(eltype(ts.A), py*pi)
 
     for i = 1:basis_dim
         fprint(" \n Starting simulation of basis vector $(i)/$(basis_dim)")
+        # B = load("simulation/ising_default_D2_X30/gs.jld2", "A") .|> ComplexF64
+        # B = reshape(B, 2, 2, 2,2, 2)
+        # B = permutedims(B, (5, 4, 1,2 ,3))
+        # B = permutedims(B, (5, 4, 3, 2 ,1))
+        # display(B[:])
+        # gH, gN = get_es_grad(ts, H, B)
+
         gH, gN = get_es_grad(ts, H, basis[:,i])
-        gH = conj(gH)
-        effH[:, i] = basis' * gH
-        effN[:, i] = basis' * gN
+        # gN = reshape(gN, 2, 2, 2,2, 2)
+        # gN = permutedims(gN, (5, 4, 1,2 ,3))
+        # gN = permutedims(gN, (5, 4, 3,2 ,1))
+        # display(gN[:])
+        # @show i 
+        # error()
+        effH[:, i] = transpose(basis) * gH
+        effN[:, i] = transpose(basis) * gN
         fprint("Finish basis vector of $(i)/$(basis_dim)")
     end
     
@@ -164,8 +176,8 @@ function optim_es1(ts::CTMTensors, H, px, py)
         effH = zeros(ComplexF64, basis_dim, basis_dim)
         effN = zeros(ComplexF64, basis_dim, basis_dim)
     
-        ts.Params["px"] = Float32(px*pi)
-        ts.Params["px"] = Float32(py*pi)
+        ts.Params["px"] = convert(eltype(ts.A), px*pi)
+        ts.Params["py"] = convert(eltype(ts.A), py*pi)
     
         f = x -> get_es_grad(ts, H, x)
         
@@ -187,7 +199,7 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     Nb, gradN = get_all_norm(ts1)
     fprint("Energy: $y \nNormB: $(Nb) ")
     
-    conj(gradH[:])/2, gradN[:]/2
+    gradH[:], gradN[:] ## conj???????
 end
 
 function run_es(ts::CTMTensors, H, B)
@@ -244,7 +256,14 @@ function get_tangent_basis(ts::CTMTensors)
     ndm_Ad = reshape(ndm_Ad, 1, :)
     basis = nullspace(ndm_Ad)   #(dD^4, dD^4-1) 
 
-    # @show basis' * ndm_Ad[:]
-    
+    # bs = load("one_D2_X30_base.jld2", "bs")
+    # display(bs[:,1])
+    # for i = 1:31
+    #     b1 = reshape(bs[:,i], 2,2,2,2,2)
+    #     b1 = permutedims(b1, (5,4,3,2,1)) 
+    #     bs[:,i] = permutedims(b1, (3,4,5,2,1))[:] 
+    # end
+    # bs
+
     basis
 end
