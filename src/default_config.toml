@@ -9,10 +9,10 @@ model = "ising"
 D = 2
 chi = 30
 
-resume = false
+resume = true
 
 # true -> load exist basis, false -> calculate basis
-basis = false
+basis = true
 
 nrmB_cut = 1e-3
 

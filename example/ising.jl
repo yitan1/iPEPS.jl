@@ -16,7 +16,7 @@ for i in eachindex(px)
     optim_es(H, px[i], py[i], "")
 end   
 
-E = plot_band(4, "")
+E = plot_band(5, "")
 iPEPS.evaluate_es(0,0,"")
 
 using CairoMakie
@@ -29,7 +29,7 @@ x = vcat(x1, x2, x3, x4)
 
 f = Figure()
 ax = Axis(f[1, 1])
-for i = 1:3
+for i = 1:5
     # x = collect(1:size(E,2))
     y = E[i,:]
     lines!(ax, x, y)
