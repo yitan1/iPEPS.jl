@@ -59,7 +59,7 @@ function evaluate_es(px, py, cfg::Dict)
     es, vecs
 end
 
-function optim_es(H, px, py, filename::String)
+function get_basis(H, filename::String)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
         fprint("load custom config file at $(filename)")
@@ -69,10 +69,6 @@ function optim_es(H, px, py, filename::String)
     end
     print_cfg(cfg)
 
-    optim_es(H, px, py, cfg)
-end
-
-function optim_es(H, px, py, cfg::Dict)
     gs_name = get_gs_name(cfg)
     if ispath(gs_name)
         A = load(gs_name, "A")
@@ -96,9 +92,6 @@ function optim_es(H, px, py, cfg::Dict)
 
     ts = setproperties(ts, Params = cfg_back)
 
-    optim_es(ts, H, px, py)
-end
-function optim_es(ts::CTMTensors, H, px, py)
     ## normalize gs
     ts = normalize_gs(ts)
 
@@ -112,10 +105,30 @@ function optim_es(ts::CTMTensors, H, px, py)
         fprint("The basis has existed, skip calculation")
     else
         basis = get_tangent_basis(ts)
-        jldsave(basis_name; basis = basis)
+        jldsave(basis_name; basis = basis, ts = ts)
         fprint("Saved the basis to $(basis_name)")
         # error()
     end
+end
+
+function optim_es(H, px, py, filename::String)
+    if ispath(filename)
+        cfg = TOML.parsefile(filename)
+        fprint("load custom config file at $(filename)")
+    else
+        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+        fprint("load daufult config file")
+    end
+    print_cfg(cfg)
+
+    optim_es(H, px, py, cfg)
+end
+
+function optim_es(H, px, py, cfg::Dict)
+
+    basis_name = get_basis_name(cfg)
+    basis = load(basis_name, "basis")
+    ts = load(basis_name, "ts")
 
     basis = complex(basis) # ！！！！ convert Complex
     basis_dim = size(basis, 2) 

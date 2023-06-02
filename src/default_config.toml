@@ -12,7 +12,7 @@ chi = 30
 resume = true
 
 # true -> load exist basis, false -> calculate basis
-basis = true
+basis = false
 
 nrmB_cut = 1e-3
 

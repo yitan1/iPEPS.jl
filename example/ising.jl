@@ -36,34 +36,10 @@ for i = 1:5
 end
 f
 
-optim_es(H, 0.5,0.5, "")
-iPEPS.evaluate_es(0.5,0.5,"")
+op = iPEPS.Sz
+get_basis(H, "")
+es, swk0 = compute_spectral(op, .0, .0, "")
 
+x, y = plot_spectral(es, swk0)
 
-using NPZ, JLD2
-
-effH = npzread("31_0.5_0.5.npz")["H"]
-effN = npzread("31_0.5_0.5.npz")["N"]
-
-effH = load("simulation/ising_default_D2_X30/es_0.5_0.5.jld2", "effH")
-effN = load("simulation/ising_default_D2_X30/es_0.5_0.5.jld2", "effN")
-
-H = (effH + effH') /2 
-N = (effN + effN') /2
-ev_N, P = eigen(N)
-
-idx = sortperm(real.(ev_N))[end:-1:1]
-ev_N = ev_N[idx]
-selected = (ev_N/maximum(ev_N) ) .> 1e-3
-P = P[:,idx]
-P = P[:,selected]
-N2 = P' * N * P
-H2 = P' * H * P
-H2 = (H2 + H2') /2 
-N2 = (N2 + N2') /2
-es, vecs = eigen(H2,N2)
-ixs = sortperm(real.(es))
-es = es[ixs]
-vecs = vecs[:,ixs]
-
-es, vecs
+lines(x, y)

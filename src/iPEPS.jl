@@ -23,7 +23,7 @@ using Optim#, LineSearches
 
 # __precompile__(false)
 
-export optim_gs, optim_es, honeycomb, init_hb_gs, ising, make_es_path, plot_band
+export optim_gs, get_basis, optim_es, honeycomb, init_hb_gs, ising, make_es_path, plot_band, plot_spectral, compute_spectral
 
 include("printing.jl")
 include("io.jl")

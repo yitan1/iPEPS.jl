@@ -1,3 +1,75 @@
-function get_expec()
-    
+function compute_spectral(op, px, py, filename::String)
+    if ispath(filename)
+        cfg = TOML.parsefile(filename)
+        fprint("load custom config file at $(filename)")
+    else
+        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+        fprint("load daufult config file")
+    end
+    print_cfg(cfg)
+
+    es_name = get_es_name(cfg, px, py)
+    effH = load(es_name, "effH")
+    effN = load(es_name, "effN")
+    fprint("load H and N at $es_name")
+
+    nrmB_cut = get(cfg, "nrmB_cut", 1e-3)
+
+    H = (effH + effH') /2 
+    N = (effN + effN') /2
+    ev_N, P = eigen(N)
+    idx = sortperm(real.(ev_N))[end:-1:1]
+    ev_N = ev_N[idx]
+    selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
+    P = P[:,idx]
+    P = P[:,selected]
+    N2 = P' * N * P
+    H2 = P' * H * P
+    H2 = (H2 + H2') /2 
+    N2 = (N2 + N2') /2
+    es, vecs = eigen(H2,N2)
+    ixs = sortperm(real.(es))
+    es = es[ixs]
+    vecs = vecs[:,ixs]
+
+    basis_name = get_basis_name(cfg)
+    basis = load(basis_name, "basis")
+    ts = load(basis_name, "ts")
+
+    envB = compute_spec_env(ts, op, px, py)
+
+    exci_n = basis*P*vecs
+
+    wk0 = exci_n' * envB[:]
+    swk0 = abs2.(wk0)
+
+    es, swk0
+end
+
+function compute_spec_env(ts, op, px, py)
+
+    ts.Params["px"] = convert(eltype(ts.A), px*pi)
+    ts.Params["py"] = convert(eltype(ts.A), py*pi)
+
+    B = tcon([ts.A, op], [[-1,-2,-3,-4,1], [-5,1]])
+    # Bd = conj(B)
+
+    Cs, Es = init_ctm(ts.A, ts.Ad)
+
+    ts = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
+
+    ts, _ = run_ctm(ts)
+
+    _, envB = get_all_norm(ts)
+
+    envB
+end
+
+function lor_broad(x, es, swk, factor)
+    w = 0.0
+    for i in eachindex(swk)
+        w += 1/pi*factor/((x - es[i])^2 + factor^2)*swk[i]
+    end
+
+    w
 end
