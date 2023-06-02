@@ -43,8 +43,9 @@ function cutoff_matrix(u,s,v, cutoff, n)
     n = min(n, n_above_cutoff) |> Int
 
     if n < Inf && size(s,1) > n
-        if  s[n] > 1e-8
-            n = count(>=(s[n] - cutoff), s)
+        if  s[n] > 1e-6
+            new_n = count(>=(s[n] - cutoff), s)
+            n = min(new_n, n + 10)
         end
         u = u[:, 1:n]
         s = s[1:n]
