@@ -130,6 +130,7 @@ function optim_es(px, py, cfg::Dict)
     basis = load(basis_name, "basis")
     ts = load(basis_name, "ts")
     H = load(basis_name, "H")
+    fprint("load basis, ts, H in $basis_name")
 
     basis = complex(basis) # ！！！！ convert Complex
     basis_dim = size(basis, 2) 
@@ -185,7 +186,7 @@ function optim_es1(ts::CTMTensors, H, px, py)
             fprint("Saved the basis to $(basis_name)")
         end
     
-        basis = ComplexF32.(basis) # ！！！！ convert Complex
+        basis = complex(basis) # ！！！！ convert Complex
         basis_dim = size(basis, 2) 
         effH = zeros(ComplexF64, basis_dim, basis_dim)
         effN = zeros(ComplexF64, basis_dim, basis_dim)
