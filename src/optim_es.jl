@@ -59,7 +59,7 @@ function evaluate_es(px, py, cfg::Dict)
     es, vecs
 end
 
-function get_basis(H, filename::String)
+function prepare_basis(H, filename::String)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
         fprint("load custom config file at $(filename)")
