@@ -105,13 +105,13 @@ function get_basis(H, filename::String)
         fprint("The basis has existed, skip calculation")
     else
         basis = get_tangent_basis(ts)
-        jldsave(basis_name; basis = basis, ts = ts)
-        fprint("Saved the basis to $(basis_name)")
+        jldsave(basis_name; basis = basis, ts = ts, H = H)
+        fprint("Saved the basis, ts, H to $(basis_name)")
         # error()
     end
 end
 
-function optim_es(H, px, py, filename::String)
+function optim_es(px, py, filename::String)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
         fprint("load custom config file at $(filename)")
@@ -121,14 +121,15 @@ function optim_es(H, px, py, filename::String)
     end
     print_cfg(cfg)
 
-    optim_es(H, px, py, cfg)
+    optim_es(px, py, cfg)
 end
 
-function optim_es(H, px, py, cfg::Dict)
+function optim_es(px, py, cfg::Dict)
 
     basis_name = get_basis_name(cfg)
     basis = load(basis_name, "basis")
     ts = load(basis_name, "ts")
+    H = load(basis_name, "H")
 
     basis = complex(basis) # ！！！！ convert Complex
     basis_dim = size(basis, 2) 
