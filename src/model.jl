@@ -29,7 +29,7 @@ function honeycomb(Jx = 1, Jy = 1)
     [-hh, -hv]
 end
 
-function init_hb_gs(D = 4)
+function init_hb_gs(D = 4; p1 = 0.24)
     Q_op = zeros(ComplexF64,2,2,2,2,2)
     Q_op[1,1,1,:,:] = SI
     Q_op[1,2,2,:,:] = Sx
@@ -46,7 +46,7 @@ function init_hb_gs(D = 4)
     A = reshape(A, 2, 2, 2, 2, 4)
 
     if D == 4
-        phi = 0.24*pi
+        phi = p1*pi
         a = tan(phi)
         R_op = zeros(ComplexF64,2,2,2,2,2)
         R_op[1,1,1,:,:] = SI
