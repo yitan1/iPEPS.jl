@@ -32,9 +32,9 @@ end
 function init_hb_gs(D = 4; p1 = 0.24)
     Q_op = zeros(ComplexF64,2,2,2,2,2)
     Q_op[1,1,1,:,:] = SI
-    Q_op[1,2,2,:,:] = Sx
-    Q_op[2,1,2,:,:] = Sy
-    Q_op[2,2,1,:,:] = Sz
+    Q_op[1,2,2,:,:] = Sx*2
+    Q_op[2,1,2,:,:] = Sy*2
+    Q_op[2,2,1,:,:] = Sz*2
     ux, uy, uz = 1/sqrt(3), 1/sqrt(3), 1/sqrt(3)
     s111 = 1/sqrt(2+2*uz)*[1 + uz, ux + im*uy]
 
@@ -50,9 +50,9 @@ function init_hb_gs(D = 4; p1 = 0.24)
         a = tan(phi)
         R_op = zeros(ComplexF64,2,2,2,2,2)
         R_op[1,1,1,:,:] = SI
-        R_op[1,2,2,:,:] = Sx*a
-        R_op[2,1,2,:,:] = Sy*a
-        R_op[2,2,1,:,:] = Sz*a
+        R_op[1,2,2,:,:] = 2*Sx*a
+        R_op[2,1,2,:,:] = 2*Sy*a
+        R_op[2,2,1,:,:] = 2*Sz*a
 
         RR = tcon([R_op, R_op], [[-1,-2,1,-5,-7,], [-3,-4,1,-6,-8,]])
         dRR = size(RR)

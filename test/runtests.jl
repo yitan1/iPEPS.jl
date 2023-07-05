@@ -113,5 +113,3 @@ gradient(x -> f(x, B, C), A)
 
 
 
-
-

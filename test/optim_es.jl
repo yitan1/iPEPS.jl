@@ -5,7 +5,7 @@ using TOML
 
 H = iPEPS.honeycomb(0.15, 0.15);
 
-A = iPEPS.init_hb_gs() .|> real;
+A = iPEPS.init_hb_gs(2) #.|> real;
 
 D = 2
 d = 4

@@ -41,6 +41,9 @@ include("optim_gs.jl")
 include("optim_es.jl")
 include("expectation.jl")
 include("plot.jl")
+include("test.jl")
+
+include("pepo.jl")
 
 # function __init__()
 #     if ispath("config.toml")

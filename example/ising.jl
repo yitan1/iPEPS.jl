@@ -43,3 +43,29 @@ es, swk0 = compute_spectral(op, .0, .0, "")
 x, y = plot_spectral(es, swk0)
 
 lines(x, y)
+prepare_basis(H, "")
+iPEPS.test_es(90, 0.1, 0.1, "")
+
+####
+H0 = iPEPS.ising1(2)
+pepoN = iPEPS.init_pepo(H0, 0.001);
+
+using JLD2
+A = load("simulation/ising_default_D2_X30/gs.jld2", "A")
+rng = MersenneTwister(3);
+A = randn(rng, 2,2,2,2,2);
+cfg = TOML.parsefile("src/default_config.toml");
+
+ts = iPEPS.CTMTensors(A, cfg);
+
+ots = iPEPS.get_ots(ts,pepoN);
+
+
+ts1, _ = iPEPS.run_ctm(ts);
+ots1, _ = iPEPS.run_ctm(ots);
+
+iPEPS.get_gs_energy(ts1, H)
+
+e = iPEPS.get_gs_norm(ots1) 
+# / iPEPS.get_gs_norm(ts1)
+log(e)/0.01 / iPEPS.get_gs_norm(ts1)
