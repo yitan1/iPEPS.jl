@@ -64,7 +64,8 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
         ts = setproperties(ts0, Cs = Cs, Es = Es, A = x, Ad = conj(x))
         conv_fun(_x) = get_gs_energy(_x, H)[1]
         fprint("\n ---- Start to find fixed points -----")
-        ts, _ = run_ctm(ts; conv_fun = conv_fun)
+        # ts, _ = run_ctm(ts; conv_fun = conv_fun)
+        ts, _ = run_ctm(ts)
         fprint("---- End to find fixed points ----- \n")
         # f(_x) = run_gs(ts, H, _x) 
         y, back = Zygote.pullback(_x -> run_gs(ts, H, _x), x)
@@ -97,7 +98,8 @@ function run_gs(ts::CTMTensors, H, A)
     ts = setproperties(ts, A = A, Ad = conj(A))
 
     conv_fun(_x) = get_gs_energy(_x, H)[1]
-    ts, s = run_ctm(ts, conv_fun = conv_fun)
+    # ts, s = run_ctm(ts, conv_fun = conv_fun)
+    ts, _ = run_ctm(ts)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
     gs_E, _ = get_gs_energy(ts, H)

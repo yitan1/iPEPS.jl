@@ -269,7 +269,7 @@ function get_projector(R1, R2, chi)
     # # S = S./S[1]
     # S = S[1:new_chi]
 
-    # display(S1)
+    # display(S)
     # cut_off = sum(S[new_chi+1:end]) / sum(S)   
 
     inv_sqrt_S = sqrt.(S) |> diag_inv #|> diagm |> inv
@@ -318,6 +318,44 @@ function proj_left(ts, P, Pd)
     renormalize(newC1), renormalize(newE4), renormalize(newC4)
 end
 
+function proj_left_unrenorm(ts, P, Pd)
+    A    = get_all_A(ts)
+    Ad   = get_all_Ad(ts)
+    C1, _, _, C4 = get_all_Cs(ts)
+    E1, _, E3, E4 = get_all_Es(ts)
+    # A = ts.A
+    # Ad = ts.Ad
+    # C1 = ts.Cs[1]
+    # C2 = ts.Cs[2]
+    # C3 = ts.Cs[3]
+    # C4 = ts.Cs[4]
+    # E1 = ts.Es[1]
+    # E2 = ts.Es[2]
+    # E3 = ts.Es[3]
+    # E4 = ts.Es[4]
+
+    newC1 = begin
+        C1E1 = tcon([C1, E1], [[-2, 1], [1, -1, -3, -4]])
+        CEP = wrap_reshape(C1E1, size(C1E1, 1), :) * P
+        wrap_permutedims(CEP, (2,1))
+    end
+
+    newC4 = begin
+        C4E3 = tcon([C4, E3], [[-1, 1], [1, -4, -2, -3]])
+        Pd * wrap_reshape(C4E3, :, size(C4E3, 4))
+    end
+
+    newE4 = begin
+        E4A = tcon([E4, A], [[-1, -3, 1, -6], [-2, 1, -4, -5, -7]])
+        EAAd = tcon([E4A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-3, 1, -6, -8, 2]])
+        EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
+        EPd = tcon([Pd, EAAd], [[-1, 1], [1, -2, -3, -4]])
+        tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
+    end
+
+    newC1, newE4, newC4
+end
+
 function proj_right(ts, P, Pd)
     A    = get_all_A(ts)
     Ad   = get_all_Ad(ts)
@@ -353,6 +391,43 @@ function proj_right(ts, P, Pd)
     end
 
     renormalize(newC2), renormalize(newE2), renormalize(newC3)
+end
+
+function proj_right_unrenorm(ts, P, Pd)
+    A    = get_all_A(ts)
+    Ad   = get_all_Ad(ts)
+    _, C2, C3, _ = get_all_Cs(ts)
+    E1, E2, E3, _ = get_all_Es(ts)
+    # A = ts.A
+    # Ad = ts.Ad
+    # C1 = ts.Cs[1]
+    # C2 = ts.Cs[2]
+    # C3 = ts.Cs[3]
+    # C4 = ts.Cs[4]
+    # E1 = ts.Es[1]
+    # E2 = ts.Es[2]
+    # E3 = ts.Es[3]
+    # E4 = ts.Es[4]
+
+    newC2 = begin
+        C2E1 = tcon([C2, E1], [[1, -2], [-1, 1, -3, -4]])
+        wrap_reshape(C2E1, size(C2E1, 1), :) * P
+    end
+
+    newC3 = begin
+        C3E3 = tcon([C3, E3], [[-1, 1], [-4, 1, -2, -3]])
+        Pd * wrap_reshape(C3E3, :, size(C3E3, 4))
+    end
+
+    newE2 = begin
+        E2A = tcon([E2, A], [[-1, -3, 1, -6], [-2, -5, -4, 1, -7]])
+        EAAd = tcon([E2A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-3, -8, -6, 1, 2]])
+        EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
+        EPd = tcon([Pd, EAAd], [[-1, 1], [1, -2, -3, -4]])
+        tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
+    end
+
+    newC2, newE2, newC3
 end
 
 function proj_top(ts, P, Pd)
@@ -392,6 +467,43 @@ function proj_top(ts, P, Pd)
     renormalize(newC1), renormalize(newE1), renormalize(newC2)
 end
 
+function proj_top_unrenorm(ts, P, Pd)
+    A    = get_all_A(ts)
+    Ad   = get_all_Ad(ts)
+    C1, C2, _, _ = get_all_Cs(ts)
+    E1, E2, _, E4 = get_all_Es(ts)
+    # A = ts.A
+    # Ad = ts.Ad
+    # C1 = ts.Cs[1]
+    # C2 = ts.Cs[2]
+    # C3 = ts.Cs[3]
+    # C4 = ts.Cs[4]
+    # E1 = ts.Es[1]
+    # E2 = ts.Es[2]
+    # E3 = ts.Es[3]
+    # E4 = ts.Es[4]
+
+    newC1 = begin
+        C1E4 = tcon([C1, E4], [[1, -2], [1, -1, -3, -4]])
+        wrap_reshape(C1E4, size(C1E4, 1), :) * P
+    end
+
+    newC2 = begin
+        C2E2 = tcon([C2, E2], [[-1, 1], [1, -4, -2, -3]])
+        Pd * wrap_reshape(C2E2, :, size(C2E2, 4))
+    end
+
+    newE1 = begin
+        E1A = tcon([E1, A], [[-1, -3, 1, -6], [1, -2, -5, -4, -7]])
+        EAAd = tcon([E1A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [1, -3, -8, -6, 2]])
+        EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
+        EPd = tcon([Pd, EAAd], [[-1, 1], [1, -2, -3, -4]])
+        tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
+    end
+
+    newC1, newE1, newC2
+end
+
 function proj_bottom(ts, P, Pd)
     A    = get_all_A(ts)
     Ad   = get_all_Ad(ts)
@@ -428,6 +540,44 @@ function proj_bottom(ts, P, Pd)
     end
 
     renormalize(newC4), renormalize(newE3), renormalize(newC3)
+end
+
+function proj_bottom_unrenorm(ts, P, Pd)
+    A    = get_all_A(ts)
+    Ad   = get_all_Ad(ts)
+    C1, C2, C3, C4 = get_all_Cs(ts)
+    E1, E2, E3, E4 = get_all_Es(ts)
+    # A = ts.A
+    # Ad = ts.Ad
+    # C1 = ts.Cs[1]
+    # C2 = ts.Cs[2]
+    # C3 = ts.Cs[3]
+    # C4 = ts.Cs[4]
+    # E1 = ts.Es[1]
+    # E2 = ts.Es[2]
+    # E3 = ts.Es[3]
+    # E4 = ts.Es[4]
+
+    newC4 = begin
+        C4E4 = tcon([C4, E4], [[1, -2], [-1, 1, -3, -4]])
+        wrap_reshape(C4E4, size(C4E4, 1), :) * P
+    end
+
+    newC3 = begin
+        C3E2 = tcon([C3, E2], [[1, -1], [-4, 1, -2, -3]])
+        CEP = Pd * wrap_reshape(C3E2, :, size(C3E2, 4))
+        wrap_permutedims(CEP, (2,1))
+    end
+
+    newE3 = begin
+        E3A = tcon([E3, A], [[-1, -3, 1, -6], [-5, -2, 1, -4, -7]])
+        EAAd = tcon([E3A, Ad], [[-1, -2, -4, -5, -7, 1, 2], [-8, -3, 1, -6, 2]])
+        EAAd = wrap_reshape(EAAd, prod(size(EAAd)[1:3]), prod(size(EAAd)[4:6]), size(EAAd,7), :)
+        EPd = tcon([Pd, EAAd], [[-1, 1], [1, -2, -3, -4]])
+        tcon([EPd, P], [[-1, 1, -3, -4], [1, -2]])
+    end
+
+    newC4, newE3, newC3
 end
 
 function up_left(ts, C1, E4, C4)

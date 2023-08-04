@@ -20,7 +20,9 @@ function compute_spectral(op, px, py, filename::String)
     ev_N, P = eigen(N)
     idx = sortperm(real.(ev_N))[end:-1:1]
     ev_N = ev_N[idx]
+    display(ev_N/maximum(ev_N))
     selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
+    display(ev_N[selected] /maximum(ev_N))
     P = P[:,idx]
     P = P[:,selected]
     N2 = P' * N * P

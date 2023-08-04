@@ -10,6 +10,12 @@ function ising1(h = 3)
     H
 end
 
+function get_identity(d = 2)
+    H = tcon([SI, SI], [[-1,-2], [-3, -4]]) 
+
+    H
+end
+
 function get_ots(ts, pepoN)
     pepoC, pepoE, pepoA = pepoN
 

@@ -13,13 +13,15 @@ function tout(a, b)
 end
 
 function ising(h = 3)
-    H = -tout(Sx, Sx) * 2 .- h* tout(Sz, SI) / 2 .- h*tout(SI, Sz) / 2
+    H = -tout(Sx, Sx) *4 .- h* tout(Sz, SI) *2 / 2 .- h*tout(SI, Sz) *2 / 2
 
     [H, H]
 end
 
-function heisenberg()
-    
+function heisenberg(Jz = 1)
+    H = Jz*tout(Sz, Sz) - tout(Sx, Sx) - tout(Sy, Sy)
+
+    [H, H]
 end
 
 function honeycomb(Jx = 1, Jy = 1)

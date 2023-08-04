@@ -3,21 +3,21 @@
 # max_iter = 100
 
 # [ctmrg]
-out_prefix = "default"
-model = "ising"
+out_prefix = "test"
+model = "hb"
 
-D = 2
-chi = 30
+D = 3
+chi = 96
 
 resume = true
 
 # true -> load exist basis, false -> calculate basis
 basis = false
 
-nrmB_cut = 1e-3
+nrmB_cut = 1e-4
 
 min_iter = 4
-max_iter = 30
+max_iter = 20
 rg_tol = 1e-6
 
 
