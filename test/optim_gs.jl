@@ -22,7 +22,6 @@ A = A ./ maximum(abs,A);
 
 A = npzread("honey_015_A.npz")["A"] 
 A = dropdims(A, dims = 1)
-A = permutedims(A, (3,4,5,2,1));
 
 ts0 = iPEPS.CTMTensors(A,A);
 conv_fun(_x) = iPEPS.get_gs_energy(_x, H)

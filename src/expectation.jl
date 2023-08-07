@@ -60,6 +60,7 @@ function compute_spec_env(ts, op, px, py)
 
     ts = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
 
+    # conv_fun(_x) = get_es_energy(_x, H)
     ts, _ = run_ctm(ts)
 
     _, envB = get_all_norm(ts)

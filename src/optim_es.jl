@@ -206,7 +206,8 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     ts = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
 
     fprint("\n ---- Start to find fixed points -----")
-    ts, _ = run_ctm(ts)
+    conv_fun(_x) = get_es_energy(_x, H)
+    ts, _ = run_ctm(ts, conv_fun = conv_fun)
     fprint("---- End to find fixed points ----- \n")
     # f(_x) = run_es(ts1, H, _x) 
     (y, ts1), back = Zygote.pullback(x -> run_es(ts, H, x), B)
@@ -221,7 +222,8 @@ function run_es(ts::CTMTensors, H, B)
 
     ts = setproperties(ts, B = B, Bd = conj(B))
 
-    ts, s = run_ctm(ts)
+    conv_fun(_x) = get_es_energy(_x, H)
+    ts, s = run_ctm(ts, conv_fun = conv_fun)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
     E = get_es_energy(ts, H)

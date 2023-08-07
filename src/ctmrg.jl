@@ -6,7 +6,9 @@ function run_ctm(ts::CTMTensors; conv_fun = nothing)
     diffs = [1.0]
     old_conv = 1.0
     conv = 1.0
-    
+    diffs1 = [1.0]
+    old_conv = 1.0
+    conv1 = 1.0
 
     for i = 1:max_iter
         st_time = time()
@@ -18,6 +20,12 @@ function run_ctm(ts::CTMTensors; conv_fun = nothing)
         old_conv = conv
         if conv_fun !== nothing
             conv = Zygote.@ignore conv_fun(ts) 
+            old_conv1 = conv1
+            conv1 = Zygote.@ignore s
+            if length(conv1) == length(old_conv1)
+                diff1 = Zygote.@ignore norm(conv1 .- old_conv1)
+                append!(diffs1, diff1)
+            end
         else
             conv = Zygote.@ignore s
         end
@@ -28,7 +36,7 @@ function run_ctm(ts::CTMTensors; conv_fun = nothing)
         end
 
         if conv_fun !== nothing
-            @printf("CTM step %3d, diff = %.4e, time = %.4f, obj = %.6f \n",i, diffs[end], ctm_time, conv)
+            @printf("CTM step %3d, diff = %.4e, s_diff = %.4e time = %.4f, obj = %.6f \n",i, diffs[end], diffs1[end], ctm_time, conv)
         else
             @printf("CTM step %3d, diff = %.4e, time = %.4f \n", i, diffs[end], ctm_time)
         end

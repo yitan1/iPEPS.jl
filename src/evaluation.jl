@@ -39,7 +39,7 @@ function get_es_energy(ts::CTMTensors, H)
     Ev = wrap_tr(H[2]*rov) |> real
 
     E = Eh + Ev
-    @show E[1], E[4]
+    # @show E[1], E[4]
 
     E[4]
 end

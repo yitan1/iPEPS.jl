@@ -14,7 +14,7 @@ resume = true
 # true -> load exist basis, false -> calculate basis
 basis = false
 
-nrmB_cut = 1e-4
+nrmB_cut = 1e-2
 
 min_iter = 4
 max_iter = 20
