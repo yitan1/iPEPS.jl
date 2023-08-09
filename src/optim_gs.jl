@@ -67,8 +67,13 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
         ts, _ = run_ctm(ts; conv_fun = conv_fun)
         # ts, _ = run_ctm(ts)
         fprint("---- End to find fixed points ----- \n")
-        # f(_x) = run_gs(ts, H, _x) 
+
+        max_iter = ts.Params["max_iter"]
+        ts.Params["max_iter"] = ts.Params["ad_max_iter"]
+
         y, back = Zygote.pullback(_x -> run_gs(ts, H, _x), x)
+
+        ts.Params["max_iter"] = max_iter
 
         fprint("Finish autodiff")
         cached_x = x

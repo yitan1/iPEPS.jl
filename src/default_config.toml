@@ -9,15 +9,16 @@ model = "hb"
 D = 3
 chi = 96
 
-resume = true
+resume = false
 
 # true -> load exist basis, false -> calculate basis
 basis = false
 
-nrmB_cut = 1e-2
+nrmB_cut = 1e-6
 
 min_iter = 4
 max_iter = 20
+ad_max_iter = 4
 rg_tol = 1e-6
 
 
