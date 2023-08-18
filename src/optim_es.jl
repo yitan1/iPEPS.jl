@@ -121,7 +121,11 @@ function optim_es(px, py, filename::String)
     end
     print_cfg(cfg)
 
-    optim_es(px, py, cfg)
+    if cfg["ad"]
+        return optim_es(px, py, cfg)
+    else
+        return optim_es_noad(px, py, cfg)
+    end
 end
 
 function optim_es(px, py, cfg::Dict)
@@ -167,6 +171,65 @@ function optim_es(px, py, cfg::Dict)
 
     effH, effN
 end
+
+function optim_es_noad(px, py, cfg)
+    basis_name = get_basis_name(cfg)
+    basis = load(basis_name, "basis")
+    ts = load(basis_name, "ts")
+    H = load(basis_name, "H")
+    fprint("load basis, ts, H in $basis_name")
+
+    basis = complex(basis) # ！！！！ convert Complex
+    basis_dim = size(basis, 2) 
+    effH = zeros(ComplexF64, basis_dim, basis_dim)
+    effN = zeros(ComplexF64, basis_dim, basis_dim)
+
+    ts.Params["px"] = convert(eltype(ts.A), px*pi)
+    ts.Params["py"] = convert(eltype(ts.A), py*pi)
+
+    for i = 1:basis_dim
+        fprint(" \n Starting simulation of basis vector $(i)/$(basis_dim)")
+        for j = 1:basis_dim
+            Hij, Nij = get_es_element(ts, H, basis[:,i], basis[:,j])
+            effH[j, i] = Hij
+            effN[j, i] = Nij
+        end
+        fprint("Finish basis vector of $(i)/$(basis_dim)")
+    end
+    
+    es_name = get_es_name(ts.Params, px, py)
+    jldsave(es_name; effH = effH, effN = effN)
+    fprint("Saved (effH, effN) to $(es_name)")
+
+    effH, effN
+end
+
+function get_es_element(ts, H, Bi, Bj)
+    Bi = reshape(Bi, size(ts.A))
+    Bj = reshape(Bj, size(ts.A))
+
+    Cs, Es = init_ctm(ts.A, ts.Ad)
+
+    ts = setproperties(ts, Cs = Cs, Es = Es, B = Bj, Bd = conj(Bi))
+
+    fprint("\n ---- Start to find fixed points -----")
+    conv_fun(_x) = get_es_energy(_x, H)
+    ts, _ = run_ctm(ts, conv_fun = conv_fun)
+    fprint("---- End to find fixed points ----- \n")
+
+    max_iter = ts.Params["max_iter"]
+    ts.Params["max_iter"] = ts.Params["ad_max_iter"]
+
+    ts, _ = run_ctm(ts, conv_fun = conv_fun)
+    y = get_es_energy(ts, H)
+
+    ts.Params["max_iter"] = max_iter
+    
+    Nb, _ = get_all_norm(ts)
+    fprint("Energy: $y \nNormB: $(Nb) ")
+    
+    y, Nb
+end 
 
 function optim_es1(ts::CTMTensors, H, px, py)
         ## normalize gs

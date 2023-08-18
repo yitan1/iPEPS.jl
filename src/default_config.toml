@@ -6,15 +6,17 @@
 out_prefix = "test"
 model = "hb"
 
-D = 3
-chi = 96
+D = 2
+chi = 64
 
 resume = false
 
 # true -> load exist basis, false -> calculate basis
 basis = false
 
-nrmB_cut = 1e-6
+ad = false
+
+nrmB_cut = 1e-3
 
 min_iter = 4
 max_iter = 20
