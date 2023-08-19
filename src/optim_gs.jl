@@ -100,14 +100,14 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
 end
 
 function run_gs(ts::CTMTensors, H, A)
-    ts = setproperties(ts, A = A, Ad = conj(A))
+    ts1 = setproperties(ts, A = A, Ad = conj(A))
 
     conv_fun(_x) = get_gs_energy(_x, H)[1]
-    ts, s = run_ctm(ts, conv_fun = conv_fun)
+    ts1, s = run_ctm(ts1, conv_fun = conv_fun)
     # ts, _ = run_ctm(ts)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
-    gs_E, _ = get_gs_energy(ts, H)
+    gs_E, _ = get_gs_energy(ts1, H)
 
     # gs_E = sum(E) |> real
     # @printf("Gs_Energy: %.10g \n", sum(E))

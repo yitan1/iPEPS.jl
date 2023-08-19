@@ -138,7 +138,7 @@ function optim_es(px, py, cfg::Dict)
     basis_dim = size(basis, 2) 
 
     es_name = get_es_name(ts.Params, px, py)
-    if ispath(es_name) && ts.Params["es_resume"] > 0
+    if  ts.Params["es_resume"] > 0 && ispath(es_name) 
         effH = load(es_name, "effH")
         effN = load(es_name, "effN")
         fprint("load existed calculation , effH, effN in $es_name")
@@ -161,7 +161,7 @@ function optim_es(px, py, cfg::Dict)
         end
         fprint("\nStarting simulation of basis vector $(i)/$(basis_dim)")
 
-        gH, gN = get_es_grad(ts, H, basis[:,i])
+        @time gH, gN = get_es_grad(ts, H, basis[:,i])
         effH[:, i] = transpose(basis) * gH
         effN[:, i] = transpose(basis) * gN
 
@@ -212,22 +212,22 @@ function get_es_element(ts, H, Bi, Bj)
 
     Cs, Es = init_ctm(ts.A, ts.Ad)
 
-    ts = setproperties(ts, Cs = Cs, Es = Es, B = Bj, Bd = conj(Bi))
+    ts1 = setproperties(ts, Cs = Cs, Es = Es, B = Bj, Bd = conj(Bi))
 
     fprint("\n ---- Start to find fixed points -----")
     conv_fun(_x) = get_es_energy(_x, H)
-    ts, _ = run_ctm(ts, conv_fun = conv_fun)
+    ts1, _ = run_ctm(ts1, conv_fun = conv_fun)
     fprint("---- End to find fixed points ----- \n")
 
-    max_iter = ts.Params["max_iter"]
-    ts.Params["max_iter"] = ts.Params["ad_max_iter"]
+    max_iter = ts1.Params["max_iter"]
+    ts1.Params["max_iter"] = ts1.Params["ad_max_iter"]
 
-    ts, _ = run_ctm(ts, conv_fun = conv_fun)
-    y = get_es_energy(ts, H)
+    ts1, _ = run_ctm(ts1, conv_fun = conv_fun)
+    y = get_es_energy(ts1, H)
 
-    ts.Params["max_iter"] = max_iter
+    ts1.Params["max_iter"] = max_iter
     
-    Nb, _ = get_all_norm(ts)
+    Nb, _ = get_all_norm(ts1)
     fprint("Energy: $y \nNormB: $(Nb) ")
     
     y, Nb
@@ -235,14 +235,14 @@ end
 
 function optim_es1(ts::CTMTensors, H, px, py)
         ## normalize gs
-        ts = normalize_gs(ts)
+        ts1 = normalize_gs(ts)
 
-        H = substract_gs_energy(ts, H)
+        H = substract_gs_energy(ts1, H)
     
         #basis
-        basis_name = get_basis_name(ts.Params)
+        basis_name = get_basis_name(ts1.Params)
         # post = ".jld2"
-        if ispath(basis_name) && ts.Params["basis"]
+        if ispath(basis_name) && ts1.Params["basis"]
             basis = load(basis_name, "basis")
             fprint("The basis has existed, skip calculation")
         else
@@ -259,7 +259,7 @@ function optim_es1(ts::CTMTensors, H, px, py)
         ts.Params["px"] = convert(eltype(ts.A), px*pi)
         ts.Params["py"] = convert(eltype(ts.A), py*pi)
     
-        f = x -> get_es_grad(ts, H, x)
+        f = x -> get_es_grad(ts1, H, x)
         
         vals , vec = geneigsolve(f, 32, 3, :LM, ishermitian = true)
 end
@@ -268,24 +268,24 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     B = reshape(Bi, size(ts.A))
     Cs, Es = init_ctm(ts.A, ts.Ad)
 
-    ts = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
+    ts1 = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
 
     fprint("\n ---- Start to find fixed points -----")
     conv_fun(_x) = get_es_energy(_x, H)
-    ts, _ = run_ctm(ts, conv_fun = conv_fun)
+    ts1, _ = run_ctm(ts1, conv_fun = conv_fun)
     fprint("---- End to find fixed points ----- \n")
     # f(_x) = run_es(ts1, H, _x) 
 
     st_time = time()
-    max_iter = ts.Params["max_iter"]
-    ts.Params["max_iter"] = ts.Params["ad_max_iter"]
+    max_iter = ts1.Params["max_iter"]
+    ts1.Params["max_iter"] = ts1.Params["ad_max_iter"]
 
-    (y, ts), back = Zygote.pullback(x -> run_es(ts, H, x), B)
+    (y, ts1), back = Zygote.pullback(x -> run_es(ts1, H, x), B)
 
-    ts.Params["max_iter"] = max_iter
+    ts1.Params["max_iter"] = max_iter
     
     gradH = back((1, nothing))[1]
-    Nb, gradN = get_all_norm(ts)
+    Nb, gradN = get_all_norm(ts1)
     ed_time = time()
     fprint("Energy: $y \nNormB: $(Nb) ; ad_time = $(ed_time - st_time)")
     
@@ -294,31 +294,31 @@ end
 
 function run_es(ts::CTMTensors, H, B)
 
-    ts = setproperties(ts, B = B, Bd = conj(B))
+    ts1 = setproperties(ts, B = B, Bd = conj(B))
 
     conv_fun(_x) = get_es_energy(_x, H)
-    ts, s = run_ctm(ts, conv_fun = conv_fun)
+    ts1, s = run_ctm(ts1, conv_fun = conv_fun)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)
-    E = get_es_energy(ts, H)
+    E = get_es_energy(ts1, H)
 
     # Nb, gradN = get_all_norm(ts)
     # @printf("Gs_Energy: %.10g \n", sum(E))
     # fprint("Energy: $E \nNormB: $(Nb) ")
 
-    E, ts
+    E, ts1
 end
 
 function normalize_gs(ts::CTMTensors)
     nrm = get_gs_norm(ts)
     fprint("Gs Norm: $nrm")
     A1 = ts.A ./ sqrt(abs(nrm))
-    ts = setproperties(ts, A = A1, Ad = conj(A1))
+    ts1 = setproperties(ts, A = A1, Ad = conj(A1))
 
-    nrm = get_gs_norm(ts)
+    nrm = get_gs_norm(ts1)
     fprint("Gs Norm: $nrm")
 
-    ts
+    ts1
 end
 
 function substract_gs_energy(ts::CTMTensors, H)
