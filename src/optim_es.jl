@@ -82,13 +82,10 @@ function prepare_basis(H, filename::String)
     ts = CTMTensors(A, cfg)
 
     cfg_back = deepcopy(cfg)
-    ts.Params["max_iter"] = 30
-    ts.Params["rg_tol"] = 1e-12
+    ts.Params["max_iter"] = 2*cfg["max_iter"]
+    ts.Params["rg_tol"] = cfg["rg_tol"]^2
     conv_fun(_x) = get_gs_energy(_x, H)[1]
     ts, _ = run_ctm(ts, conv_fun = conv_fun)
-
-    ts.Params["max_iter"] = 30
-    ts.Params["rg_tol"] = 1e-12
 
     ts = setproperties(ts, Params = cfg_back)
 
@@ -133,41 +130,46 @@ function optim_es(px, py, cfg::Dict)
     basis_name = get_basis_name(cfg)
     basis = load(basis_name, "basis")
     ts = load(basis_name, "ts")
+    ts = setproperties(ts, Params = cfg)
     H = load(basis_name, "H")
     fprint("load basis, ts, H in $basis_name")
 
     basis = complex(basis) # ！！！！ convert Complex
     basis_dim = size(basis, 2) 
-    effH = zeros(ComplexF64, basis_dim, basis_dim)
-    effN = zeros(ComplexF64, basis_dim, basis_dim)
+
+    es_name = get_es_name(ts.Params, px, py)
+    if ispath(es_name) && ts.Params["es_resume"] > 0
+        effH = load(es_name, "effH")
+        effN = load(es_name, "effN")
+        fprint("load existed calculation , effH, effN in $es_name")
+    else
+        effH = zeros(ComplexF64, basis_dim, basis_dim)
+        effN = zeros(ComplexF64, basis_dim, basis_dim)
+    end
 
     ts.Params["px"] = convert(eltype(ts.A), px*pi)
     ts.Params["py"] = convert(eltype(ts.A), py*pi)
 
     for i = 1:basis_dim
-        fprint(" \n Starting simulation of basis vector $(i)/$(basis_dim)")
-        # B = load("simulation/ising_default_D2_X30/gs.jld2", "A") .|> ComplexF64
-        # B = reshape(B, 2, 2, 2,2, 2)
-        # B = permutedims(B, (5, 4, 1,2 ,3))
-        # B = permutedims(B, (5, 4, 3, 2 ,1))
-        # display(B[:])
-        # gH, gN = get_es_grad(ts, H, B)
+        if i < ts.Params["es_resume"]
+            fprint(" Simulation of basis vector $(i)/$(basis_dim) existed, skip to next")
+            continue
+        end
+        if ts.Params["es_num"] > 0 && i >= (ts.Params["es_resume"] + ts.Params["es_num"])
+            fprint("\nUp to maximum simulation of basis vector $(i)/$(basis_dim) existed, end to calculation")
+            break
+        end
+        fprint("\nStarting simulation of basis vector $(i)/$(basis_dim)")
 
         gH, gN = get_es_grad(ts, H, basis[:,i])
-        # gN = reshape(gN, 2, 2, 2,2, 2)
-        # gN = permutedims(gN, (5, 4, 1,2 ,3))
-        # gN = permutedims(gN, (5, 4, 3,2 ,1))
-        # display(gN[:])
-        # @show i 
-        # error()
         effH[:, i] = transpose(basis) * gH
         effN[:, i] = transpose(basis) * gN
-        fprint("Finish basis vector of $(i)/$(basis_dim)")
+
+        fprint("\nFinish basis vector of $(i)/$(basis_dim)")
+
+        jldsave(es_name; effH = effH, effN = effN)
+        fprint("Saved (effH, effN) to $(es_name)")
     end
-    
-    es_name = get_es_name(ts.Params, px, py)
-    jldsave(es_name; effH = effH, effN = effN)
-    fprint("Saved (effH, effN) to $(es_name)")
 
     effH, effN
 end
@@ -274,6 +276,7 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     fprint("---- End to find fixed points ----- \n")
     # f(_x) = run_es(ts1, H, _x) 
 
+    st_time = time()
     max_iter = ts.Params["max_iter"]
     ts.Params["max_iter"] = ts.Params["ad_max_iter"]
 
@@ -283,7 +286,8 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     
     gradH = back((1, nothing))[1]
     Nb, gradN = get_all_norm(ts)
-    fprint("Energy: $y \nNormB: $(Nb) ")
+    ed_time = time()
+    fprint("Energy: $y \nNormB: $(Nb) ; ad_time = $(ed_time - st_time)")
     
     gradH[:], gradN[:] ## conj???????
 end

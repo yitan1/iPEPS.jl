@@ -11,14 +11,17 @@ H = iPEPS.honeycomb(1, 1);
 res = optim_gs(H, A, "")
 
 prepare_basis(H, "")
-optim_es(0., 0., "")
+optim_es(0., 0., "");
 
 using CairoMakie
 s1 = iPEPS.Sz
 s2 = iPEPS.SI
-op = iPEPS.tout(s1, s2)
-es, swk0 = compute_spectral(op, .0, .0, "")
-scatter(es,swk0)
+op1 = iPEPS.tout(s1, s2)
+op2 = iPEPS.tout(s2, s1)
+es, wka = compute_spectral(op1, .0, .0, "")
+es, wkb = compute_spectral(op2, .0, .0, "")
+swk0 = wka.* conj(wka) + wkb.*conj(wkb) + wka.*conj(wkb) + wkb .*conj(wka) .|> real ; # exp 
+# scatter(es, real.(swk0))
 
 x, y = plot_spectral(es, swk0, factor = 0.1)
 lines(x, y)

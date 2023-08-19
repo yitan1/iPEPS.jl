@@ -11,10 +11,13 @@ chi = 64
 
 resume = false
 
+es_resume = 0 # start from which basis(>0) 
+es_num = 0    # calculate how many basis(>0)
+
 # true -> load exist basis, false -> calculate basis
 basis = false
 
-ad = false
+ad = true
 
 nrmB_cut = 1e-3
 

@@ -43,9 +43,9 @@ function compute_spectral(op, px, py, filename::String)
     exci_n = basis*P*vecs
 
     wk0 = exci_n' * envB[:]
-    swk0 = abs2.(wk0)
+    # swk0 = abs2.(wk0)
 
-    es, swk0
+    es, wk0
 end
 
 function compute_spec_env(ts, op, px, py)
