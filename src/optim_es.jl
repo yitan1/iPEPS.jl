@@ -169,6 +169,17 @@ function optim_es(px, py, cfg::Dict)
 
         jldsave(es_name; effH = effH, effN = effN)
         fprint("Saved (effH, effN) to $(es_name)")
+
+        if ts.Params["gc"]
+            GC.gc()
+        end
+    end
+
+    jldsave(es_name; effH = effH, effN = effN)
+    fprint("Saved (effH, effN) to $(es_name)")
+
+    if ts.Params["gc"]
+        GC.gc()
     end
 
     effH, effN
