@@ -13,7 +13,7 @@ Base.print(io::IO, x::Float64) = @printf(io, "%.5g", x)
 Base.print(io::IO, x::ComplexF64) = @printf(io, "%0.6f %0.6f im", real(x), imag(x))
 
 function print_cfg(cfg::Dict)
-    keys = ["out_prefix", "model", "D", "chi", "resume", "es_resume", "es_num","basis", "ad", "nrmB_cut",  "min_iter", "max_iter", "ad_max_iter", "rg_tol"]
+    keys = ["out_prefix", "model", "D", "chi", "resume", "es_resume", "es_num","basis", "ad", "gc", "save", "nrmB_cut",  "min_iter", "max_iter", "ad_max_iter", "rg_tol"]
     vals = get.(Ref(cfg), keys, missing)
 
     for i in eachindex(keys)

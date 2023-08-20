@@ -167,16 +167,20 @@ function optim_es(px, py, cfg::Dict)
 
         fprint("\nFinish basis vector of $(i)/$(basis_dim)")
 
-        jldsave(es_name; effH = effH, effN = effN)
-        fprint("Saved (effH, effN) to $(es_name)")
+        if ts.Params["save"]
+            jldsave(es_name; effH = effH, effN = effN)
+            fprint("Saved (effH, effN) to $(es_name)")
+        end
 
         if ts.Params["gc"]
             GC.gc()
         end
     end
 
-    jldsave(es_name; effH = effH, effN = effN)
-    fprint("Saved (effH, effN) to $(es_name)")
+    if ts.Params["save"]
+        jldsave(es_name; effH = effH, effN = effN)
+        fprint("Saved (effH, effN) to $(es_name)")
+    end
 
     if ts.Params["gc"]
         GC.gc()
