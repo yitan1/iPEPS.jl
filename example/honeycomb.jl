@@ -44,3 +44,6 @@ jldsave("gs.jld2", A = A)
 H1 = load("simulation/hb_test_D2_X64/es_0_0.jld2", "effH");
 H2 = load("simulation/hb_test_D2_X64/ades_0_0.jld2", "effH");
 H2[1,:]/2 - H1[1,:]
+
+
+basis_dep(10, .0,.0, "")

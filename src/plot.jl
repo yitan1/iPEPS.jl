@@ -26,7 +26,7 @@ function basis_dep(n, px, py, filename::String)
         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
         fprint("load daufult config file")
     end
-    print_cfg(cfg)
+    # print_cfg(cfg)
 
     es_name = get_es_name(cfg, px, py)
     effH = load(es_name, "effH")
@@ -37,9 +37,9 @@ function basis_dep(n, px, py, filename::String)
     ev_N, P = eigen(N)
     idx = sortperm(real.(ev_N))[end:-1:1]
     ev_N = ev_N[idx]
-    display(ev_N/maximum(ev_N))
-    selected = (ev_N/maximum(ev_N) ) .> (evN[n]/maximum(ev_N))
-    display(ev_N[selected] /maximum(ev_N))
+    # display(ev_N/maximum(ev_N))
+    selected = (ev_N/maximum(ev_N) ) .> (ev_N[n+1]/maximum(ev_N))
+    # display(ev_N[selected] /maximum(ev_N))
     P = P[:,idx]
     P = P[:,selected]
     N2 = P' * N * P
