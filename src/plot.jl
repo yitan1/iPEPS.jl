@@ -38,7 +38,7 @@ function basis_dep(n, px, py, filename::String)
     idx = sortperm(real.(ev_N))[end:-1:1]
     ev_N = ev_N[idx]
     # display(ev_N/maximum(ev_N))
-    selected = (ev_N/maximum(ev_N) ) .> (ev_N[n+1]/maximum(ev_N))
+    selected = ev_N .> ev_N[n+1]
     # display(ev_N[selected] /maximum(ev_N))
     P = P[:,idx]
     P = P[:,selected]

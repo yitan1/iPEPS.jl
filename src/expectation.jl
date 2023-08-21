@@ -21,7 +21,11 @@ function compute_spectral(op, px, py, filename::String)
     idx = sortperm(real.(ev_N))[end:-1:1]
     ev_N = ev_N[idx]
     display(ev_N/maximum(ev_N))
-    selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
+    if nrmB_cut isa Int
+        selected = ev_N .> ev_N[nrmB_cut+1]
+    else
+        selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
+    end
     display(ev_N[selected] /maximum(ev_N))
     P = P[:,idx]
     P = P[:,selected]
