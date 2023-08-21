@@ -351,16 +351,24 @@ function substract_gs_energy(ts::CTMTensors, H)
 end
 
 function get_tangent_basis(ts::CTMTensors)
-    # A = ts.A
-    Ad = ts.Ad
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
+    if ts.Params["unit_basis"]
+        M = length(ts.A)
+        basis = zeros(ComplexF64, M, M)
+        for i = 1:M
+            basis[i,i] = 1.0
+        end
+    else
+        # A = ts.A
+        Ad = ts.Ad
+        C1, C2, C3, C4 = ts.Cs
+        E1, E2, E3, E4 = ts.Es
 
-    n_dm = get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
-    ndm_Ad = tcon([n_dm, Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
+        n_dm = get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
+        ndm_Ad = tcon([n_dm, Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
 
-    ndm_Ad = reshape(ndm_Ad, 1, :)
-    basis = nullspace(ndm_Ad)   #(dD^4, dD^4-1) 
+        ndm_Ad = reshape(ndm_Ad, 1, :)
+        basis = nullspace(ndm_Ad)   #(dD^4, dD^4-1) 
+    end
 
     # bs = load("one_D2_X30_base.jld2", "bs")
     # display(bs[:,1])
@@ -373,3 +381,5 @@ function get_tangent_basis(ts::CTMTensors)
 
     basis
 end
+
+
