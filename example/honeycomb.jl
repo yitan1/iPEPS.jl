@@ -14,14 +14,20 @@ prepare_basis(H, "")
 optim_es(0., 0., "");
 
 using CairoMakie
+px, py = .0, .0
 s1 = iPEPS.Sz
 s2 = iPEPS.SI
 op1 = iPEPS.tout(s1, s2)
 op2 = iPEPS.tout(s2, s1)
-es, wka = compute_spectral(op1, .0, .0, "")
-es, wkb = compute_spectral(op2, .0, .0, "")
+envB1, basis = compute_spec_env(op1, px, py, "")
+envB2, _ = compute_spec_env(op2, px, py, "")
+
+es, vecs, P = compute_es(px, py, "")
+exci_n = basis*P*vecs
+wka = exci_n' * envB1[:]
+wkb = exci_n' * envB2[:]
 swk0 = wka.* conj(wka) + wkb.*conj(wkb) + wka.*conj(wkb) + wkb .*conj(wka) .|> real ; # exp 
-# scatter(es, real.(swk0))
+scatter(es, real.(swk0))
 
 x, y = plot_spectral(es, swk0, factor = 0.1)
 lines(x, y)

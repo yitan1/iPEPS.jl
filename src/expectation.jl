@@ -1,4 +1,4 @@
-function compute_spectral(op, px, py, filename::String)
+function compute_es(px, py, filename::String)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
         fprint("load custom config file at $(filename)")
@@ -38,21 +38,22 @@ function compute_spectral(op, px, py, filename::String)
     es = es[ixs]
     vecs = vecs[:,ixs]
 
+    es, vecs, P
+end
+
+function compute_spec_env(op, px, py, filename::String)
+    if ispath(filename)
+        cfg = TOML.parsefile(filename)
+        fprint("load custom config file at $(filename)")
+    else
+        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+        fprint("load daufult config file")
+    end
+    print_cfg(cfg)
+
     basis_name = get_basis_name(cfg)
     basis = load(basis_name, "basis")
     ts = load(basis_name, "ts")
-
-    envB = compute_spec_env(ts, op, px, py)
-
-    exci_n = basis*P*vecs
-
-    wk0 = exci_n' * envB[:]
-    # swk0 = abs2.(wk0)
-
-    es, wk0
-end
-
-function compute_spec_env(ts, op, px, py)
 
     ts.Params["px"] = convert(eltype(ts.A), px*pi)
     ts.Params["py"] = convert(eltype(ts.A), py*pi)
@@ -69,7 +70,7 @@ function compute_spec_env(ts, op, px, py)
 
     _, envB = get_all_norm(ts)
 
-    envB
+    envB, basis
 end
 
 function lor_broad(x, es, swk, factor)

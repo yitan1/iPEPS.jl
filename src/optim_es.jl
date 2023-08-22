@@ -353,10 +353,7 @@ end
 function get_tangent_basis(ts::CTMTensors)
     if ts.Params["unit_basis"]
         M = length(ts.A)
-        basis = zeros(ComplexF64, M, M)
-        for i = 1:M
-            basis[i,i] = 1.0
-        end
+        basis = Matrix{ComplexF64}(I, M, M)
     else
         # A = ts.A
         Ad = ts.Ad
