@@ -44,7 +44,11 @@ function evaluate_es(px, py, cfg::Dict)
     ev_N, P = eigen(N)
     idx = sortperm(real.(ev_N))[end:-1:1]
     ev_N = ev_N[idx]
-    selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
+    if nrmB_cut isa Int
+        selected = ev_N .> ev_N[nrmB_cut+1]
+    else
+        selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
+    end
     P = P[:,idx]
     P = P[:,selected]
     N2 = P' * N * P
