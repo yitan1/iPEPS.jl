@@ -55,7 +55,7 @@ function compute_spec_env(op, px, py, filename::String)
     basis = load(basis_name, "basis")
     ts = load(basis_name, "ts")
 
-    ts.Params = cfg
+    ts.Params = setproperties(ts, Params = cfg)
     ts.Params["px"] = convert(eltype(ts.A), px*pi)
     ts.Params["py"] = convert(eltype(ts.A), py*pi)
 
