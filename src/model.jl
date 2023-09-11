@@ -4,6 +4,10 @@ const Sz = Float64[1 0; 0 -1]/2
 const SI = Float64[1 0; 0 1]
     # sp = [0 1; 0 0]
     # sm = [0 0; 1 0]
+const sigmax = Float64[0 1; 1 0]
+const sigmay = ComplexF64[0 -1im; 1im 0]
+const sigmaz = Float64[1 0; 0 -1]
+const sI = Float64[1 0; 0 1]
 
 function tout(a, b)
     c = tcon([a, b], [[-1,-3], [-2, -4]])
@@ -25,13 +29,13 @@ function heisenberg(Jz = 1)
 end
 
 function honeycomb(Jx = 1, Jy = 1)
-    hh = Jx*tout(tout(SI, Sx), tout(Sx, SI)) .+ ( tout(tout(Sz, Sz), tout(SI, SI) ) .+ tout(tout(SI, SI), tout(Sz, Sz)) ) / 2 /2  .|> real
-    hv = Jy*tout(tout(SI, Sy), tout(Sy, SI)) .+ ( tout(tout(Sz, Sz), tout(SI, SI) )  .+ tout(tout(SI, SI), tout(Sz, Sz)) ) / 2  /2 .|> real
+    hh = Jx*tout(tout(SI, sigmax), tout(sigmax, SI)) .+ ( tout(tout(sigmaz, sigmaz), tout(SI, SI) ) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz)) ) / 2 /2  .|> real
+    hv = Jy*tout(tout(SI, sigmay), tout(sigmay, SI)) .+ ( tout(tout(sigmaz, sigmaz), tout(SI, SI) )  .+ tout(tout(SI, SI), tout(sigmaz, sigmaz)) ) / 2  /2 .|> real
 
-    [-hh, -hv]
+    [-hh/2, -hv/2]
 end
 
-function init_hb_gs(D = 4; p1 = 0.24)
+function init_hb_gs(D = 4; p1 = 0.24, p2 = 0.25)
     Q_op = zeros(ComplexF64,2,2,2,2,2)
     Q_op[1,1,1,:,:] = SI
     Q_op[1,2,2,:,:] = Sx*2
@@ -49,12 +53,12 @@ function init_hb_gs(D = 4; p1 = 0.24)
 
     if D == 4
         phi = p1*pi
-        a = tan(phi)
+        theta = exp(-im*pi*p2)
         R_op = zeros(ComplexF64,2,2,2,2,2)
-        R_op[1,1,1,:,:] = SI
-        R_op[1,2,2,:,:] = 2*Sx*a
-        R_op[2,1,2,:,:] = 2*Sy*a
-        R_op[2,2,1,:,:] = 2*Sz*a
+        R_op[1,1,1,:,:] = SI.*cos(phi) 
+        R_op[1,2,2,:,:] = 2*Sx*sin(phi) * theta
+        R_op[2,1,2,:,:] = 2*Sy*sin(phi) * theta
+        R_op[2,2,1,:,:] = 2*Sz*sin(phi) * theta
 
         RR = tcon([R_op, R_op], [[-1,-2,1,-5,-7,], [-3,-4,1,-6,-8,]])
         dRR = size(RR)

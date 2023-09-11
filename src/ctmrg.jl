@@ -36,7 +36,7 @@ function run_ctm(ts::CTMTensors; conv_fun = nothing)
         end
 
         if conv_fun !== nothing
-            @printf("CTM step %3d, diff = %.4e, s_diff = %.4e time = %.4f, obj = %.6f \n",i, diffs[end], diffs1[end], ctm_time, conv)
+            @printf("CTM step %3d, diff = %.4e, s_diff = %.4e time = %.4f, obj = %.6f \n",i, diffs[end], diffs1[end], ctm_time, real(conv))
         else
             @printf("CTM step %3d, diff = %.4e, time = %.4f \n", i, diffs[end], ctm_time)
         end
