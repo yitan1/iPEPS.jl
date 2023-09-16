@@ -29,8 +29,8 @@ function heisenberg(Jz = 1)
 end
 
 function honeycomb(Jx = 1, Jy = 1)
-    hh = Jx*tout(tout(SI, sigmax), tout(sigmax, SI)) .+ ( tout(tout(sigmaz, sigmaz), tout(SI, SI) ) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz)) ) / 2 /2  .|> real
-    hv = Jy*tout(tout(SI, sigmay), tout(sigmay, SI)) .+ ( tout(tout(sigmaz, sigmaz), tout(SI, SI) )  .+ tout(tout(SI, SI), tout(sigmaz, sigmaz)) ) / 2  /2 .|> real
+    hv = Jx*tout(tout(SI, sigmax), tout(sigmax, SI)) .+ ( tout(tout(sigmaz, sigmaz), tout(SI, SI) ) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz)) ) / 2 /2  .|> real
+    hh = Jy*tout(tout(SI, sigmay), tout(sigmay, SI)) .+ ( tout(tout(sigmaz, sigmaz), tout(SI, SI) )  .+ tout(tout(SI, SI), tout(sigmaz, sigmaz)) ) / 2  /2 .|> real
 
     [-hh/2, -hv/2]
 end
@@ -56,11 +56,11 @@ function init_hb_gs(D = 4; p1 = 0.24, p2 = 0.25)
         theta = exp(-im*pi*p2)
         R_op = zeros(ComplexF64,2,2,2,2,2)
         R_op[1,1,1,:,:] = SI.*cos(phi) 
-        R_op[1,2,2,:,:] = 2*Sx*sin(phi) * theta
-        R_op[2,1,2,:,:] = 2*Sy*sin(phi) * theta
-        R_op[2,2,1,:,:] = 2*Sz*sin(phi) * theta
+        R_op[2,1,1,:,:] = 2*Sx*sin(phi) * theta
+        R_op[1,2,1,:,:] = 2*Sy*sin(phi) * theta
+        R_op[1,1,2,:,:] = 2*Sz*sin(phi) * theta
 
-        RR = tcon([R_op, R_op], [[-1,-2,1,-5,-7,], [-3,-4,1,-6,-8,]])
+        RR = tcon([R_op, R_op], [[-1,-2,1,-5,-7], [-3,-4,1,-6,-8]])
         dRR = size(RR)
         RR = reshape(RR, dRR[1],dRR[2], dRR[3],dRR[4], dRR[5]*dRR[6], dRR[7]*dRR[8])
 

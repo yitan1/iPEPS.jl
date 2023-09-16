@@ -82,7 +82,8 @@ function prepare_basis(H, filename::String)
         return nothing
     end
 
-    A = renormalize(A)
+    # A = get_symmetry(A)
+    A = renormalize(A) 
     ts = CTMTensors(A, cfg)
 
     cfg_back = deepcopy(cfg)
@@ -342,7 +343,7 @@ end
 
 function substract_gs_energy(ts::CTMTensors, H)
     gs_E, _ = get_gs_energy(ts, H)
-    gs_E = gs_E / 2
+    gs_E = gs_E / 2 |> real
 
     newH = similar(H)
     newH[1] = H[1] .- gs_E* Matrix{eltype(H[1])}(I, size(H[1]))

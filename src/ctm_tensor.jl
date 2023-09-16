@@ -109,6 +109,7 @@ function init_ctm1(A, Ad)
     C4 = reshape(C4, D*D, D*D)
 
     Cs = (C1, C2, C3, C4) ./ norm.((C1, C2, C3, C4))
+    Cs = Vector{typeof(C1)}([Cs[i] for i in 1:4])
 
     E1 = tcon([A,Ad], [[1,-1,-5,-3,2],[1,-2,-6,-4,2]])
     E1 = reshape(E1, D*D, D*D, D, D)
@@ -123,6 +124,7 @@ function init_ctm1(A, Ad)
     E4 = reshape(E4, D*D, D*D, D, D)
 
     Es = (E1, E2, E3, E4) ./ norm.((E1, E2, E3, E4))
+    Es = Vector{typeof(E1)}([Es[i] for i in 1:4])
 
     Cs, Es
 end

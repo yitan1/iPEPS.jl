@@ -51,6 +51,7 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
     end
 
     function fg!(F,G,x)
+        # x = get_symmetry(x)
         x = renormalize(x)
 
         if cached_g !== nothing && cached_x !== nothing && norm(x - cached_x) < 1e-14

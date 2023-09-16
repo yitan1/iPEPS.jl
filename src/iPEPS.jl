@@ -43,7 +43,8 @@ include("optim_gs.jl")
 include("optim_es.jl")
 include("expectation.jl")
 include("plot.jl")
-# include("test.jl")
+
+include("_test.jl")
 
 include("pepo.jl")
 
