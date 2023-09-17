@@ -12,20 +12,21 @@ module iPEPS
 
 # using MKL # shoule be the first pkg
 # using Accessors
-using ConstructionBase 
+using ConstructionBase
 using TOML
 using JLD2
 using Printf
 using LinearAlgebra
-using OMEinsum 
+using OMEinsum
 using Zygote, ChainRulesCore
 using Optim#, LineSearches
 
 # __precompile__(false)
 
-export optim_gs, prepare_basis, optim_es, init_hb_gs, make_es_path, plot_band, plot_spectral, compute_es, compute_spec_env, basis_dep
-
 export ising, heisenberg, honeycomb
+export init_hb_gs
+export optim_gs, prepare_basis, optim_es, make_es_path, plot_band, plot_spectral, basis_dep
+export compute_gs_energy, compute_es, compute_spec_env
 
 include("printing.jl")
 include("io.jl")
