@@ -1,4 +1,4 @@
-function compute_es(px, py, filename::String)
+function compute_es(px, py, filename::String; display = false)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
         fprint("load custom config file at $(filename)")
@@ -20,13 +20,17 @@ function compute_es(px, py, filename::String)
     ev_N, P = eigen(N)
     idx = sortperm(real.(ev_N))[end:-1:1]
     ev_N = ev_N[idx]
-    display(ev_N/maximum(ev_N))
     if nrmB_cut isa Int
         selected = ev_N .> ev_N[nrmB_cut+1]
     else
         selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
     end
-    display(ev_N[selected] /maximum(ev_N))
+
+    if display == true
+        display(ev_N/maximum(ev_N))
+        display(ev_N[selected] /maximum(ev_N))
+    end
+
     P = P[:,idx]
     P = P[:,selected]
     N2 = P' * N * P

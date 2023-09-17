@@ -3,11 +3,11 @@
 # max_iter = 100
 
 # [ctmrg]
-out_prefix = "gq015"
+out_prefix = "g11"
 model = "hb"
 
-D = 4
-chi = 64
+D = 2
+chi = 128
 
 resume = false
 
@@ -22,10 +22,10 @@ ad = true
 gc = true
 save = true
 
-nrmB_cut = 10
+nrmB_cut = 50
 
 min_iter = 4
-max_iter = 20
+max_iter = 1000
 ad_max_iter = 4
 rg_tol = 1e-6
 

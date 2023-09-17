@@ -35,7 +35,7 @@ function honeycomb(Jx = 1, Jy = 1)
     [-hh/2, -hv/2]
 end
 
-function init_hb_gs(D = 4; p1 = 0.24, p2 = 0.25)
+function init_hb_gs(D = 4; p1 = 0.24, p2 = 0.0)
     Q_op = zeros(ComplexF64,2,2,2,2,2)
     Q_op[1,1,1,:,:] = SI
     Q_op[1,2,2,:,:] = Sx*2

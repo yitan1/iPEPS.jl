@@ -2,9 +2,9 @@ using iPEPS
 using iPEPS: tcon, NestedTensor
 using Test
 
-# @testset "iPEPS.jl" begin
-#     # Write your tests here.
-# end
+@testset "iPEPS.jl" begin
+    # Write your tests here.
+end
 
 using BenchmarkTools
 using LinearAlgebra
