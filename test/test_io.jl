@@ -11,4 +11,6 @@ using iPEPS: get_dir, get_gs_name, get_basis_name, get_es_name
     @test "$(dir)/basis.jld2" == get_basis_name(params)
     @test "$(dir)/es_1_1.jld2" == get_es_name(params, 1.0, 1.0)
     @test "$(dir)/es_1.2_0.1.jld2" == get_es_name(params, 1.2, 0.1)
+
+    rm(dir, recursive=true)
 end

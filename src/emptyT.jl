@@ -10,7 +10,7 @@ Base.:(+)(::EmptyT, B::AbstractArray) = B
 Base.:(+)(A::AbstractArray, ::EmptyT) = A
 Base.:(-)(A::EmptyT) = A
 
-Base.reshape(A::EmptyT, ::Vararg{Union{Colon, Int64}}) = A
+Base.reshape(A::EmptyT, ::Vararg{Union{Colon,Int64}}) = A
 Base.reshape(A::EmptyT, ::Tuple) = A
 Base.size(::EmptyT) = (0,)
 Base.size(A::EmptyT, ::Int64) = 0

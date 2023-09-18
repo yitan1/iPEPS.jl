@@ -45,9 +45,8 @@ function init_hb_gs(D=4; p1=0.24, p2=0.0)
     s111 = 1 / sqrt(2 + 2 * uz) * [1 + uz, ux + im * uy]
 
     T = tcon([Q_op, s111], [[-1, -2, -3, -4, 1], [1]])
-    # r = tcon([Q_op, s111], [[-3,-2,-1,-4,1], [1]])
     # A = tcon([T, T], [[1,-1,-2,-5], [1,-3,-4,-6]]) # XX
-    # A = tcon([T, T], [[-1,1,-4,-5], [-3,1,-2,-6]]) # YY
+    # A = tcon([T, T], [[-1, 1, -4, -5], [-3, 1, -2, -6]]) # YY
     A = tcon([T, T], [[-1, -2, 1, -5], [-3, -4, 1, -6]]) # ZZ
     A = reshape(A, 2, 2, 2, 2, 4)
 
@@ -99,5 +98,34 @@ function check_Q_op()
     # display(Qx)
     # display(Qx2)
 
-    L
+    L, Q_op
+end
+
+function check_R_op(phi)
+    R_op = zeros(ComplexF64, 2, 2, 2, 2, 2)
+    R_op[1, 1, 1, :, :] = SI .* cos(phi)
+    R_op[2, 1, 1, :, :] = sigmax * sin(phi)
+    R_op[1, 2, 1, :, :] = sigmay * sin(phi) 
+    R_op[1, 1, 2, :, :] = sigmaz * sin(phi) 
+
+    # v = [0.0 1; im 0]
+    v = [0.0 im; 1 0]
+
+    # Q_op = abs.(Q_op)
+    # v = abs.(v)
+
+    @ein Rx[m1, m2, m3, m4, m5] := R_op[m1, m2, m3, m4, p1] * sigmax[p1, m5]
+    @ein Ry[m1, m2, m3, m4, m5] := R_op[m1, m2, m3, m4, p1] * sigmay[p1, m5]
+    @ein Rz[m1, m2, m3, m4, m5] := R_op[m1, m2, m3, m4, p1] * sigmaz[p1, m5]
+
+    @ein Rx2[m1, m2, m3, m4, m5] := v[p1, m2] * R_op[m1, p1, p2, m4, m5] * (v')[m3, p2]
+    @ein Ry2[m1, m2, m3, m4, m5] := v[m1, p1] * R_op[p1, m2, p2, m4, m5] * (v')[p2, m3]
+    @ein Rz2[m1, m2, m3, m4, m5] := v[p1, m1] * R_op[p1, p2, m3, m4, m5] * (v')[m2, p2]
+
+    display(v' * sigmaz * v)
+    L = [Rx == Rx2, Ry == Ry2, Rz == Rz2]
+    # display(Rx)
+    # display(Rx2)
+
+    L, R_op
 end

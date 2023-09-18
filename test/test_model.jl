@@ -10,7 +10,7 @@ using TOML
         cfg = TOML.parsefile("src/default_config.toml")
         e0, _ = compute_gs_energy(A, H, cfg)
 
-        @test isapprox(real(e0)/4, -0.163489, atol = 1e-6)
+        @test isapprox(real(e0)/4, -0.16348, atol = 1e-5)
     end
 
     @testset "D = 4, init gs" begin

@@ -1,3 +1,4 @@
+# for old ctmrg
 using PhyOperators
 using iPEPS
 using MKL
@@ -48,16 +49,4 @@ x, y = plot_spectral(es, swk0)
 
 scatter(es, swk0)
 
-
-function test(x1, x2)
-    v_1 = Zygote.@showgrad x1
-    v0 = Zygote.@showgrad x2
-    v1 = Zygote.@showgrad log(v_1)
-    v2 = Zygote.@showgrad v_1*v0 
-    v3 = sin(v0)
-    v4 = v1 + v2
-    v5 = v4 - v3
-    v5
-end
-gradient(test, 2,5)
 

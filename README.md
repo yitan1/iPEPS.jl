@@ -42,6 +42,9 @@ Next we will use the ground state to optimize excited state:
 using iPEPS
 
 H = ising()
+# construct basis
+prepare_basis(H, "config.toml")
+
 # construct momentum path
 # default: M(pi,0) -> X(pi,pi) -> S(pi/2,pi/2) -> Gamma(0,0) -> M(pi,0) -> S(pi/2,pi/2)
 px, py = make_es_path()
