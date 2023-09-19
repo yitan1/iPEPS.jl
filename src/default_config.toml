@@ -6,7 +6,7 @@
 out_prefix = "g11"
 model = "hb"
 
-D = 2
+D = 4
 chi = 64
 
 resume = false
@@ -22,11 +22,11 @@ ad = true
 gc = true
 save = true
 
-nrmB_cut = 50
+nrmB_cut = 20
 
 min_iter = 4
-max_iter = 20
-ad_max_iter = 4
-rg_tol = 1e-6
+max_iter = 40
+ad_max_iter = 20
+rg_tol = 1e-3
 
 
