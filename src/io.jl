@@ -22,13 +22,17 @@ function get_es_name(params, px, py)
 end
 
 function get_dir(params)
-    pre = get(params, "out_prefix", "none")
-    model = get(params, "model", "none")
-    D = get(params, "D", "none")
-    X = get(params, "chi", "none")
-    cur_path = pwd()
-    dir = "$(cur_path)/simulation/$(model)_$(pre)_D$(D)_X$(X)"
-    
+    if params["dir"] == 0
+        pre = get(params, "out_prefix", "none")
+        model = get(params, "model", "none")
+        D = get(params, "D", "none")
+        X = get(params, "chi", "none")
+        cur_path = pwd()
+        dir = "$(cur_path)/simulation/$(model)_$(pre)_D$(D)_X$(X)"
+    else 
+        dir = params["dir"]
+    end
+
     if ! ispath(dir)
         println("$dir does not exist, and will be created")
         mkpath(dir)
