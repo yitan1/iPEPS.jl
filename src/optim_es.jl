@@ -235,7 +235,7 @@ function get_es_element(ts, H, Bi, Bj)
     ts1 = setproperties(ts, Cs = Cs, Es = Es, B = Bj, Bd = conj(Bi))
 
     fprint("\n ---- Start to find fixed points -----")
-    conv_fun(_x) = get_es_energy(_x, H)
+    conv_fun(_x) = get_es_energy(_x, H) / get_all_norm(_x)[1]
     ts1, _ = run_ctm(ts1, conv_fun = conv_fun)
     fprint("---- End to find fixed points ----- \n")
 
@@ -291,7 +291,7 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     ts1 = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
 
     fprint("\n ---- Start to find fixed points -----")
-    conv_fun(_x) = get_es_energy(_x, H)
+    conv_fun(_x) = get_es_energy(_x, H) / get_all_norm(_x)[1]
     ts1, _ = run_ctm(ts1, conv_fun = conv_fun)
     fprint("---- End to find fixed points ----- \n")
     # f(_x) = run_es(ts1, H, _x) 
@@ -316,7 +316,7 @@ function run_es(ts::CTMTensors, H, B)
 
     ts1 = setproperties(ts, B = B, Bd = conj(B))
 
-    conv_fun(_x) = get_es_energy(_x, H)
+    conv_fun(_x) = get_es_energy(_x, H) / get_all_norm(_x)[1]
     ts1, s = run_ctm(ts1, conv_fun = conv_fun)
     
     # ts, s = iPEPS.run_ctm(conv_ts, 50)

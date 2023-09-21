@@ -70,7 +70,7 @@ function compute_spec_env(op, px, py, filename::String)
 
     ts = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
 
-    # conv_fun(_x) = get_es_energy(_x, H)
+    # conv_fun(_x) = get_es_energy(_x, H) / get_all_norm(_x)[1]
     ts, _ = run_ctm(ts)
 
     _, envB = get_all_norm(ts)

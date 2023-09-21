@@ -16,6 +16,6 @@ H = iPEPS.honeycomb(1, 1);
 prepare_basis(H, "")
 
 pxs, pys = make_es_path()
-n = 19
+n = 20
 px, py = pxs[n], pys[n]
 optim_es(px, py, "");

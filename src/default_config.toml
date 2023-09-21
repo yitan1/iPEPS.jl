@@ -9,7 +9,7 @@ model = "hb"
 dir = 0 # 0 -> default dir, string -> dir name
 
 D = 2
-chi = 32
+chi = 64
 
 resume = false
 
@@ -26,9 +26,9 @@ save = true
 
 nrmB_cut = 50
 
-min_iter = 10
-max_iter = 10
-ad_max_iter = 20
-rg_tol = 1e-4
+min_iter = 4
+max_iter = 300
+ad_max_iter = 4
+rg_tol = 1e-3
 
 

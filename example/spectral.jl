@@ -4,7 +4,7 @@ s2 = iPEPS.SI
 op1 = iPEPS.tout(s1, s2)
 op2 = iPEPS.tout(s2, s1)
 pxs, pys = make_es_path()
-n = 19
+n = 20
 px, py = pxs[n], pys[n]
 envB1, basis = compute_spec_env(op1, px, py, "");
 envB2, _ = compute_spec_env(op2, px, py, "");
@@ -27,7 +27,7 @@ xlims!(ax, low = -0.1, high = 8)
 f
 
 pxs, pys = make_es_path()
-n = 19
+n = 20
 px, py = pxs[n], pys[n]
 step = 1
 max_b = 55

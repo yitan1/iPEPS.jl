@@ -1,14 +1,14 @@
 using iPEPS
 using ConstructionBase
 using TOML, JLD2
-B = iPEPS.get_vison() #|> iPEPS.renormalize
+# B = iPEPS.get_vison() #|> iPEPS.renormalize
 
 ts = load("simulation/hb_g11_D2_X64/basis.jld2")["ts"];
 H = load("simulation/hb_g11_D2_X64/basis.jld2")["H"]
 cfg = TOML.parsefile("src/default_config.toml");
 # Basis = load("simulation/hb_g11_D2_X64/basis.jld2")["basis"]
 # B = reshape(Basis[:,1], size(ts.A))
-# B = ts.A
+B = ts.A
 Cs, Es = iPEPS.init_ctm(ts.A, ts.Ad);
 cfg["px"] = convert(eltype(ts.A), 0.0*pi)
 cfg["py"] = convert(eltype(ts.A), 0.0*pi)
