@@ -14,7 +14,7 @@ chi = 64
 resume = false
 
 es_resume = 1 # start from which basis(>0) 
-es_num = 0    # calculate how many basis(>0)
+es_num = 10    # calculate how many basis(>0)
 
 # true -> load exist basis, false -> calculate basis
 basis = false
@@ -23,11 +23,12 @@ unit_basis = false
 ad = true
 gc = true
 save = true
+part_save = true
 
 nrmB_cut = 50
 
 min_iter = 4
-max_iter = 300
+max_iter = 20
 ad_max_iter = 4
 rg_tol = 1e-3
 
