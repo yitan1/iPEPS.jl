@@ -16,8 +16,10 @@ function tout(a, b)
     return c
 end
 
-function ising(h=3)
-    H = -tout(Sx, Sx) * 2 .- h * tout(Sz, SI) / 2 .- h * tout(SI, Sz) / 2
+function ising(h)
+    # H = -tout(Sx, Sx)*2 .- h * tout(Sz, SI) / 2  .- h * tout(SI, Sz) / 2 
+    H = -tout(sigmax, sigmax) .- h * tout(sigmaz, SI) / 2 /2 .- h * tout(SI, sigmaz) / 2/ 2
+    # H = -tout(Sz, Sz) .+ h * tout(Sx, SI) / 2 / 2 .+ h * tout(SI, Sx) / 2 / 2
 
     [H, H]
 end
@@ -32,7 +34,7 @@ function honeycomb(Jx=1, Jy=1)
     hv = Jx * tout(tout(SI, sigmax), tout(sigmax, SI)) .+ (tout(tout(sigmaz, sigmaz), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz))) / 2 / 2 .|> real
     hh = Jy * tout(tout(SI, sigmay), tout(sigmay, SI)) .+ (tout(tout(sigmaz, sigmaz), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz))) / 2 / 2 .|> real
 
-    [-hh / 2, -hv / 2]
+    [-hh, -hv ]
 end
 
 function init_hb_gs(D=4; p1=0.24, p2=0.0)

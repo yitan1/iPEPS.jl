@@ -80,6 +80,7 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
         ts.Params["max_iter"] = max_iter
 
         fprint("Finish autodiff")
+        y = real(y)
         cached_x = x
         cached_y = y
 

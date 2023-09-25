@@ -167,8 +167,8 @@ function optim_es(px, py, cfg::Dict)
         fprint("\nStarting simulation of basis vector $(i)/$(basis_dim)")
 
         @time gH, gN = get_es_grad(ts, H, basis[:,i])
-        effH[:, i] = transpose(basis) * gH
-        effN[:, i] = transpose(basis) * gN
+        effH[:, i] = transpose(conj(basis)) * gH / 2
+        effN[:, i] = transpose(conj(basis)) * gN
 
         fprint("\nFinish basis vector of $(i)/$(basis_dim)")
 
@@ -286,9 +286,10 @@ end
 
 function get_es_grad(ts::CTMTensors, H, Bi)
     B = reshape(Bi, size(ts.A))
+    Bd = conj(B)
     Cs, Es = init_ctm(ts.A, ts.Ad)
 
-    ts1 = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
+    ts1 = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = Bd)
 
     fprint("\n ---- Start to find fixed points -----")
     conv_fun(_x) = get_es_energy(_x, H) / get_all_norm(_x)[1]

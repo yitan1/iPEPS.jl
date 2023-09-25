@@ -1,4 +1,4 @@
-function compute_es(px, py, filename::String; display = false)
+function compute_es(px, py, filename::String; disp = false)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
         fprint("load custom config file at $(filename)")
@@ -26,7 +26,7 @@ function compute_es(px, py, filename::String; display = false)
         selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
     end
 
-    if display == true
+    if disp == true
         display(ev_N/maximum(ev_N))
         display(ev_N[selected] /maximum(ev_N))
     end

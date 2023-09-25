@@ -1,5 +1,5 @@
 using iPEPS
-using JLD2
+using JLD2, TOML
 # using MKL
 # using Random  
 
@@ -11,7 +11,7 @@ using JLD2
 A = iPEPS.init_hb_gs(2, p1 = 0.24, p2 = 0);
 jldsave("simulation/hb_g11_D2_X32/gs.jld2", A = A)
 H = iPEPS.honeycomb(1, 1);
-# res = optim_gs(H .*2, A, "")
+# res = optim_gs(H, A, "")
 
 prepare_basis(H, "")
 

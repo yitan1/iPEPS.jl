@@ -19,8 +19,8 @@ end
 H = iPEPS.honeycomb(1, 1);
 
 A = iPEPS.init_hb_gs(2);
-
-iPEPS.compute_gs_energy(A, H)
+cfg = TOML.parsefile("src/default_config.toml");
+iPEPS.compute_gs_energy(A, H, cfg)
 
 A - permutedims(conj(A), (3,2,1,4,5)) 
 

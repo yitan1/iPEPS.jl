@@ -43,3 +43,9 @@ iPEPS.get_gs_energy(ts2, H)
 # ts0, s = iPEPS.run_ctm(ts0, 30, conv_fun = conv_fun);
 # iPEPS.run_energy(H, ts0, 30, A)
 
+using Zygote
+
+x = 1 + 2im
+f = _x -> real(_x*conj(_x)) 
+conj(x)*(gradient(f, x)[1]/2)
+
