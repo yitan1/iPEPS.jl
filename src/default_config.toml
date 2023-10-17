@@ -30,6 +30,6 @@ nrmB_cut = 50
 min_iter = 4
 max_iter = 30
 ad_max_iter = 4
-rg_tol = 1e-4
+rg_tol = 1e-6
 
 

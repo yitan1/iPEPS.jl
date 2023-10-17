@@ -45,7 +45,7 @@ function cutoff_matrix(u, s, v, cutoff, n)
         #     new_n = count(>=(s[n] - cutoff), s)
         #     n = min(new_n, n + 10)
         # end
-        if s[n+1] - s[n] < 1e-10
+        if abs(s[n+1] - s[n]) < 1e-10
             n = n + 1
         end
         u = u[:, 1:n]
