@@ -1,14 +1,14 @@
 using Test
 using iPEPS
-using iPEPS: honeycomb, init_hb_gs, check_Q_op, get_ghz_111, get_ghz, get_Q_op
+using iPEPS: honeycomb, init_hb_gs, check_Q_op, get_ghz_111, get_ghz, get_Q_op, get_Q_ghz
 using iPEPS: sigmax, sigmay, sigmaz
 using OMEinsum
 using TOML
 
 @testset "honeycomb" begin
     @testset "D = 2, init gs" begin
-        A = init_hb_gs(2, p1 = 0.24, p2 = 0)
-        H = honeycomb(1, 1)
+        A = init_hb_gs(2, p1 = 0.24, p2 = 0, dir ="XX")
+        H = honeycomb(1, 1, dir = "XX")
         cfg = TOML.parsefile("src/default_config.toml")
         e0, _ = compute_gs_energy(A, H, cfg)
 
@@ -104,3 +104,22 @@ end
     # end
 end
 
+
+ghz = get_ghz()
+phi = pi / 4
+cost2 = sqrt((1+1/sqrt(3))/2)
+sint2 = sqrt((1-1/sqrt(3))/2)
+S = [exp(-im * phi/2) * cost2 -exp(-im * phi/2) * sint2; exp(im * phi/2) * sint2 exp(im * phi/2) * cost2] 
+op1 = sigmax
+op2 = sigmay
+op3 = sigmaz
+
+@ein g1[m1, m2, m3, m4] := ghz[p1, p2, p3, p4] * op1[p1, m1] * op1[p2, m2] * op1[p3, m3] * op1[p4, m4]
+
+@ein g2[m1, m2, m3, m4] := ghz[p1, p2, p3, p4] * op2[p1, m1] * op2[p2, m2] * op2[p3, m3] * op2[p4, m4]
+
+@ein g3[m1, m2, m3, m4] := ghz[m1, p2, p1, m4] * op3[p1, m3] * op3[p2, m2]
+
+g1 +g2 
+
+ghz

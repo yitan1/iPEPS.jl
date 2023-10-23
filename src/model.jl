@@ -30,14 +30,22 @@ function heisenberg(Jz=1)
     [H, H]
 end
 
-function honeycomb(Jx=1, Jy=1)
-    hv = Jx * tout(tout(SI, sigmax), tout(sigmax, SI)) .+ (tout(tout(sigmaz, sigmaz), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz))) / 2 / 2 .|> real
-    hh = Jy * tout(tout(SI, sigmay), tout(sigmay, SI)) .+ (tout(tout(sigmaz, sigmaz), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz))) / 2 / 2 .|> real
+function honeycomb(Jx=1, Jy=1; Jz = 1, dir = "ZZ")
+    if dir == "ZZ"
+        hv = Jx * tout(tout(SI, sigmax), tout(sigmax, SI)) .+ (tout(tout(sigmaz, sigmaz), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz))) / 2 / 2 .|> real
+        hh = Jy * tout(tout(SI, sigmay), tout(sigmay, SI)) .+ (tout(tout(sigmaz, sigmaz), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz))) / 2 / 2 .|> real
+    elseif dir == "XX"
+        hv = Jy * tout(tout(SI, sigmay), tout(sigmay, SI)) .+ (tout(tout(sigmax, sigmax), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmax, sigmax))) / 2 / 2 .|> real
+        hh = Jz * tout(tout(SI, sigmaz), tout(sigmaz, SI)) .+ (tout(tout(sigmax, sigmax), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmax, sigmax))) / 2 / 2 .|> real
+    elseif dir == "YY"
+        hv = Jz * tout(tout(SI, sigmaz), tout(sigmaz, SI)) .+ (tout(tout(sigmay, sigmay), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmay, sigmay))) / 2 / 2 .|> real
+        hh = Jx * tout(tout(SI, sigmax), tout(sigmax, SI)) .+ (tout(tout(sigmay, sigmay), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmay, sigmay))) / 2 / 2 .|> real
+    end
 
     [-hh, -hv]
 end
 
-function init_hb_gs(D=4; p1=0.24, p2=0.0)
+function init_hb_gs(D=4; p1=0.24, p2=0.0, dir = "ZZ")
     Q_op = zeros(ComplexF64, 2, 2, 2, 2, 2)
     Q_op[1, 1, 1, :, :] = SI
     Q_op[1, 2, 2, :, :] = Sx * 2
@@ -47,9 +55,14 @@ function init_hb_gs(D=4; p1=0.24, p2=0.0)
     s111 = 1 / sqrt(2 + 2 * uz) * [1 + uz, ux + im * uy]
 
     T = tcon([Q_op, s111], [[-1, -2, -3, -4, 1], [1]])
-    # A = tcon([T, T], [[1,-1,-2,-5], [1,-3,-4,-6]]) # XX
-    # A = tcon([T, T], [[-1, 1, -4, -5], [-3, 1, -2, -6]]) # YY
-    A = tcon([T, T], [[-1, -2, 1, -5], [-3, -4, 1, -6]]) # ZZ
+    if dir == "ZZ"
+        A = tcon([T, T], [[-1, -2, 1, -5], [-3, -4, 1, -6]]) # ZZ
+    elseif dir == "XX"
+        A = tcon([T, T], [[1,-1,-2,-5], [1,-3,-4,-6]]) # XX
+    elseif dir == "YY"
+        A = tcon([T, T], [[-2, 1, -1, -5], [-4, 1, -3, -6]]) # YY
+    end
+
     A = reshape(A, 2, 2, 2, 2, 4)
 
     if D == 4
