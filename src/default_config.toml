@@ -19,13 +19,15 @@ es_num = 0    # calculate how many basis(>0)
 # true -> load exist basis, false -> calculate basis
 basis = false
 unit_basis = false
+cut_basis = false
 
 ad = true
 gc = true
 save = true
 part_save = false
 
-nrmB_cut = 50
+basis_cut = 1e-3
+nrmB_cut = 57
 
 min_iter = 4
 max_iter = 30

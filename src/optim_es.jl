@@ -360,7 +360,9 @@ function get_tangent_basis(ts::CTMTensors)
     if ts.Params["unit_basis"]
         M = length(ts.A)
         basis = Matrix{ComplexF64}(I, M, M)
-    else
+    elseif ts.Params["cut_basis"]
+        basis = cut_basis(ts)
+    else 
         # A = ts.A
         Ad = ts.Ad
         C1, C2, C3, C4 = ts.Cs
@@ -383,6 +385,96 @@ function get_tangent_basis(ts::CTMTensors)
     # bs
 
     basis
+end
+
+function cut_basis(ts::CTMTensors)
+    vs, vecs = diag_n_dm(ts)
+
+    basis_cut = get(ts.Params, "basis_cut", 1e-3) 
+    idx = sortperm(real.(vs))[end:-1:1]
+    vs = vs[idx]
+    display(vs)
+    selected = vs./maximum(vs) .> basis_cut
+    display(vs[selected])
+
+    vecs = vecs[:, selected]
+
+    d = size(ts.A, 5)
+    basis = zeros(ComplexF64, size(vecs,1)*d, size(vecs,2)*d)
+    v_phy = ones(d) |> diagm
+
+    for ind in axes(basis, 2)
+        i = div(ind-1, 4) + 1
+        j = (ind-1) % 4 + 1
+        basis[:, ind] = tcon([vecs[:,i], v_phy[:,j]], [[-1],[-2]])[:]
+    end
+
+    # vs, vecs, n_dm
+    basis
+end
+
+function diag_n_dm(ts::CTMTensors)
+    # A = ts.A
+    # Ad = ts.Ad
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+
+    n_dm = get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
+
+    n_dm = reshape(n_dm, prod(size(n_dm)[1:4]), :)
+    n_dm = (n_dm + n_dm')/2
+
+    vs, vecs = eigen(n_dm)
+
+    vs, vecs
+end
+
+function diag_n_dm2(ts::CTMTensors)
+    # A = ts.A
+    # Ad = ts.Ad
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+
+    n_dm = get_dm2(C1, C2, C3, C4, E1, E2, E3, E4)
+
+    n_dm = reshape(n_dm, prod(size(n_dm)[1:6]), :)
+    n_dm = (n_dm + n_dm')/2
+
+    vs, vecs = eigen(n_dm)
+
+    vs, vecs
+end
+
+function diag_n_dm3(ts::CTMTensors)
+    # A = ts.A
+    # Ad = ts.Ad
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+
+    n_dm = get_dm3(C1, C2, C3, C4, E1, E2, E3, E4)
+
+    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
+    n_dm = (n_dm + n_dm')/2
+
+    vs, vecs = eigen(n_dm)
+
+    vs, vecs
+end
+
+function diag_n_dm4(ts::CTMTensors)
+    # A = ts.A
+    # Ad = ts.Ad
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+
+    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4)
+
+    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
+    n_dm = (n_dm + n_dm')/2
+
+    vs, vecs = eigen(n_dm)
+
+    vs, vecs
 end
 
 
