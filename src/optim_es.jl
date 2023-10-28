@@ -357,11 +357,13 @@ function substract_gs_energy(ts::CTMTensors, H)
 end
 
 function get_tangent_basis(ts::CTMTensors)
-    if ts.Params["unit_basis"]
+    if ts.Params["basis_t"] == "unit"
         M = length(ts.A)
         basis = Matrix{ComplexF64}(I, M, M)
-    elseif ts.Params["cut_basis"]
+    elseif ts.Params["basis_t"] == "cut"
         basis = cut_basis(ts)
+    elseif ts.Params["basis_t"] == "gauge"
+        basis = get_gauge_basis(ts)
     else 
         # A = ts.A
         Ad = ts.Ad
@@ -411,6 +413,79 @@ function cut_basis(ts::CTMTensors)
 
     # vs, vecs, n_dm
     basis
+end
+
+function get_gauge_basis(ts)
+    D = size(ts.A, 1)/2 |> Int
+    d = size(ts.A, 5)
+    M = D^4 * d
+
+    # act zero flux
+    basis0 = zeros(ComplexF64, length(ts.A), M)
+    for i = 1:M
+        B0 = zeros(M)
+        B0[i] = 1
+        B0 = reshape(B0, (D,D,D,D,d))
+        Bi = act_Q_op(B0; add = 0)
+        basis0[:,i] = Bi[:]
+    end
+
+    # act two flux z
+    basis1 = zeros(ComplexF64, length(ts.A), M)
+    for i = 1:M
+        B0 = zeros(M)
+        B0[i] = 1
+        B0 = reshape(B0, (D,D,D,D,d))
+        Bi = act_Q_op(B0, add = 3)
+        basis1[:,i] = Bi[:]
+    end
+
+    # act two flux x
+    basis2 = zeros(ComplexF64, length(ts.A), M)
+    for i = 1:M
+        B0 = zeros(M)
+        B0[i] = 1
+        B0 = reshape(B0, (D,D,D,D,d))
+        Bi = act_Q_op(B0, add = 1)
+        basis2[:,i] = Bi[:]
+    end
+
+    # act two flux y
+    basis3 = zeros(ComplexF64, length(ts.A), M)
+    for i = 1:M
+        B0 = zeros(M)
+        B0[i] = 1
+        B0 = reshape(B0, (D,D,D,D,d))
+        Bi = act_Q_op(B0, add = 2)
+        basis3[:,i] = Bi[:]
+    end
+
+    basis = [basis0 basis1 basis2 basis3]
+
+    basis
+end
+
+function act_Q_op(A0; add = 0)
+    Q_op = get_Q_op()
+    if add == 1 # XX bond
+        Q_op1 = tcon([Q_op, sigmax], [[1,-2,-3,-4,-5], [1,-1]])
+    elseif add == 2 # YY bond
+        Q_op1 = tcon([Q_op, sigmay], [[-1,1,-3,-4,-5], [1,-2]])
+    elseif add == 3 # ZZ bond
+        Q_op1 = tcon([Q_op, sigmaz], [[-1,-2,1,-4,-5], [1,-3]])
+    elseif add == 0 
+        Q_op1 = Q_op
+    end
+    QQ = tcon([Q_op1, Q_op], [[-1,-2,1,-5,-7], [-3,-4,1,-6,-8]])
+    dim = size(QQ)
+    QQ = reshape(QQ, dim[1],dim[2], dim[3],dim[4], dim[5]*dim[6], dim[7]*dim[8])
+
+    A = tcon([QQ,A0], [[-1, -3, -5, -7, -9, 1], [-2, -4, -6, -8, 1]])
+    D1 = size(A,1)
+    D2 = size(A,2)
+    A = reshape(A, D1*D2, D1*D2, D1*D2, D1*D2, size(A,9))
+
+    A
 end
 
 function diag_n_dm(ts::CTMTensors)

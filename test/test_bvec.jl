@@ -47,4 +47,4 @@ Cs, Es = iPEPS.init_ctm(ts.A, ts.Ad)
 ts1 = setproperties(ts, Cs = Cs, Es = Es, B=Bi, Bd=conj(Bi));
 ts1, _ = iPEPS.run_ctm(ts1);
 
-bn, envB = iPEPS.get_all_norm(ts1); bn
+bs = iPEPS.get_gauge_basis(ts)

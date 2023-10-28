@@ -48,9 +48,9 @@ end
         @ein Qy2[m1, m2, m3, m4, m5] := v[m3, p2] * Q_op[p1, m2, p2, m4, m5] * (v')[p1, m1]
         @ein Qz2[m1, m2, m3, m4, m5] := v[m1, p1] * Q_op[p1, p2, m3, m4, m5] * (v')[p2, m2]
 
-        @test approx(sum(Qx .- Qx2), 0.0, atol = 1e-12)
-        @test approx(sum(Qy .- Qy2), 0.0, atol = 1e-12)
-        @test approx(sum(Qz .- Qz2), 0.0, atol = 1e-12)
+        @test isapprox(sum(Qx .- Qx2), 0.0, atol = 1e-12)
+        @test isapprox(sum(Qy .- Qy2), 0.0, atol = 1e-12)
+        @test isapprox(sum(Qz .- Qz2), 0.0, atol = 1e-12)
     end
 
     @test "Z2 Q_op" begin

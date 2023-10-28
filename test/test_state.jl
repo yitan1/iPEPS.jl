@@ -9,7 +9,7 @@ using ConstructionBase
 
 H = honeycomb(1, 1)
 H = load("simulation/hb_g11_D2_X32/basis.jld2")["H"]
-A = init_hb_gs(2)
+A = init_hb_gs(4)
 cfg = TOML.parsefile("src/default_config.toml")
 cfg["max_iter"] = 60
 ts = iPEPS.CTMTensors(A, cfg);
