@@ -287,9 +287,9 @@ end
 function get_es_grad(ts::CTMTensors, H, Bi)
     B = reshape(Bi, size(ts.A))
     Bd = conj(B)
-    Cs, Es = init_ctm(ts.A, ts.Ad)
-
-    ts1 = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = Bd)
+    # Cs, Es = init_ctm(ts.A, ts.Ad)
+    ts1 = setproperties(ts, B = B, Bd = Bd)
+    # ts1 = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = Bd)
 
     fprint("\n ---- Start to find fixed points -----")
     conv_fun(_x) = get_es_energy(_x, H) / get_all_norm(_x)[1]

@@ -64,6 +64,7 @@ function compute_spec_env(op, px, py, filename::String)
     ts.Params["py"] = convert(eltype(ts.A), py*pi)
 
     B = tcon([ts.A, op], [[-1,-2,-3,-4,1], [-5,1]])
+    # B = reshape(basis[:,16], size(ts.A)) 
     # Bd = conj(B)
 
     Cs, Es = init_ctm(ts.A, ts.Ad)
@@ -85,4 +86,34 @@ function lor_broad(x, es, swk, factor)
     end
 
     w
+end
+
+function compute_B_env(B, px, py, filename::String)
+    if ispath(filename)
+        cfg = TOML.parsefile(filename)
+        fprint("load custom config file at $(filename)")
+    else
+        cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
+        fprint("load daufult config file")
+    end
+    print_cfg(cfg)
+
+
+    basis_name = get_basis_name(cfg)
+    # basis = load(basis_name, "basis")
+    ts = load(basis_name, "ts")
+    H = load(basis_name, "H")
+
+    ts = setproperties(ts, Params = cfg)
+    ts.Params["px"] = convert(eltype(ts.A), px*pi)
+    ts.Params["py"] = convert(eltype(ts.A), py*pi)
+
+    ts = setproperties(ts, B = B, Bd = conj(B))
+
+    conv_fun(_x) = get_es_energy(_x, H) / get_all_norm(_x)[1]
+    ts, _ = run_ctm(ts, conv_fun = conv_fun)
+
+    _, envB = get_all_norm(ts)
+
+    envB
 end

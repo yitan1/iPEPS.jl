@@ -18,7 +18,7 @@ es_num = 0    # calculate how many basis(>0)
 
 # true -> load exist basis, false -> calculate basis
 basis = false
-basis_t = "gauge" # "default", "gauge", "cut", "unit"
+basis_t = "default" # "default", "gauge", "cut", "unit"
 
 ad = true
 gc = true

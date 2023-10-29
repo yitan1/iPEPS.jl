@@ -66,25 +66,33 @@ function init_hb_gs(D=4; p1=0.24, p2=0.0, dir = "ZZ")
     A = reshape(A, 2, 2, 2, 2, 4)
 
     if D == 4
-        phi = p1 * pi
-        theta = exp(-im * pi * p2)
-        R_op = zeros(ComplexF64, 2, 2, 2, 2, 2)
-        R_op[1, 1, 1, :, :] = SI .* cos(phi)
-        R_op[2, 1, 1, :, :] = 2 * Sx * sin(phi) * theta
-        R_op[1, 2, 1, :, :] = 2 * Sy * sin(phi) * theta
-        R_op[1, 1, 2, :, :] = 2 * Sz * sin(phi) * theta
+        A = act_R_op(A, p1 = 0.24)
+    end
 
-        RR = tcon([R_op, R_op], [[-1, -2, 1, -5, -7], [-3, -4, 1, -6, -8]])
-        dRR = size(RR)
-        RR = reshape(RR, dRR[1], dRR[2], dRR[3], dRR[4], dRR[5] * dRR[6], dRR[7] * dRR[8])
-
-        A = tcon([RR, A], [[-1, -3, -5, -7, -9, 1], [-2, -4, -6, -8, 1]])
-        D1 = size(A, 1)
-        D2 = size(A, 2)
-        A = reshape(A, D1 * D2, D1 * D2, D1 * D2, D1 * D2, size(A, 9))
+    if D == 8
+        A = act_R_op(A, p1 = 0.342)
+        A = act_R_op(A, p1 = 0.176)
     end
 
     A
+end
+
+function act_R_op(A0; p1 = 0.24)
+    phi = p1 * pi
+    R_op = zeros(ComplexF64, 2, 2, 2, 2, 2)
+    R_op[1, 1, 1, :, :] = SI .* cos(phi)
+    R_op[2, 1, 1, :, :] = 2 * Sx * sin(phi) 
+    R_op[1, 2, 1, :, :] = 2 * Sy * sin(phi) 
+    R_op[1, 1, 2, :, :] = 2 * Sz * sin(phi) 
+
+    RR = tcon([R_op, R_op], [[-1, -2, 1, -5, -7], [-3, -4, 1, -6, -8]])
+    dRR = size(RR)
+    RR = reshape(RR, dRR[1], dRR[2], dRR[3], dRR[4], dRR[5] * dRR[6], dRR[7] * dRR[8])
+
+    A = tcon([RR, A0], [[-1, -3, -5, -7, -9, 1], [-2, -4, -6, -8, 1]])
+    D1 = size(A, 1)
+    D2 = size(A, 2)
+    A = reshape(A, D1 * D2, D1 * D2, D1 * D2, D1 * D2, size(A, 9))
 end
 
 function get_Q_op()
