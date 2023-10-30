@@ -405,10 +405,18 @@ function cut_basis(ts::CTMTensors)
     basis = zeros(ComplexF64, size(vecs,1)*d, size(vecs,2)*d)
     v_phy = ones(d) |> diagm
 
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+    n_dm = iPEPS.get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4);
+    ndm_Ad = iPEPS.tcon([n_dm, ts.Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]);
+    nAA = transpose(ts.A[:])*ndm_Ad[:]
+
     for ind in axes(basis, 2)
         i = div(ind-1, 4) + 1
         j = (ind-1) % 4 + 1
-        basis[:, ind] = tcon([vecs[:,i], v_phy[:,j]], [[-1],[-2]])[:]
+        bi = tcon([vecs[:,i], v_phy[:,j]], [[-1],[-2]])[:]
+        
+        basis[:, ind] = bi .- (transpose(bi) * ndm_Ad[:]) * ts.A[:]./nAA
     end
 
     # vs, vecs, n_dm
