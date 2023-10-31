@@ -44,7 +44,7 @@ function compute_es(px, py, filename::String; disp = false)
     vecs = vecs[:,ixs]
 
     if haskey(es_file, "envB")
-        envB = load(es_name, "envB")
+        envB = es_file["envB"]
         println("load envB")
         return es, vecs, P, envB
     else
