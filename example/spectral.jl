@@ -1,6 +1,6 @@
 using CairoMakie
 s1 = iPEPS.sigmaz
-s2 = iPEPS.sI
+s2 = iPEPS.sigmaz
 op1 = iPEPS.tout(s1, s2)
 op2 = iPEPS.tout(s2, s1)
 pxs, pys = make_es_path()
@@ -13,8 +13,8 @@ envB2, _ = compute_spec_env(op2, px, py, "");
 es, vecs, P = compute_es(px, py, ""; disp = true);
 exci_n = basis*P*vecs;
 # wka = Bop[:]' * envB1[:]
-# wka = exci_n' * envB1[:];
-# wkb = exci_n' * envB2[:];
+wka = exci_n' * envB1[:];
+wkb = exci_n' * envB2[:];
 a = exp(-im*(px+py)/3)
 swk0 = wka.* conj(wka) + wkb.*conj(wkb) + wka.*conj(wkb).*a + wkb .*conj(wka).*conj(a) .|> real; # exp 
 
@@ -25,7 +25,8 @@ ax = Axis(f[1, 1], title = "plot", xlabel = L"{\omega}", ylabel = L"S^{yy}(0, \o
 lines!(ax, x, y, label = "Syy")
 scatter!(ax, es[1:end], swk0[1:end], label = "Syy")
 # axislegend()
-# xlims!(ax, low = -1, high = 6)
+# ylims!(ax, low = -10, high = 10)
+# xlims!(ax, low = -1, high = 10)
 f
 
 pxs, pys = make_es_path()
@@ -42,7 +43,4 @@ end
 # ylims!(ax, low = -0.5, high = 6)
 # xlims!(ax, low = 0, high = max_b)
 f  
-
-
-
 

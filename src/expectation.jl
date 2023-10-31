@@ -9,8 +9,9 @@ function compute_es(px, py, filename::String; disp = false)
     print_cfg(cfg)
 
     es_name = get_es_name(cfg, px, py)
-    effH = load(es_name, "effH")
-    effN = load(es_name, "effN")
+    es_file = load(es_name)
+    effH = es_file["effH"]
+    effN = es_file["effN"]
     fprint("load H and N at $es_name")
 
     nrmB_cut = get(cfg, "nrmB_cut", 1e-3)
@@ -42,7 +43,13 @@ function compute_es(px, py, filename::String; disp = false)
     es = es[ixs]
     vecs = vecs[:,ixs]
 
-    es, vecs, P
+    if haskey(es_file, "envB")
+        envB = load(es_name, "envB")
+        println("load envB")
+        return es, vecs, P, envB
+    else
+        return es, vecs, P
+    end
 end
 
 function compute_spec_env(op, px, py, filename::String)

@@ -144,12 +144,21 @@ function optim_es(px, py, cfg::Dict)
 
     es_name = get_es_name(ts.Params, px, py)
     if  ts.Params["es_resume"] > 0 && ispath(es_name) 
-        effH = load(es_name, "effH")
-        effN = load(es_name, "effN")
+        es_file = load(es_name)
+        effH = es_file["effH"]
+        effN = es_file["effN"]
+        if haskey(es_file, "envB")
+            envB = load(es_name, "envB")
+            println("load envB")
+        else
+            envB = zeros(ComplexF64, size(basis))
+            println("new envB")
+        end
         fprint("load existed calculation , effH, effN in $es_name")
     else
         effH = zeros(ComplexF64, basis_dim, basis_dim)
         effN = zeros(ComplexF64, basis_dim, basis_dim)
+        envB = zeros(ComplexF64, size(basis))
     end
 
     ts.Params["px"] = convert(eltype(ts.A), px*pi)
@@ -167,14 +176,15 @@ function optim_es(px, py, cfg::Dict)
         fprint("\nStarting simulation of basis vector $(i)/$(basis_dim)")
 
         @time gH, gN = get_es_grad(ts, H, basis[:,i])
+        envB[:, i] = gN
         effH[:, i] = transpose(conj(basis)) * gH / 2
         effN[:, i] = transpose(conj(basis)) * gN
 
         fprint("\nFinish basis vector of $(i)/$(basis_dim)")
 
         if ts.Params["save"]
-            jldsave(es_name; effH = effH, effN = effN)
-            fprint("Saved (effH, effN) to $(es_name)")
+            jldsave(es_name; effH = effH, effN = effN, envB = envB)
+            fprint("Saved (effH, effN) and envB to $(es_name)")
         end
 
         if ts.Params["gc"]
@@ -183,8 +193,8 @@ function optim_es(px, py, cfg::Dict)
     end
 
     if ts.Params["save"]
-        jldsave(es_name; effH = effH, effN = effN)
-        fprint("Saved (effH, effN) to $(es_name)")
+        jldsave(es_name; effH = effH, effN = effN, envB = envB)
+        fprint("Saved (effH, effN) and envB to $(es_name)")
     end
 
     if ts.Params["gc"]
@@ -412,8 +422,8 @@ function cut_basis(ts::CTMTensors)
     nAA = transpose(ts.A[:])*ndm_Ad[:]
 
     for ind in axes(basis, 2)
-        i = div(ind-1, 4) + 1
-        j = (ind-1) % 4 + 1
+        i = div(ind-1, d) + 1
+        j = (ind-1) % d + 1
         bi = tcon([vecs[:,i], v_phy[:,j]], [[-1],[-2]])[:]
         
         basis[:, ind] = bi .- (transpose(bi) * ndm_Ad[:]) * ts.A[:]./nAA

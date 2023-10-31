@@ -18,7 +18,7 @@ es_num = 0    # calculate how many basis(>0)
 
 # true -> load exist basis, false -> calculate basis
 basis = false
-basis_t = "default" # "default", "gauge", "cut", "unit"
+basis_t = "cut" # "default", "gauge", "cut", "unit"
 
 ad = true
 gc = true
@@ -26,9 +26,9 @@ save = true
 part_save = false
 
 basis_cut = 1e-3
-nrmB_cut = 57
+nrmB_cut = 1e-1
 
-min_iter = 4
+min_iter = 30
 max_iter = 30
 ad_max_iter = 4
 rg_tol = 1e-6
