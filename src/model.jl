@@ -45,6 +45,7 @@ function honeycomb(Jx=1, Jy=1; Jz = 1, dir = "ZZ")
     [-hh, -hv]
 end
 
+# TODO
 function init_hb_gs(D=4; p1=0.24, p2=0.0, dir = "ZZ")
     Q_op = zeros(ComplexF64, 2, 2, 2, 2, 2)
     Q_op[1, 1, 1, :, :] = SI
@@ -66,18 +67,18 @@ function init_hb_gs(D=4; p1=0.24, p2=0.0, dir = "ZZ")
     A = reshape(A, 2, 2, 2, 2, 4)
 
     if D == 4
-        A = act_R_op(A, p1 = 0.24)
+        A = act_R_op(A, p1 = p1, dir = dir)
     end
 
     if D == 8
-        A = act_R_op(A, p1 = 0.342)
-        A = act_R_op(A, p1 = 0.176)
+        A = act_R_op(A, p1 = p1, dir = dir)
+        A = act_R_op(A, p1 = p2, dir = dir)
     end
 
     A
 end
 
-function act_R_op(A0; p1 = 0.24)
+function act_R_op(A0; p1 = 0.24, dir = "ZZ")
     phi = p1 * pi
     R_op = zeros(ComplexF64, 2, 2, 2, 2, 2)
     R_op[1, 1, 1, :, :] = SI .* cos(phi)
@@ -85,7 +86,13 @@ function act_R_op(A0; p1 = 0.24)
     R_op[1, 2, 1, :, :] = 2 * Sy * sin(phi) 
     R_op[1, 1, 2, :, :] = 2 * Sz * sin(phi) 
 
-    RR = tcon([R_op, R_op], [[-1, -2, 1, -5, -7], [-3, -4, 1, -6, -8]])
+    if dir == "ZZ"
+        RR = tcon([R_op, R_op], [[-1, -2, 1, -5, -7], [-3, -4, 1, -6, -8]]) # ZZ
+    elseif dir == "XX"
+        RR = tcon([R_op, R_op], [[1,-1,-2,-5,-7], [1,-3,-4,-6,-8]]) # XX
+    elseif dir == "YY"
+        RR = tcon([R_op, R_op], [[-2, 1, -1, -5, -7], [-4, 1, -3, -6, -8]]) # YY
+    end
     dRR = size(RR)
     RR = reshape(RR, dRR[1], dRR[2], dRR[3], dRR[4], dRR[5] * dRR[6], dRR[7] * dRR[8])
 
