@@ -79,6 +79,7 @@ function compute_spec_env(op, px, py, filename::String; proj = true)
         nAA = transpose(ts.A[:])*ndm_Ad[:]
 
         B = B[:] .- (transpose(B[:]) * ndm_Ad[:]) * ts.A[:]./nAA
+        B = reshape(B, size(ts.A))
     end
     # B = reshape(basis[:,16], size(ts.A)) 
     # Bd = conj(B)
