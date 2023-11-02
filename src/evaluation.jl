@@ -35,13 +35,13 @@ function get_es_energy(ts::CTMTensors, H)
 
     roh = roh * (1 / Nh)
     rov = rov * (1 / Nv)
-    Eh = wrap_tr(H[1]*roh) |> real
-    Ev = wrap_tr(H[2]*rov) |> real
+    Eh = wrap_tr(H[1]*roh) 
+    Ev = wrap_tr(H[2]*rov) 
 
     E = Eh + Ev
     # @show E[1], E[4]
 
-    E[4]
+    real(E[4])
 end
 
 function get_gs_norm(ts::CTMTensors)

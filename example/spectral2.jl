@@ -7,7 +7,7 @@ pxs, pys = make_es_path()
 n = 20
 px, py = pxs[n], pys[n]
 
-# ts = load("simulation/hb_g11_D2_X32/basis.jld2")["ts"];
+ts = load("simulation/hb_g11_D4_X64/basis.jld2")["ts"];
 # basis = load("simulation/hb_g11_D2_X32/basis.jld2", "basis")
 # H = load("simulation/hb_g11_D2_X32/basis.jld2", "H")
 # ts.Params["max_iter"] = 30

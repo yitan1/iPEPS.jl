@@ -208,28 +208,54 @@ function optim_es_noad(px, py, cfg)
     basis_name = get_basis_name(cfg)
     basis = load(basis_name, "basis")
     ts = load(basis_name, "ts")
+    ts = setproperties(ts, Params = cfg)
     H = load(basis_name, "H")
     fprint("load basis, ts, H in $basis_name")
 
     basis = complex(basis) # ！！！！ convert Complex
     basis_dim = size(basis, 2) 
-    effH = zeros(ComplexF64, basis_dim, basis_dim)
-    effN = zeros(ComplexF64, basis_dim, basis_dim)
 
     ts.Params["px"] = convert(eltype(ts.A), px*pi)
     ts.Params["py"] = convert(eltype(ts.A), py*pi)
+    es_name = get_es_name(ts.Params, px, py)
+    if  ts.Params["es_resume"] > 0 && ispath(es_name) 
+        es_file = load(es_name)
+        effH = es_file["effH"]
+        effN = es_file["effN"]
+        if haskey(es_file, "envB")
+            envB = load(es_name, "envB")
+            println("load envB")
+        else
+            envB = zeros(ComplexF64, size(basis))
+            println("new envB")
+        end
+        fprint("load existed calculation , effH, effN in $es_name")
+    else
+        effH = zeros(ComplexF64, basis_dim, basis_dim)
+        effN = zeros(ComplexF64, basis_dim, basis_dim)
+        envB = zeros(ComplexF64, size(basis))
+    end
 
     for i = 1:basis_dim
+        if i < ts.Params["es_resume"]
+            fprint(" Simulation of basis vector $(i)/$(basis_dim) existed, skip to next")
+            continue
+        end
+        if ts.Params["es_num"] > 0 && i >= (ts.Params["es_resume"] + ts.Params["es_num"])
+            fprint("\nUp to maximum simulation of basis vector $(i)/$(basis_dim) existed, end to calculation")
+            break
+        end
         fprint(" \n Starting simulation of basis vector $(i)/$(basis_dim)")
         for j = 1:basis_dim
+            fprint(" \n Starting simulation of basis vector $(j)/$(i)")
             Hij, Nij = get_es_element(ts, H, basis[:,i], basis[:,j])
             effH[j, i] = Hij
             effN[j, i] = Nij
         end
         fprint("Finish basis vector of $(i)/$(basis_dim)")
+        jldsave(es_name; effH = effH, effN = effN)
     end
     
-    es_name = get_es_name(ts.Params, px, py)
     jldsave(es_name; effH = effH, effN = effN)
     fprint("Saved (effH, effN) to $(es_name)")
 
@@ -240,9 +266,9 @@ function get_es_element(ts, H, Bi, Bj)
     Bi = reshape(Bi, size(ts.A))
     Bj = reshape(Bj, size(ts.A))
 
-    Cs, Es = init_ctm(ts.A, ts.Ad)
+    # Cs, Es = init_ctm(ts.A, ts.Ad)
 
-    ts1 = setproperties(ts, Cs = Cs, Es = Es, B = Bj, Bd = conj(Bi))
+    ts1 = setproperties(ts, B = Bj, Bd = conj(Bi))
 
     fprint("\n ---- Start to find fixed points -----")
     conv_fun(_x) = get_es_energy(_x, H) / get_all_norm(_x)[1]

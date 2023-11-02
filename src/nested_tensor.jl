@@ -8,6 +8,8 @@ Base.size(A::NestedTensor, i) = size(A.data[1], i)
 Base.getindex(A::NestedTensor, i) = A.data[i]
 
 Base.real(A::NestedTensor) = real.(A.data) |> NestedTensor
+Base.imag(A::NestedTensor) = imag.(A.data) |> NestedTensor
+Base.abs(A::NestedTensor) = abs.(A.data) |> NestedTensor
 
 Base.:(*)(a, B::NestedTensor) = [a*B[i]  for i in eachindex(B)] |> NestedTensor
 Base.:(*)(A::NestedTensor, b) = [A[i]*b  for i in eachindex(A)] |> NestedTensor

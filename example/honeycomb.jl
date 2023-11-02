@@ -39,6 +39,8 @@ C1, C2, C3, C4 = ts.Cs
 E1, E2, E3, E4 = ts.Es
 n_dm = iPEPS.get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4);
 
+dm_AA = iPEPS.tcon([ndm_Ad, ts.A], [[1,2,3,4,-2], [1,2,3,4,-1]]);
+
 # bl = reshape(basis[:, 2], size(ts.A))
 ndm_Ad = iPEPS.tcon([n_dm, ts.Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]);
 ndm_A = iPEPS.tcon([n_dm, ts.A], [[1,2,3,4,-1,-2,-3,-4], [1,2,3,4,-5]]);
@@ -117,3 +119,9 @@ ts1, _ = iPEPS.run_ctm(ts1, conv_fun = conv_fun);
 nB = iPEPS.tcon([n_dm, B], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]);
 
 B[:]'*nB[:]
+
+
+A = iPEPS.init_hb_gs(2, p1 = 0.342, p2 = 0.176)
+A1 = reshape(A, 8, :)
+
+svd(A1)

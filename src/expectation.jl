@@ -52,7 +52,7 @@ function compute_es(px, py, filename::String; disp = false)
     end
 end
 
-function compute_spec_env(op, px, py, filename::String)
+function compute_spec_env(op, px, py, filename::String; proj = true)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
         fprint("load custom config file at $(filename)")
@@ -71,12 +71,19 @@ function compute_spec_env(op, px, py, filename::String)
     ts.Params["py"] = convert(eltype(ts.A), py*pi)
 
     B = tcon([ts.A, op], [[-1,-2,-3,-4,1], [-5,1]])
+    if proj
+        C1, C2, C3, C4 = ts.Cs
+        E1, E2, E3, E4 = ts.Es
+        n_dm = iPEPS.get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4);
+        ndm_Ad = iPEPS.tcon([n_dm, ts.Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]);
+        nAA = transpose(ts.A[:])*ndm_Ad[:]
+
+        B = B[:] .- (transpose(B[:]) * ndm_Ad[:]) * ts.A[:]./nAA
+    end
     # B = reshape(basis[:,16], size(ts.A)) 
     # Bd = conj(B)
 
-    Cs, Es = init_ctm(ts.A, ts.Ad)
-
-    ts = setproperties(ts, Cs = Cs, Es = Es, B = B, Bd = conj(B))
+    ts = setproperties(ts, B = B, Bd = conj(B))
 
     # conv_fun(_x) = get_es_energy(_x, H) / get_all_norm(_x)[1]
     ts, _ = run_ctm(ts)

@@ -14,7 +14,7 @@ chi = 32
 resume = false
 
 es_resume = 1 # start from which basis(>0) 
-es_num = 0    # calculate how many basis(>0)
+es_num = 1    # calculate how many basis(>0)
 
 # true -> load exist basis, false -> calculate basis
 basis = false
