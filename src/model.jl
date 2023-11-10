@@ -47,11 +47,7 @@ end
 
 # TODO
 function init_hb_gs(D=4; p1=0.24, p2=0.0, dir = "ZZ")
-    Q_op = zeros(ComplexF64, 2, 2, 2, 2, 2)
-    Q_op[1, 1, 1, :, :] = SI
-    Q_op[1, 2, 2, :, :] = Sx * 2
-    Q_op[2, 1, 2, :, :] = Sy * 2
-    Q_op[2, 2, 1, :, :] = Sz * 2
+    Q_op = get_Q_op()
     ux, uy, uz = 1 / sqrt(3), 1 / sqrt(3), 1 / sqrt(3)
     s111 = 1 / sqrt(2 + 2 * uz) * [1 + uz, ux + im * uy]
 
@@ -100,6 +96,17 @@ function act_R_op(A0; p1 = 0.24, dir = "ZZ")
     D1 = size(A, 1)
     D2 = size(A, 2)
     A = reshape(A, D1 * D2, D1 * D2, D1 * D2, D1 * D2, size(A, 9))
+end
+
+function get_R_op(p1 = 0.24)
+    phi = p1 * pi
+    R_op = zeros(ComplexF64, 2, 2, 2, 2, 2)
+    R_op[1, 1, 1, :, :] = SI .* cos(phi)
+    R_op[2, 1, 1, :, :] = sigmax * sin(phi) 
+    R_op[1, 2, 1, :, :] = sigmay * sin(phi) 
+    R_op[1, 1, 2, :, :] = sigmaz * sin(phi) 
+
+    R_op
 end
 
 function get_Q_op()
