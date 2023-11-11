@@ -62,7 +62,7 @@ end
 
 CTMTensors(A, cfg) = CTMTensors(A, conj(A), cfg)
 function CTMTensors(A, Ad, cfg)
-    Cs, Es = init_ctm(A, Ad)
+    Cs, Es = init_ctm1(A, Ad)
     B = EmptyT()
     B_C = [B for i = 1:4]
     CTMTensors(A, Ad, Cs, Es, B, B, B_C, B_C, B_C, B_C, B_C, B_C, cfg)

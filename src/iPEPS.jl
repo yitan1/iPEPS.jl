@@ -25,8 +25,8 @@ using Optim#, LineSearches
 
 export ising, heisenberg, honeycomb
 export init_hb_gs
-export optim_gs, prepare_basis, optim_es, make_es_path, plot_band, plot_spectral, basis_dep
-export compute_gs_energy, compute_es, compute_spec_env
+export optim_gs, prepare_basis, optim_es, optim_wp, make_es_path, plot_band, plot_spectral, basis_dep
+export evaluate_wp, run_wp, compute_gs_energy, compute_es, compute_spec_env
 
 include("printing.jl")
 include("io.jl")
@@ -44,6 +44,8 @@ include("optim_gs.jl")
 include("optim_es.jl")
 include("expectation.jl")
 include("plot.jl")
+
+include("optim_wp.jl")
 
 include("_test.jl")
 

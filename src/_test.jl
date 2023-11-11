@@ -16,8 +16,9 @@ function get_vison(D; p1=0.24, p2=0.0)
 
     T = tcon([Q_op, s111], [[-1,-2,-3,-4,1], [1]])
 
-    @ein T1[m1,m2,m3,m4] := T[m1,m2,p1,m4]*sigmaz[p1,m3]
-    A = tcon([T1, T], [[-1,-2,1,-5], [-3,-4,1,-6]]) # ZZ
+    @ein T1[m1,m2,m3,m4] := T[p1,m2,m3,m4]*sigmaz[p1,m1]
+    # A = tcon([T1, T], [[-1,-2,1,-5], [-3,-4,1,-6]]) # ZZ
+    A = tcon([T1, T], [[1,-1,-2,-5], [1,-3,-4,-6]]) # XX
     A = reshape(A, 2, 2, 2, 2, 4)
 
     if D == 4

@@ -11,14 +11,14 @@ dir = 0 # 0 -> default dir, string -> dir name
 D = 2
 chi = 32
 
-resume = false
+resume = true
 
 es_resume = 1 # start from which basis(>0) 
 es_num = 1    # calculate how many basis(>0)
 
 # true -> load exist basis, false -> calculate basis
 basis = false
-basis_t = "cut" # "default", "gauge", "cut", "unit"
+basis_t = "default" # "default", "gauge", "cut", "unit"
 
 ad = true
 gc = true
@@ -28,9 +28,12 @@ part_save = false
 basis_cut = 1e-3
 nrmB_cut = 1e-1
 
-min_iter = 30
-max_iter = 30
+min_iter = 4
+max_iter = 10
 ad_max_iter = 4
 rg_tol = 1e-6
+
+wp = 2  #should wp_name + 1
+wp_name = "wp_1p" #basis
 
 

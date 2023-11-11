@@ -7,7 +7,12 @@ end
 
 function get_basis_name(params)
     dir = get_dir(params)
-    basis_name = "$(dir)/basis.jld2"
+    if params["wp_name"] == 0
+        basis_name = "$(dir)/basis.jld2"
+    else
+        wp_name = params["wp_name"]
+        basis_name = "$(dir)/basis_$(wp_name).jld2"
+    end
 
     basis_name
 end
@@ -30,6 +35,14 @@ function get_es_name(params, px, py)
     end
 
     es_name
+end
+
+function get_wp_name(params)
+    dir = get_dir(params)
+    wp_name = params["wp_name"]
+    wp_name1 = "$(dir)/HN_$(wp_name).jld2"
+
+    wp_name1
 end
 
 function get_dir(params)
