@@ -37,17 +37,17 @@ function wrap_svd(A, n=Inf)
 end
 
 function cutoff_matrix(u, s, v, cutoff, n)
-    # n_above_cutoff = count(>(cutoff), s / maximum(s))
-    # n = min(n, n_above_cutoff) |> Int
+    n_above_cutoff = count(>(cutoff), s / maximum(s))
+    n = min(n, n_above_cutoff) |> Int
 
     if n < Inf && size(s, 1) > n
         # if  s[n] > 1e-6
         #     new_n = count(>=(s[n] - cutoff), s)
         #     n = min(new_n, n + 10)
         # end
-        # if abs(s[n+1] - s[n]) < 1e-10
-        #     n = n + 1
-        # end
+        if abs(s[n+1] - s[n]) < 1e-10
+            n = n + 1
+        end
         u = u[:, 1:n]
         s = s[1:n]
         v = v[:, 1:n]
