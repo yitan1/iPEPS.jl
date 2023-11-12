@@ -40,7 +40,18 @@ end
 function get_wp_name(params)
     dir = get_dir(params)
     wp_name = params["wp_name"]
-    wp_name1 = "$(dir)/HN_$(wp_name).jld2"
+    if params["part_save"] 
+        wp_dir = "$(dir)/HN_$(wp_name)"
+        if ! ispath(wp_dir)
+            println("$wp_dir does not exist, and will be created")
+            mkpath(wp_dir)
+        end
+        st = params["es_resume"]
+        ed = st + params["es_num"] - 1
+        wp_name1 = "$wp_dir/$(st)_$(ed).jld2"
+    else
+        wp_name1 = "$(dir)/HN_$(wp_name).jld2"
+    end
 
     wp_name1
 end

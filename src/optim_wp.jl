@@ -70,10 +70,27 @@ function optim_wp(cfg)
     basis_dim = size(basis, 2) 
 
     wp_name = get_wp_name(ts.Params)
-    effH = zeros(ComplexF64, basis_dim, basis_dim)
-    effN = zeros(ComplexF64, basis_dim, basis_dim)
+    if  ts.Params["es_resume"] > 0 && ispath(wp_name) 
+        wp_file = load(wp_name)
+        effH = wp_file["effH"]
+        effN = wp_file["effN"]
+        fprint("load existed calculation , effH, effN in $wp_name")
+    else
+        effH = zeros(ComplexF64, basis_dim, basis_dim)
+        effN = zeros(ComplexF64, basis_dim, basis_dim)
+    end
 
     for i = 1:basis_dim
+        if i < ts.Params["es_resume"]
+            fprint(" Simulation of basis vector $(i)/$(basis_dim) existed, skip to next")
+            continue
+        end
+        if ts.Params["es_num"] > 0 && i >= (ts.Params["es_resume"] + ts.Params["es_num"])
+            fprint("\nUp to maximum simulation of basis vector $(i)/$(basis_dim) existed, end to calculation")
+            break
+        end
+        fprint("\nStarting simulation of basis vector $(i)/$(basis_dim)")
+
         @time gH, gN = get_wp_grad(ts, basis[:,i])
         effH[:, i] = transpose(conj(basis)) * gH / 2
         effN[:, i] = transpose(conj(basis)) * gN / 2
@@ -104,19 +121,20 @@ end
 
 function get_wp_grad(ts, Bi)
     B = reshape(Bi, size(ts.A))
-    # Bd = conj(B)
+    A = ts.A
 
     # (e, n), back = Zygote.pullback(x -> run_wp_exact(ts, x), B)
     if ts.Params["wp"] == 1
-        (e, n), back = Zygote.pullback(x -> run_wp1(ts, x), B)
+        f = x -> run_wp(ts, x, A, A, A)
     elseif ts.Params["wp"] == 2
-        (e, n), back = Zygote.pullback(x -> run_wp2(ts, x), B)
+        f = x -> run_wp(ts, A, x, A, A)
     elseif ts.Params["wp"] == 3
-        (e, n), back = Zygote.pullback(x -> run_wp3(ts, x), B)
+        f = x -> run_wp(ts, A, A, x, A)
     elseif ts.Params["wp"] == 4
-        (e, n), back = Zygote.pullback(x -> run_wp4(ts, x), B)
+        f = x -> run_wp(ts, A, A, A, x)
     end
-    
+
+    (e, n), back = Zygote.pullback(f, B)
     gradH = back((1, nothing))[1]
     gradN = back((nothing, 1))[1]
 
@@ -125,250 +143,107 @@ function get_wp_grad(ts, Bi)
     gradH[:], gradN[:]
 end
 
-function run_wp(ts, B)
+function run_wp(ts, B1, B2, B3, B4)
     C1, C2, C3, C4 = ts.Cs
     E1, E2, E3, E4 = ts.Es
 
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
+    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4, B1, B2, B3, B4)
+    n_dm = reshape(n_dm, prod(size(n_dm)[1:4]), :)
 
-    psi1, psi2, psi3, psi4, npsi = get_A3B(ts.A, B)
+    w_op = get_w_op()
+    wp = tr(w_op*n_dm)
+    nB = tr(n_dm)
 
-    wpsi1 = act_wp(psi1)
-    wpsi2 = act_wp(psi2)
-    wpsi3 = act_wp(psi3)
-    wpsi4 = act_wp(psi4)
-
-    w1, n1 = get_wp(n_dm, psi1, wpsi1)
-    w2, n2 = get_wp(n_dm, psi2, wpsi2)
-    w3, n3 = get_wp(n_dm, psi3, wpsi3)
-    w4, n4 = get_wp(n_dm, psi4, wpsi4)
-
-    # nA = get_wp(n_dm, npsi, npsi)
-
-    wp = w1 .+ w2 .+ w3 .+ w4
-    # wp = w1 .+ w2
-    nB = (n1 .+ n2 .+ n3 .+ n4)/4
-    # nB = (n1 .+ n2)/2
-
-    fprint("w1: $(w1/nB)    n1: $(n1)\nw2: $(w2/nB)    n2: $(n2)\nw3: $(w3/nB)    n3: $(n3)\nw4: $(w4/nB)    n4: $(n4)")
+    fprint("wp: $(wp/nB)    nB: $(nB)")
 
     wp, nB
 end
-function run_wp1(ts, B)
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
 
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
+function run_wp_all(ts, B)
+    A = ts.A
+    w1, n1 = run_wp(ts, B, A, A, A)
+    w2, n2 = run_wp(ts, A, B, A, A)
+    w3, n3 = run_wp(ts, A, A, B, A)
+    w4, n4 = run_wp(ts, A, A, A, B)
 
-    psi1, psi2, psi3, psi4, npsi = get_A3B(ts.A, B)
+    fprint("w1: $(w1/n1)    n1: $(n1)\nw2: $(w2/n2)    n2: $(n2)\nw3: $(w3/n3)    n3: $(n3)\nw4: $(w4/n4)    n4: $(n4)")
 
-    wpsi1 = act_wp(psi1)
-
-    w1, n1 = get_wp(n_dm, psi1, wpsi1)
-
-    # nA = get_wp(n_dm, npsi, npsi)
-    wp = w1
-    nB = n1 
-
-    fprint("w1: $(w1/nB)    n1: $(n1)")
-
-    wp, nB
+    w1, w2, w3, w4, n1, n2, n3, n4
 end
-function run_wp2(ts, B)
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
 
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
-
-    psi1, psi2, psi3, psi4, npsi = get_A3B(ts.A, B)
-
-    wpsi2 = act_wp(psi2)
-
-    w2, n2 = get_wp(n_dm, psi2, wpsi2)
-
-    # nA = get_wp(n_dm, npsi, npsi)
-    wp = w2
-    nB = n2 
-
-    fprint("w2: $(w2/nB)    n2: $(n2)")
-
-    wp, nB
-end
-function run_wp3(ts, B)
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
-
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
-
-    psi1, psi2, psi3, psi4, npsi = get_A3B(ts.A, B)
-
-    wpsi3 = act_wp(psi3)
-
-    w3, n3 = get_wp(n_dm, psi3, wpsi3)
-
-    # nA = get_wp(n_dm, npsi, npsi)
-    wp = w3
-    nB = n3
-
-    fprint("w3: $(w3/nB)    n3: $(n3)")
-
-    wp, nB
-end
-function run_wp4(ts, B)
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
-
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
-
-    psi1, psi2, psi3, psi4, npsi = get_A3B(ts.A, B)
-
-    wpsi4 = act_wp(psi4)
-
-    w4, n4 = get_wp(n_dm, psi4, wpsi4)
-
-    # nA = get_wp(n_dm, npsi, npsi)
-    wp = w4
-    nB = n4
-
-    fprint("w4: $(w4/nB)    n4: $(n4)")
-
-    wp, nB
-end
 function run_wp12(ts, B)
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
-
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
-
-    psi1, psi2, psi3, psi4, npsi = get_A3B(ts.A, B)
-
-    wpsi1 = act_wp(psi1)
-    wpsi2 = act_wp(psi2)
-
-    w1, n1 = get_wp(n_dm, psi1, wpsi1)
-    w2, n2 = get_wp(n_dm, psi2, wpsi2)
-
-    # nA = get_wp(n_dm, npsi, npsi)
-    wp = w1 .+ w2
-    nB = (n1 .+ n2)/2
-
-    fprint("w1: $(w1/nB)    n1: $(n1)\nw2: $(w2/nB)    n2: $(n2)")
-
-    wp, nB
 end
-
 function run_wp13()
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
-
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
-
-    psi1, psi2, psi3, psi4, npsi = get_A3B(ts.A, B)
-
-    wpsi1 = act_wp(psi1)
-    wpsi3 = act_wp(psi3)
-
-    w1, n1 = get_wp(n_dm, psi1, wpsi1)
-    w3, n3 = get_wp(n_dm, psi3, wpsi3)
-
-    # nA = get_wp(n_dm, npsi, npsi)
-
-    wp = w1 .+ w3
-    nB = (n1 .+ n3)/2
-
-    fprint("w1: $(w1/nB)    n1: $(n1)\nw3: $(w3/nB)    n3: $(n3)\n")
-
-    wp, nB
 end
 function run_wp23()
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
+end
+"""
+    get_dm4
 
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:8]), :)
+return density matrix(d^4,d^4) of following diagram
+```
+C1 --  E1 -- E1 -- C2
+|      | v   | v    |
+E4 --  B1 -- B3 -- E2
+|      | v   | v    |
+E4 --  B2 -- B4 -- E2  
+|      |     |      |
+C4 --  E3 -- E3 -- C3
+```
+"""
+function get_dm4(C1, C2, C3, C4, E1, E2, E3, E4, B1, B2, B3, B4)
+    block1 = begin
+        C1E1 = tcon([C1, E1], [[-1,1], [1,-2,-3,-4]])
+        CEE4 = tcon([C1E1, E4], [[1,-2,-3,-5], [1,-1,-4,-6]])
+        CEEB = tcon([CEE4, B1], [[-1,-2,1,2,-3,-4], [1,2,-5,-6,-7]])
+        tcon([CEEB, conj(B1)], [[-1,-2, 1,2, -3,-4,-7], [1,2,-5,-6,-8]])
+    end
 
-    psi1, psi2, psi3, psi4, npsi = get_A3B(ts.A, B)
+    block2 = begin
+        C4E3 = tcon([C4, E3], [[-1,1], [1,-2,-3,-4]])
+        CEE4 = tcon([C4E3, E4], [[1,-2,-4,-6],[-1,1,-3,-5]])
+        CEEB = tcon([CEE4, B2], [[-1,-2,1,2,-3,-4], [-5,1, 2,-6,-7]])
+        tcon([CEEB, conj(B2)], [[-1,-2,1,2,-3,-4,-7], [-5,1, 2,-6,-8]])
+    end
+    block_L = tcon([block1, block2], [[1,-1,2,-3,3,-5,-7,-9], [1,-2,2,-4,3,-6,-8,-10]])
 
-    wpsi2 = act_wp(psi2)
-    wpsi3 = act_wp(psi3)
+    block3 = begin
+        C2E1 = tcon([C2, E1], [[1,-2], [-1, 1, -3, -4]])
+        CEE2 = tcon([C2E1, E2], [[-1,1,-3,-5], [1,-2,-4,-6]])
+        CEEB = tcon([CEE2, B3], [[-1,-2,1,2,-3,-4], [1,-5,-6, 2,-7]])
+        tcon([CEEB, conj(B3)], [[-1,-2,1,2,-3,-4,-7], [1,-5,-6,2,-8]])
+    end
 
-    w2, n2 = get_wp(n_dm, psi2, wpsi2)
-    w3, n3 = get_wp(n_dm, psi3, wpsi3)
+    block4 = begin
+        C3E3 = tcon([C3, E3], [[-1,1], [-2,1,-3,-4]])
+        CEE2 = tcon([C3E3, E2], [[1,-2,-3,-5], [-1,1,-4,-6]])
+        CEEB = tcon([CEE2, B4], [[-1,-2,1,2,-3,-4], [-5,-6, 1,2,-7]])
+        tcon([CEEB, conj(B4)], [[-1,-2,1,2,-3,-4,-7], [-5,-6, 1,2,-8]])
+    end
 
-    # nA = get_wp(n_dm, npsi, npsi)
+    block_R = tcon([block3, block4], [[-1,1,-3,2,-5,3,-7,-9], [1,-2,2,-4,3,-6,-8,-10]])
 
-    wp = w2 .+ w3
-    nB = (n2 .+ n3)/2
+    dm4 = tcon([block_L, block_R], [[1,2,3,4,5,6,-1,-2,-5,-6], [1,2,3,4,5,6,-3,-4,-7,-8]])
 
-    fprint("w2: $(w2/nB)    n2: $(n2)\nw3: $(w3/nB)    n3: $(n3)\n")
-
-    wp, nB
+    dm4
 end
 """
     w1 - w3
     |     |
     w2 - w4
 """
-function get_A3B(A, B)
-    D = size(A, 1)
-    d = size(A, 5)
+function get_w_op()
+    w1 = tout(sI, sigmax)
+    w2 = tout(sigmaz, sigmay)
+    w3 = tout(sigmay, sigmaz)
+    w4 = tout(sigmax, sI)
 
-    psi1 = get_AB(B, A, A, A)
-    psi1 = reshape(psi1 , D^8, d, d, d, d)
+    wp = tout(tout(tout(w1, w2), w3), w4)
 
-    psi2 = get_AB(A, B, A, A)
-    psi2 = reshape(psi2 , D^8, d, d, d, d)
-
-    psi3 = get_AB(A, A, B, A)
-    psi3 = reshape(psi3 , D^8, d, d, d, d)
-
-    psi4 = get_AB(A, A, A, B)
-    psi4 = reshape(psi4 , D^8, d, d, d, d)
-
-    npsi = get_AB(A, A, A, A)
-    npsi = reshape(npsi, D^8, d, d, d, d)
-
-    return psi1, psi2, psi3, psi4, npsi
+    wp
 end
 
-function get_AB(A, B, C, D)
-    AB = tcon([A, B], [[-1,-2, 1,-5,-7], [1,-3,-4,-6,-8]])
-    CD = tcon([C, D], [[-1,-2, 1,-5,-7], [1,-3,-4,-6,-8]])
-
-    ABCD = tcon([AB, CD], [[-1,-3,-4,-5,1,2,-9,-10], [-2,1,2,-6,-7,-8,-11,-12]])
-
-    ABCD
-end
-
-function act_wp(psi)
-    w1 = iPEPS.tout(sI, sigmax)
-    w2 = iPEPS.tout(sigmaz, sigmay)
-    w3 = iPEPS.tout(sigmay, sigmaz)
-    w4 = iPEPS.tout(sigmax, sI)
-
-    @ein wpsi[m1, m2, m3, m4, m5] := psi[m1, p1, p2, p3, p4] * w1[m2, p1] * w2[m3, p2] * w3[m4, p3] * w4[m5, p4];
-
-    wpsi
-end
-
-function get_wp(n_dm, psi, wpsi)
-    psi = reshape(psi, size(psi,1), :)
-    psid = conj(psi)
-    wpsi = reshape(wpsi, size(wpsi,1), :)
-
-    wp = tr(transpose(wpsi) * n_dm * psid)
-
-    n = tr(transpose(psi) * n_dm * psid)
-    # @show wp, n
-    wp, n
-end
+###############################################################################
 
 function run_wp_exact(ts, B)
     Bi = reshape(B, size(ts.A));
