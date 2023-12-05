@@ -1,6 +1,6 @@
 using CairoMakie
-s1 = iPEPS.sigmaz
-s2 = iPEPS.sigmaz
+s1 = iPEPS.sigmax
+s2 = iPEPS.sI
 op1 = iPEPS.tout(s1, s2)
 op2 = iPEPS.tout(s2, s1)
 pxs, pys = make_es_path()
@@ -10,13 +10,22 @@ envB1, basis = compute_spec_env(op1, px, py, "");
 envB2, _ = compute_spec_env(op2, px, py, "");
 # Bop = Bop = iPEPS.tcon([ts.A, op1], [[-1,-2,-3,-4,1], [-5,1]])
 
+ts.A[:]'*envB1[:]
+ts.A[:]'*envB2[:]
+Aop1 = iPEPS.tcon([ts.A, op1], [[-1,-2,-3,-4,1], [-5,1]]);
+Aop2 = iPEPS.tcon([ts.A, op2], [[-1,-2,-3,-4,1], [-5,1]]);
+Aop1[:]'*envB1[:]
+Aop1[:]'*envB2[:]
+Aop2[:]'*envB1[:]
+Aop2[:]'*envB2[:]
+
 es, vecs, P = compute_es(px, py, ""; disp = true);
 exci_n = basis*P*vecs;
 # wka = Bop[:]' * envB1[:]
 wka = exci_n' * envB1[:];
 wkb = exci_n' * envB2[:];
 a = exp(-im*(px+py)/3)
-swk0 = wka.* conj(wka) + wkb.*conj(wkb) + wka.*conj(wkb).*a + wkb .*conj(wka).*conj(a) .|> real; # exp 
+swk0 = wka.* conj(wka) + wkb.*conj(wkb) + wka.*conj(wkb).*a + wkb .*conj(wka).*conj(a);# .|> real; # exp 
 
 x, y = plot_spectral(es[1:end], swk0[1:end], factor = 0.1)
 

@@ -14,7 +14,7 @@ chi = 32
 resume = true
 
 es_resume = 1 # start from which basis(>0) 
-es_num = 1    # calculate how many basis(>0)
+es_num = 0    # calculate how many basis(>0)
 
 # true -> load exist basis, false -> calculate basis
 basis = false
@@ -33,7 +33,7 @@ max_iter = 10
 ad_max_iter = 4
 rg_tol = 1e-6
 
-wp = 2  #should wp_name + 1
-wp_name = "wp_1p" #basis
+wp = 1  #should wp_name + 1
+wp_name = 0 #basis
 
 

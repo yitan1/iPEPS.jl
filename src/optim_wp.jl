@@ -168,7 +168,10 @@ function run_wp_all(ts, B)
 
     fprint("w1: $(w1/n1)    n1: $(n1)\nw2: $(w2/n2)    n2: $(n2)\nw3: $(w3/n3)    n3: $(n3)\nw4: $(w4/n4)    n4: $(n4)")
 
-    w1, w2, w3, w4, n1, n2, n3, n4
+    wp = w1 + w2 + w3 + w4
+    nB = (n1 + n2 + n3 + n4)/4
+
+    wp, nB
 end
 
 function run_wp12(ts, B)

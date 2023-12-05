@@ -45,6 +45,42 @@ function honeycomb(Jx=1, Jy=1; Jz = 1, dir = "ZZ")
     [-hh, -hv]
 end
 
+function honeycomb_h4()
+    II = tout(SI, SI)
+    Iy = tout(SI, sigmay)
+    yI = tout(sigmay, SI)
+    Iz = tout(SI, sigmaz)
+    zI = tout(sigmaz, SI)
+    xx = tout(sigmax, sigmax)
+
+    h1 = tout(tout(Iy, yI) , tout(II, II))
+    h2 = tout(tout(II, II), tout(Iy, yI))
+    h3 = tout(tout(Iz, II), tout(zI, II))
+    h4 = tout(tout(II, Iz), tout(II, zI))
+    h5 = tout(tout(II, xx), tout(II, II))
+    h6 = tout(tout(II, II), tout(xx, II))
+    # h7 = tout(tout(xx, II), tout(II, II))
+    # h8 = tout(tout(II, II), tout(II, xx))
+    h = -h1 .- h3 .- h5 .- h2 .- h4 .- h6
+    h./2
+end
+
+function compute_gs4(ts, H)
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+
+    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4, ts.A, ts.A, ts.A, ts.A)
+    n_dm = reshape(n_dm, prod(size(n_dm)[1:4]), :)
+
+    N = tr(n_dm)
+    n_dm = n_dm./N
+    e0 = tr(H*n_dm)
+
+    iPEPS.fprint("E0: $e0    N: $(N)")
+
+    e0, N
+end
+
 # TODO
 function init_hb_gs(D=4; p1=0.24, p2=0.0, dir = "ZZ")
     Q_op = get_Q_op()

@@ -54,8 +54,12 @@ function basis_dep(n, px, py, filename::String)
     es, vecs
 end
 
-function plot_spectral(es, swk0; step = 0.1, factor = 0.04)
-    x_max = ceil(maximum(es))
+function plot_spectral(es, swk0; step = 0.1, factor = 0.04, maximum = 0)
+    if maximum > 0
+        x_max = maximum
+    else
+        x_max = ceil(maximum(es))
+    end
     x = 0:step:x_max
 
     y =  [lor_broad(x[i], es, swk0, factor) for i in eachindex(x)]

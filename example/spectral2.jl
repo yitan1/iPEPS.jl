@@ -7,14 +7,14 @@ pxs, pys = make_es_path()
 n = 20
 px, py = pxs[n], pys[n]
 
-ts = load("simulation/hb_g11_D4_X64/basis.jld2")["ts"];
+ts = load("simulation/hb_g11_D2_X32/basis.jld2")["ts"];
 # basis = load("simulation/hb_g11_D2_X32/basis.jld2", "basis")
 # H = load("simulation/hb_g11_D2_X32/basis.jld2", "H")
 # ts.Params["max_iter"] = 30
 # ts.Params["chi"] = 96
 
 es, vecs, P, envB = compute_es(px, py, ""; disp = true);
-exci_n = basis*P*vecs;
+# exci_n = basis*P*vecs;
 
 # B1 = reshape(exci_n[:,20], size(ts.A))
 # # B1 = reshape(basis[:,10], size(ts.A))
@@ -26,8 +26,8 @@ exci_n = basis*P*vecs;
 
 # _, env_B =iPEPS.get_all_norm(ts1)
 
-op1A = iPEPS.tcon([A, op1], [[-1,-2,-3,-4,1], [-5,1]])
-op2A = iPEPS.tcon([A, op2], [[-1,-2,-3,-4,1], [-5,1]]);
+op1A = iPEPS.tcon([ts.A, op1], [[-1,-2,-3,-4,1], [-5,1]])
+op2A = iPEPS.tcon([ts.A, op2], [[-1,-2,-3,-4,1], [-5,1]]);
 
 wka = op1A[:]'*envB*P*vecs
 wkb = op2A[:]'*envB*P*vecs

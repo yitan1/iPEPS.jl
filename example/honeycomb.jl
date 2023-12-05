@@ -1,17 +1,17 @@
 using iPEPS
 using JLD2, TOML
 # using MKL
-# using Random  
+using Random  
 
-# rng = MersenneTwister(4);
-# D = 2
-# A = randn(rng, Float64, D,D,D,D,4);
+rng = MersenneTwister(3);
+D = 2
+A = randn(rng, ComplexF64, D,D,D,D,4);
 # A = iPEPS.get_symmetry(A)
 
 A = iPEPS.init_hb_gs(2, p1 = 0.24, p2 = 0, dir = "XX");
 jldsave("simulation/hb_g11_D2_X32/gs.jld2", A = A)
 H = iPEPS.honeycomb(1, 1,dir = "XX");
-# res = optim_gs(H, A, "")
+res = optim_gs(H, A, "")
 
 prepare_basis(H, "")
 
@@ -20,10 +20,28 @@ n = 20
 px, py = pxs[n], pys[n]
 optim_es(px, py, "");
 
+optim_wp("")
+
+es, vecs, P = evaluate_wp("")
+
+basis = load("simulation/hb_g11_D2_X32/basis.jld2", "basis")
+ts = load("simulation/hb_g11_D2_X32/basis.jld2", "ts");
+exci_n = basis*P*vecs;
+
+selected = es .> 0
+nbasis = exci_n[:, selected]
+
+f = load("simulation/hb_g11_D2_X32/basis.jld2")
+
+jldsave("simulation/hb_g11_D2_X32/basis.jld2", basis = basis, ts = ts, H = H)
+
+B = reshape(exci_n[:,1], size(ts.A));
+iPEPS.run_wp_all(ts, B)
+
 ##################
 
 H = load("simulation/hb_g11_D2_X32/basis.jld2", "H")
-A = iPEPS.init_hb_gs(2)
+A = iPEPS.init_hb_gs(2, dir = "XX")
 # A = iPEPS.
 cfg = TOML.parsefile("src/default_config.toml")
 ts = iPEPS.CTMTensors(A, cfg);
@@ -120,8 +138,32 @@ nB = iPEPS.tcon([n_dm, B], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]]);
 
 B[:]'*nB[:]
 
+A = init_hb_gs(4, p1 = 0.24, p2 = 0, dir = "XX");
+rng = MersenneTwister(4);
+A = randn(rng, ComplexF64, size(A))
+op = iPEPS.tout(iPEPS.sigmax, iPEPS.sI)
+opA = iPEPS.tcon([A, op], [[-1,-2,-3,-4,1], [-5,1]]);
 
-A = iPEPS.init_hb_gs(2, p1 = 0.342, p2 = 0.176)
-A1 = reshape(A, 8, :)
+cfg = TOML.parsefile("src/default_config.toml")
+ts = iPEPS.CTMTensors(A, cfg);
 
-svd(A1)
+conv_fun(_x) = iPEPS.get_gs_energy1(_x, H)[1]
+ts, _ = iPEPS.run_ctm(ts, conv_fun = conv_fun);
+ts = load("simulation/hb_g11_D2_X32/basis.jld2", "ts");
+iPEPS.run_wp_all(ts, A)
+
+C1, C2, C3, C4 = ts.Cs
+E1, E2, E3, E4 = ts.Es
+n_dm = iPEPS.get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4);
+ndm_Ad = iPEPS.tcon([n_dm, ts.Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
+nrm0 = iPEPS.tcon([ndm_Ad, ts.A], [[1,2,3,4,5], [1,2,3,4,5]])
+e0 = iPEPS.tcon([ndm_Ad, opA], [[1,2,3,4,5], [1,2,3,4,5]])
+e0[]./nrm0[]
+
+A1 = permutedims(A, (2,3,4,1,5))
+jldsave("gs_A.jld2", A = A1, op = op)
+
+
+ts = iPEPS.convert_order_to(ts);
+ts1 = iPEPS.convert_order_back(ts);
+ts.Cs[1] == ts.Cs[2]
