@@ -28,29 +28,42 @@ export init_hb_gs
 export optim_gs, prepare_basis, optim_es, optim_wp, make_es_path, plot_band, plot_spectral, basis_dep
 export evaluate_wp, run_wp, compute_gs_energy, compute_es, compute_spec_env
 
-include("printing.jl")
-include("io.jl")
-include("tcon.jl")
-include("model.jl")
-include("svd_ad.jl")
+# utility
+include("utility/wrapper.jl")
+include("utility/io.jl")
+include("utility/autodiff.jl")
+
+# nested_tensor
+include("nested_tensor/nested_tensor.jl")
+include("nested_tensor/emptyT.jl")
+
+# model
+include("model/model.jl")
+include("model/basis.jl")
+include("model/ising.jl")
+include("model/heisenberg.jl")
+include("model/honeycomb.jl")
+# include("model/pepo.jl")
+
+# ctm
+include("ctm/ctm_tensor.jl")
+include("ctm/ctmrg.jl")
+# include("ctm/@ctmrgstep.jl")
+
+# graph
+include("graph/expectation.jl")
+include("graph/evaluation.jl")
+
+# optimize
+include("optimize/optim_gs.jl")
+include("optimize/optim_es.jl")
+include("optimize/optim_wp.jl")
+
+
 include("basis.jl")
-include("emptyT.jl")
-include("nested_tensor.jl")
-include("ctm_tensor.jl")
-include("ctmrg.jl")
-# include("ctmrgstep.jl")
-include("evaluation.jl")
-# include("getCT.jl")
-include("optim_gs.jl")
-include("optim_es.jl")
-include("expectation.jl")
+
 include("plot.jl")
-
-include("optim_wp.jl")
-
 include("_test.jl")
-
-include("pepo.jl")
 
 # function __init__()
 #     if ispath("config.toml")

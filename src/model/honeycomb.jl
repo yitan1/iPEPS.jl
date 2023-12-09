@@ -1,35 +1,3 @@
-const Sx = Float64[0 1; 1 0] / 2
-const Sy = ComplexF64[0 -1im; 1im 0] / 2
-const Sz = Float64[1 0; 0 -1] / 2
-const SI = Float64[1 0; 0 1]
-# sp = [0 1; 0 0]
-# sm = [0 0; 1 0]
-const sigmax = Float64[0 1; 1 0]
-const sigmay = ComplexF64[0 -1im; 1im 0]
-const sigmaz = Float64[1 0; 0 -1]
-const sI = Float64[1 0; 0 1]
-
-function tout(a, b)
-    c = tcon([a, b], [[-1, -3], [-2, -4]])
-    dim = size(c)
-    c = reshape(c, dim[1] * dim[2], dim[3] * dim[4])
-    return c
-end
-
-function ising(h)
-    # H = -tout(Sx, Sx)*2 .- h * tout(Sz, SI) / 2  .- h * tout(SI, Sz) / 2 
-    H = -tout(sigmax, sigmax) .- h * tout(sigmaz, SI) / 2 / 2 .- h * tout(SI, sigmaz) / 2 / 2
-    # H = -tout(Sz, Sz) .+ h * tout(Sx, SI) / 2 / 2 .+ h * tout(SI, Sx) / 2 / 2
-
-    [H, H]
-end
-
-function heisenberg(Jz=1)
-    H = Jz * tout(Sz, Sz) - tout(Sx, Sx) - tout(Sy, Sy)
-
-    [H, H]
-end
-
 function honeycomb(Jx=1, Jy=1; Jz = 1, dir = "ZZ")
     if dir == "ZZ"
         hv = Jx * tout(tout(SI, sigmax), tout(sigmax, SI)) .+ (tout(tout(sigmaz, sigmaz), tout(SI, SI)) .+ tout(tout(SI, SI), tout(sigmaz, sigmaz))) / 2 / 2 .|> real
@@ -63,22 +31,6 @@ function honeycomb_h4()
     # h8 = tout(tout(II, II), tout(II, xx))
     h = -h1 .- h3 .- h5 .- h2 .- h4 .- h6
     h./2
-end
-
-function compute_gs4(ts, H)
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
-
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4, ts.A, ts.A, ts.A, ts.A)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:4]), :)
-
-    N = tr(n_dm)
-    n_dm = n_dm./N
-    e0 = tr(H*n_dm)
-
-    iPEPS.fprint("E0: $e0    N: $(N)")
-
-    e0, N
 end
 
 # TODO

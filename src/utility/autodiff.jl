@@ -1,5 +1,11 @@
-###### Copy from the pkg of BackwardsLinalg 
+# @Zygote.nograd time
+ChainRulesCore.@non_differentiable time(::Any...)
+ChainRulesCore.@non_differentiable Printf.format(::Any...)
+ChainRulesCore.@non_differentiable append!(::Any...)
+# ChainRulesCore.@non_differentiable maximum(::Any...)
+ChainRulesCore.@non_differentiable get(::Any...)
 
+###### Copy from the pkg of BackwardsLinalg 
 struct ZeroAdder end
 
 Base.:+(a, zero::ZeroAdder) = a
