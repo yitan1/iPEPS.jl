@@ -32,6 +32,7 @@ export evaluate_wp, run_wp, compute_gs_energy, compute_es, compute_spec_env
 include("utility/wrapper.jl")
 include("utility/io.jl")
 include("utility/autodiff.jl")
+include("utility/config.jl")
 
 # nested_tensor
 include("nested_tensor/nested_tensor.jl")
@@ -43,6 +44,7 @@ include("model/basis.jl")
 include("model/ising.jl")
 include("model/heisenberg.jl")
 include("model/honeycomb.jl")
+include("model/hb_B.jl")
 # include("model/pepo.jl")
 
 # ctm

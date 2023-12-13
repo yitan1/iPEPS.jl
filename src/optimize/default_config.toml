@@ -9,9 +9,9 @@ model = "hb"
 dir = 0 # 0 -> default dir, string -> dir name
 
 D = 2
-chi = 32
+chi = 64
 
-resume = true
+resume = false
 
 es_resume = 1 # start from which basis(>0) 
 es_num = 0    # calculate how many basis(>0)
@@ -28,8 +28,8 @@ part_save = false
 basis_cut = 1e-3
 nrmB_cut = 1e-1
 
-min_iter = 4
-max_iter = 10
+min_iter = 12
+max_iter = 12
 ad_max_iter = 4
 rg_tol = 1e-6
 

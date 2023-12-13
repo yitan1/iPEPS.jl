@@ -119,3 +119,19 @@ function run_gs(ts::CTMTensors, H, A)
     # fprint("E: $E, N: $N")
     gs_E
 end
+
+function get_e0_4x4(ts, H)
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+
+    n_dm = iPEPS.get_dm4(C1, C2, C3, C4, E1, E2, E3, E4, ts.A, ts.A, ts.A, ts.A)
+    n_dm = reshape(n_dm, prod(size(n_dm)[1:4]), :)
+
+    nB = tr(n_dm)
+    n_dm = n_dm./nB
+    e0 = tr(H*n_dm)
+
+    # iPEPS.fprint("E0: $e0    nB: $(nB)")
+
+    e0, nB
+end
