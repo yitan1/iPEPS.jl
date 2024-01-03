@@ -23,7 +23,7 @@ using Optim#, LineSearches
 
 # __precompile__(false)
 
-export ising, heisenberg, honeycomb
+export ising, heisenberg, honeycomb, hb_xx_k
 export init_hb_gs
 export optim_gs, prepare_basis, optim_es, optim_wp, make_es_path, plot_band, plot_spectral, basis_dep
 export evaluate_wp, run_wp, compute_gs_energy, compute_es, compute_spec_env
