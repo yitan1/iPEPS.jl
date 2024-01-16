@@ -54,9 +54,9 @@ function basis_dep(n, px, py, filename::String)
     es, vecs
 end
 
-function plot_spectral(es, swk0; step = 0.1, factor = 0.04, maximum = 0)
-    if maximum > 0
-        x_max = maximum
+function plot_spectral(es, swk0; step = 0.1, factor = 0.04, x_max = 0)
+    if max > 0
+        x_max = x_max
     else
         x_max = ceil(maximum(es))
     end

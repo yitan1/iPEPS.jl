@@ -28,8 +28,8 @@ part_save = false
 basis_cut = 1e-3
 nrmB_cut = 1e-1
 
-min_iter = 12
-max_iter = 12
+min_iter = 4
+max_iter = 50
 ad_max_iter = 4
 rg_tol = 1e-6
 

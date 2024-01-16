@@ -4,13 +4,13 @@ using JLD2, TOML
 using Random  
 
 rng = MersenneTwister(3);
-D = 2
-A = randn(rng, ComplexF64, D,D,D,D,4);
+D = 4
+A = randn(rng,  D,D,D,D,4);
 # A = iPEPS.get_symmetry(A)
 
 A = iPEPS.init_hb_gs(2, p1 = 0.24, p2 = 0, dir = "XX");
 jldsave("simulation/hb_g11_D2_X32/gs.jld2", A = A)
-H = iPEPS.honeycomb(1, 1,dir = "XX");
+H = hb_xx_k(1, 1; K = 100);
 res = optim_gs(H, A, "")
 
 prepare_basis(H, "")
@@ -41,10 +41,14 @@ iPEPS.run_wp_all(ts, B)
 ##################
 
 H = load("simulation/hb_g11_D2_X32/basis.jld2", "H")
-A = iPEPS.init_hb_gs(2, dir = "XX")
+A = iPEPS.init_hb_gs(4, dir = "XX")
 # A = iPEPS.
-cfg = TOML.parsefile("src/default_config.toml")
+cfg = TOML.parsefile("src/optimize/default_config.toml")
 ts = iPEPS.CTMTensors(A, cfg);
+
+h1 = honeycomb(1,1; dir = "XX")
+h2 = hb_xx_k(1,1; K = 1)
+compute_gs_energy(A, h1, cfg)
 
 conv_fun(_x) = iPEPS.get_gs_energy(_x, H)[1]
 # conv_fun(_x) = iPEPS.get_gs_norm(_x)
@@ -144,10 +148,10 @@ A = randn(rng, ComplexF64, size(A))
 op = iPEPS.tout(iPEPS.sigmax, iPEPS.sI)
 opA = iPEPS.tcon([A, op], [[-1,-2,-3,-4,1], [-5,1]]);
 
-cfg = TOML.parsefile("src/default_config.toml")
+cfg = TOML.parsefile("src/optimize/default_config.toml")
 ts = iPEPS.CTMTensors(A, cfg);
 
-conv_fun(_x) = iPEPS.get_gs_energy1(_x, H)[1]
+conv_fun(_x) = iPEPS.get_gs_energy(_x, H)[1]
 ts, _ = iPEPS.run_ctm(ts, conv_fun = conv_fun);
 ts = load("simulation/hb_g11_D2_X32/basis.jld2", "ts");
 iPEPS.run_wp_all(ts, A)
@@ -167,3 +171,9 @@ jldsave("gs_A.jld2", A = A1, op = op)
 ts = iPEPS.convert_order_to(ts);
 ts1 = iPEPS.convert_order_back(ts);
 ts.Cs[1] == ts.Cs[2]
+
+A = load("As6_rdn.jld2", "As")
+A = permutedims(A, (4,1,2,3,5));
+H = honeycomb(1,1; dir = "XX");
+cfg = TOML.parsefile("src/optimize/default_config.toml");
+compute_gs_energy(A, H, cfg)

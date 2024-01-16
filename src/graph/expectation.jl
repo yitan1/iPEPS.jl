@@ -132,3 +132,20 @@ function compute_B_env(B, px, py, filename::String)
 
     envB
 end
+
+
+function run_4x4(ts, H)
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+
+    n_dm = iPEPS.get_dm4(C1, C2, C3, C4, E1, E2, E3, E4, ts.A, ts.A, ts.A, ts.A)
+    n_dm = reshape(n_dm, prod(size(n_dm)[1:4]), :)
+
+    nB = tr(n_dm)
+    n_dm = n_dm./nB
+    e0 = tr(H*n_dm)
+
+    fprint("E0: $e0    nB: $(nB)")
+
+    e0, nB
+end
