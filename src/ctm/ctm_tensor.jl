@@ -128,3 +128,44 @@ function init_ctm1(A, Ad)
 
     Cs, Es
 end
+
+function init_ctm2(A, Ad)
+    D = size(A,1)
+    AA = tcon([A,Ad], [[-1,-3,-5,-7,1],[-2,-4,-6,-8,1]])
+    AA = reshape(AA, D*D, D*D, D*D, D*D)
+    C1 = AA[1, 1, :, :]
+    C1 = reshape(C1, D*D, D*D)
+
+    C2 = AA[1, :, :, 1]
+    C2 = reshape(C2, D*D, D*D)
+
+    C3 = AA[:, :, 1, 1]
+    C3 = reshape(C3, D*D, D*D)
+
+    C4 = AA[:, 1, 1, :]
+    C4 = reshape(C4, D*D, D*D)
+
+    Cs = (C1, C2, C3, C4) ./ norm.((C1, C2, C3, C4))
+    Cs = Vector{typeof(C1)}([Cs[i] for i in 1:4])
+
+    E1 = AA[1, :, :, :]
+    E1 = permutedims(E1, [1,3,2])
+    E1 = reshape(E1, D*D, D*D, D, D)
+
+    E2 = AA[:, :, :, 1]
+    E2 = permutedims(E2, [1,3,2])
+    E2 = reshape(E2, D*D, D*D, D, D)
+
+    E3 = AA[:, :, 1, :]
+    E3 = permutedims(E3, [3,1,2])
+    E3 = reshape(E3, D*D, D*D, D, D)
+
+    E4 = AA[:, 1, :, :]
+    E4 = permutedims(E4, [1,2,3])
+    E4 = reshape(E4, D*D, D*D, D, D)
+
+    Es = (E1, E2, E3, E4) ./ norm.((E1, E2, E3, E4))
+    Es = Vector{typeof(E1)}([Es[i] for i in 1:4])
+
+    Cs, Es
+end

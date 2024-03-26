@@ -20,6 +20,15 @@ using Test
 end
 
 
+using iPEPS
+using JLD2, TOML
+
+A = load("As4_JK.jld2")["As"]
+
+cfg = TOML.parsefile("src/optimize/default_config.toml")
+ts = iPEPS.CTMTensors(A, cfg);
+ts, _ = iPEPS.run_ctm(ts, conv_fun = nothing);
+iPEPS.run_wp(ts, A, A, A, A)
 
 
 

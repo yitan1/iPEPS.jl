@@ -9,8 +9,9 @@ A = randn(rng,  D,D,D,D,4);
 # A = iPEPS.get_symmetry(A)
 
 A = iPEPS.init_hb_gs(2, p1 = 0.24, p2 = 0, dir = "XX");
-jldsave("simulation/hb_g11_D2_X32/gs.jld2", A = A)
+jldsave("simulation/hb_g11_D2_X64/gs.jld2", A = A)
 H = hb_xx_k(1, 1; K = 100);
+H = honeycomb(1,1; dir = "XX")
 res = optim_gs(H, A, "")
 
 prepare_basis(H, "")
@@ -156,24 +157,30 @@ ts, _ = iPEPS.run_ctm(ts, conv_fun = conv_fun);
 ts = load("simulation/hb_g11_D2_X32/basis.jld2", "ts");
 iPEPS.run_wp_all(ts, A)
 
+ts = load("simulation/hb_g11_D2_X64/basis.jld2", "ts");
+Bs = load("simulation/hb_g11_D2_X64/basis.jld2", "basis");
+
+cfg = TOML.parsefile("src/optimize/default_config.toml")
+ts = iPEPS.CTMTensors(ts.A, cfg);
+
+ts,_ = iPEPS.run_ctm(ts);
+
 C1, C2, C3, C4 = ts.Cs
 E1, E2, E3, E4 = ts.Es
 n_dm = iPEPS.get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4);
-ndm_Ad = iPEPS.tcon([n_dm, ts.Ad], [[-1,-2,-3,-4,1,2,3,4], [1,2,3,4,-5]])
-nrm0 = iPEPS.tcon([ndm_Ad, ts.A], [[1,2,3,4,5], [1,2,3,4,5]])
-e0 = iPEPS.tcon([ndm_Ad, opA], [[1,2,3,4,5], [1,2,3,4,5]])
-e0[]./nrm0[]
 
-A1 = permutedims(A, (2,3,4,1,5))
-jldsave("gs_A.jld2", A = A1, op = op)
+effN = zeros(ComplexF64, 63, 63)
+for i = 1:63
+    B = reshape(Bs[:, i], size(ts.A));
+    ndm_Ad = iPEPS.tcon([n_dm, B], [[1,2,3,4,-1,-2,-3,-4], [1,2,3,4,-5]])
+    effN[:, i] = Bs'*ndm_Ad[:]
+end
+using LinearAlgebra
+es, ev = eigen(effN)
+
 
 
 ts = iPEPS.convert_order_to(ts);
 ts1 = iPEPS.convert_order_back(ts);
 ts.Cs[1] == ts.Cs[2]
 
-A = load("As6_rdn.jld2", "As")
-A = permutedims(A, (4,1,2,3,5));
-H = honeycomb(1,1; dir = "XX");
-cfg = TOML.parsefile("src/optimize/default_config.toml");
-compute_gs_energy(A, H, cfg)
