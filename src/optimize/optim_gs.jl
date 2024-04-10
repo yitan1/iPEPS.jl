@@ -1,4 +1,4 @@
-function optim_gs(H, A0, filename::String; m = 10, g_tol=1e-6, iterations = 200)
+function optim_gs(H, A0, filename::String; m = 10, x_tol= 0.0, f_tol = 0.0, g_tol=1e-6, iterations = 200)
     # fprint("$(@__DIR__)/config.toml")
     if ispath(filename)
         cfg = TOML.parsefile(filename)
@@ -9,10 +9,10 @@ function optim_gs(H, A0, filename::String; m = 10, g_tol=1e-6, iterations = 200)
     end
     print_cfg(cfg)
 
-    optim_gs(H, A0, cfg; m = m, g_tol= g_tol, iterations = iterations)
+    optim_gs(H, A0, cfg; m = m, x_tol= x_tol, f_tol = f_tol, g_tol= g_tol, iterations = iterations)
 end
 
-function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
+function optim_gs(H, A0, cfg::Dict; m = 10,x_tol= 0.0, f_tol = 0.0, g_tol=1e-6, iterations = 200)
     energies = Float64[]
     gradnorms = Float64[]
 
@@ -99,7 +99,7 @@ function optim_gs(H, A0, cfg::Dict; m = 10, g_tol=1e-6, iterations = 200)
     # optimizer = L_BFGS_B(1024, 17)
     # res = optimizer(Optim.only_fg!(fg!), A0, m=20, factr=1e7, pgtol=1e-5, iprint=-1, maxfun=15000, maxiter=15000)
 
-    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(m=m), Optim.Options(x_tol = 0.0, f_tol = 0.0, g_tol=g_tol, callback = verbose, iterations = iterations, extended_trace = true))
+    res = optimize(Optim.only_fg!(fg!), A0, LBFGS(m=m, manifold=Optim.Sphere()), Optim.Options(x_tol = 0.0, f_tol = 1e-7, g_tol=g_tol, callback = verbose, iterations = iterations, extended_trace = true))
 
     res
 end

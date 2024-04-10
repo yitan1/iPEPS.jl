@@ -44,6 +44,7 @@ function evaluate_es(px, py, cfg::Dict)
     ev_N, P = eigen(N)
     idx = sortperm(real.(ev_N))[end:-1:1]
     ev_N = ev_N[idx]
+    # display(ev_N)
     if nrmB_cut isa Int
         selected = ev_N .> ev_N[nrmB_cut+1]
     else
@@ -73,6 +74,11 @@ function prepare_basis(H, filename::String)
     end
     print_cfg(cfg)
 
+    prepare_basis(H, cfg)
+end
+
+function prepare_basis(H, cfg0::Dict)
+    cfg = deepcopy(cfg0)
     gs_name = get_gs_name(cfg)
     if ispath(gs_name)
         A = load(gs_name, "A")
@@ -86,13 +92,12 @@ function prepare_basis(H, filename::String)
     A = renormalize(A) 
     ts = CTMTensors(A, cfg)
 
-    cfg_back = deepcopy(cfg)
     ts.Params["max_iter"] = 2*cfg["max_iter"]
     ts.Params["rg_tol"] = cfg["rg_tol"]^2
     conv_fun(_x) = get_gs_energy(_x, H)[1]
     ts, _ = run_ctm(ts, conv_fun = conv_fun)
 
-    ts = setproperties(ts, Params = cfg_back)
+    ts = setproperties(ts, Params = cfg0)
 
     ## normalize gs
     ts = normalize_gs(ts)

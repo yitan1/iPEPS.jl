@@ -7,7 +7,10 @@ function compute_es(px, py, filename::String; disp = false)
         fprint("load daufult config file")
     end
     print_cfg(cfg)
+    compute_es(px, py, cfg; disp = disp)
+end
 
+function compute_es(px, py, cfg::Dict; disp = false)
     es_name = get_es_name(cfg, px, py)
     es_file = load(es_name)
     effH = es_file["effH"]

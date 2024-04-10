@@ -1,46 +1,53 @@
 using iPEPS
 using Random  
 # using MKL
+using TOML
 
-H = ising(2.5);
+function compute(h)
+    cfg = TOML.parsefile("src/optimize/default_config.toml")
+    cfg["out_prefix"] = "h$h"
+    H = ising(h);
+    rng = MersenneTwister(3);
+    A = randn(rng, Float64, 2,2,2,2,2);
+    res = optim_gs(H, A, cfg)
 
-rng = MersenneTwister(3);
+    if !res.ls_success
+        println("Line search failed")
+        return false
+    end
+    prepare_basis(H, cfg)
+    optim_es(0, 0, cfg)
+    return true
+end
 
+h = 2.8
+cfg = TOML.parsefile("src/optimize/default_config.toml")
+cfg["out_prefix"] = "h$h"
+H = ising(h);
+rng = MersenneTwister(2);
 A = randn(rng, Float64, 2,2,2,2,2);
+res = optim_gs(H, A, cfg; f_tol = 1e-6)
 
-res = optim_gs(H, A, "")
+prepare_basis(H, cfg)
+optim_es(0, 0, cfg)
 
-prepare_basis(H, "")
+
+cfg["out_prefix"] = "h0.1"
+cfg["nrmB_cut"] = 6
+es, _ = iPEPS.evaluate_es(0,0,cfg)
 
 px, py = make_es_path()
 for i in 1:34 
-    if i in [30, 5, 10, 15, 20, 25]
-        continue
-    end
+    # if i in [30]
+    #     continue
+    # end
     optim_es(px[i], py[i], "")
 end
-es, _ = iPEPS.evaluate_es(px[25], py[25], "")
+es, _ = iPEPS.evaluate_es(px[30], py[30], "")
+optim_es(1,0,"")
+es, _ = iPEPS.evaluate_es(0,0,"")
 
-n = 5
-E = plot_band(n, "")
 
-using CairoMakie
-f = Figure()
-ax = Axis(f[1, 1])
-for i = 1:n
-    # x = collect(1:size(E,2))
-    y = E[i,:]
-    lines!(ax, y)
-end
-f
-
-op = iPEPS.Sz
-es, swk0 = compute_spectral(op, .0, .0, "")
-
-x, y = plot_spectral(es, swk0)
-lines(x, y)
-
-optim_es(0, 0, "")
 
 ts = load("simulation/ising_25_D2_X32/basis.jld2")["ts"];
 basis = load("simulation/ising_25_D2_X32/basis.jld2", "basis")

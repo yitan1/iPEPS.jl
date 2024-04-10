@@ -3,13 +3,13 @@
 # max_iter = 100
 
 # [ctmrg]
-out_prefix = "g11"
-model = "hb"
+out_prefix = "h2.5"
+model = "ising"
 
 dir = 0 # 0 -> default dir, string -> dir name
 
 D = 2
-chi = 64
+chi = 32
 
 resume = false
 
@@ -26,10 +26,10 @@ save = true
 part_save = false
 
 basis_cut = 1e-3
-nrmB_cut = 1e-1
+nrmB_cut = 24
 
 min_iter = 4
-max_iter = 50
+max_iter = 20
 ad_max_iter = 4
 rg_tol = 1e-6
 
