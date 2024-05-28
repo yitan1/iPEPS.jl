@@ -3,8 +3,8 @@
 # max_iter = 100
 
 # [ctmrg]
-out_prefix = "h2.5"
-model = "ising"
+out_prefix = "test"
+model = "test"
 
 dir = 0 # 0 -> default dir, string -> dir name
 
@@ -19,14 +19,14 @@ es_num = 0    # calculate how many basis(>0)
 # true -> load exist basis, false -> calculate basis
 basis = false
 basis_t = "default" # "default", "gauge", "cut", "unit"
+basis_cut = 1e-3 # when basis_t = "cut", float
 
 ad = true
 gc = true
 save = true
 part_save = false
 
-basis_cut = 1e-3
-nrmB_cut = 24
+nrmB_cut = 1e-3 # float or Int
 
 min_iter = 4
 max_iter = 20

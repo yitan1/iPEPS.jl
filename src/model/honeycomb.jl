@@ -86,6 +86,29 @@ function act_R_op(A0; p1 = 0.24, dir = "ZZ")
     A = reshape(A, D1 * D2, D1 * D2, D1 * D2, D1 * D2, size(A, 9))
 end
 
+function act_Q_op(A0; add = 0)
+    Q_op = get_Q_op()
+    if add == 1 # XX bond
+        Q_op1 = tcon([Q_op, sigmax], [[1,-2,-3,-4,-5], [1,-1]])
+    elseif add == 2 # YY bond
+        Q_op1 = tcon([Q_op, sigmay], [[-1,1,-3,-4,-5], [1,-2]])
+    elseif add == 3 # ZZ bond
+        Q_op1 = tcon([Q_op, sigmaz], [[-1,-2,1,-4,-5], [1,-3]])
+    elseif add == 0 
+        Q_op1 = Q_op
+    end
+    QQ = tcon([Q_op1, Q_op], [[-1,-2,1,-5,-7], [-3,-4,1,-6,-8]])
+    dim = size(QQ)
+    QQ = reshape(QQ, dim[1],dim[2], dim[3],dim[4], dim[5]*dim[6], dim[7]*dim[8])
+
+    A = tcon([QQ,A0], [[-1, -3, -5, -7, -9, 1], [-2, -4, -6, -8, 1]])
+    D1 = size(A,1)
+    D2 = size(A,2)
+    A = reshape(A, D1*D2, D1*D2, D1*D2, D1*D2, size(A,9))
+
+    A
+end
+
 function get_R_op(p1 = 0.24)
     phi = p1 * pi
     R_op = zeros(ComplexF64, 2, 2, 2, 2, 2)

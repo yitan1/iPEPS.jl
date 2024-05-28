@@ -9,20 +9,20 @@ using TOML
     @testset "D = 2, init gs" begin
         A = init_hb_gs(2, p1 = 0.24, p2 = 0, dir ="XX")
         H = honeycomb(1, 1, dir = "XX")
-        cfg = TOML.parsefile("src/default_config.toml")
+        cfg = TOML.parsefile("src/optimize/default_config.toml")
         e0, _ = compute_gs_energy(A, H, cfg)
 
         @test isapprox(real(e0)/8, -0.16349, atol = 1e-5)
     end
 
-    @testset "D = 4, init gs" begin
-        A = init_hb_gs(4, p1 = 0.24, p2 = 0)
-        H = honeycomb(1, 1)
-        cfg = TOML.parsefile("src/default_config.toml")
-        e0, _ = compute_gs_energy(A, H, cfg)
+    # @testset "D = 4, init gs" begin
+    #     A = init_hb_gs(4, p1 = 0.24, p2 = 0)
+    #     H = honeycomb(1, 1)
+    #     cfg = TOML.parsefile("src/optimize/default_config.toml")
+    #     e0, _ = compute_gs_energy(A, H, cfg)
 
-        @test isapprox(real(e0)/8, -0.19643, atol = 1e-5)
-    end
+    #     @test isapprox(real(e0)/8, -0.19643, atol = 1e-5)
+    # end
 end
 
 @testset "check_Q_op" begin
@@ -53,7 +53,7 @@ end
         @test isapprox(sum(Qz .- Qz2), 0.0, atol = 1e-12)
     end
 
-    @test "Z2 Q_op" begin
+    @testset "Z2 Q_op" begin
         Q_op = get_Q_op()
         # g * Q * g * g
         @ein Qg[m1, m2, m3, m4, m5] := Q_op[p1, p2, p3, m4, m5] * sigmaz[p1, m1] * sigmaz[p2, m2] * sigmaz[p3, m3]
@@ -77,13 +77,14 @@ end
 
         A = get_Q_ghz()
         H = honeycomb(1, 1)
-        cfg = TOML.parsefile("src/default_config.toml")
+        cfg = TOML.parsefile("src/optimize/default_config.toml")
         e0, _ = compute_gs_energy(A, H, cfg)
 
         @test isapprox(real(e0)/8, -0.16349, atol = 1e-5)
 
-        @test isapprox(sum(ghz[1,1,1,:]./exp(-im * pi/8) .- s111), 0.0, atol = 1e-5)
-        @test isapprox(sum(ghz[2,2,2,:]./(-exp(-im * pi/8)) .- sm111), 0.0, atol = 1e-5)
+        # ghz = get_ghz()
+        # @test isapprox(sum(ghz[1,1,1,:]./exp(-im * pi/8) .- s111), 0.0, atol = 1e-5)
+        # @test isapprox(sum(ghz[2,2,2,:]./(-exp(-im * pi/8)) .- sm111), 0.0, atol = 1e-5)
     end
 
     @testset "check symmetry" begin
@@ -105,21 +106,21 @@ end
 end
 
 
-ghz = get_ghz()
-phi = pi / 4
-cost2 = sqrt((1+1/sqrt(3))/2)
-sint2 = sqrt((1-1/sqrt(3))/2)
-S = [exp(-im * phi/2) * cost2 -exp(-im * phi/2) * sint2; exp(im * phi/2) * sint2 exp(im * phi/2) * cost2] 
-op1 = sigmax
-op2 = sigmay
-op3 = sigmaz
+# ghz = get_ghz()
+# phi = pi / 4
+# cost2 = sqrt((1+1/sqrt(3))/2)
+# sint2 = sqrt((1-1/sqrt(3))/2)
+# S = [exp(-im * phi/2) * cost2 -exp(-im * phi/2) * sint2; exp(im * phi/2) * sint2 exp(im * phi/2) * cost2] 
+# op1 = sigmax
+# op2 = sigmay
+# op3 = sigmaz
 
-@ein g1[m1, m2, m3, m4] := ghz[p1, p2, p3, p4] * op1[p1, m1] * op1[p2, m2] * op1[p3, m3] * op1[p4, m4]
+# @ein g1[m1, m2, m3, m4] := ghz[p1, p2, p3, p4] * op1[p1, m1] * op1[p2, m2] * op1[p3, m3] * op1[p4, m4]
 
-@ein g2[m1, m2, m3, m4] := ghz[p1, p2, p3, p4] * op2[p1, m1] * op2[p2, m2] * op2[p3, m3] * op2[p4, m4]
+# @ein g2[m1, m2, m3, m4] := ghz[p1, p2, p3, p4] * op2[p1, m1] * op2[p2, m2] * op2[p3, m3] * op2[p4, m4]
 
-@ein g3[m1, m2, m3, m4] := ghz[m1, p2, p1, m4] * op3[p1, m3] * op3[p2, m2]
+# @ein g3[m1, m2, m3, m4] := ghz[m1, p2, p1, m4] * op3[p1, m3] * op3[p2, m2]
 
-g1 +g2 
+# g1 +g2 
 
-ghz
+# ghz

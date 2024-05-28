@@ -6,11 +6,12 @@ function plot_band(n, filename)
         cfg = TOML.parsefile("$(@__DIR__)/optimize/default_config.toml")
         fprint("load dafault config file")
     end
-    print_cfg(cfg)
+
     plot_band(n, cfg)
 end
 
-function plot_band(n, cfg::Dict)
+function plot_band(n, cfg::Dict)   
+    print_cfg(cfg)
     px, py = make_es_path()
     E = zeros(n, length(px))
     for i in eachindex(px)

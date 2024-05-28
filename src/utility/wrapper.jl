@@ -53,3 +53,11 @@ function cutoff_matrix(u, s, v, cutoff, n)
 
     u, s, v
 end
+
+renormalize(A::AbstractArray) = A ./ maximum(abs.(A))
+# renormalize(A::AbstractArray) = A ./ norm(A)
+
+
+function diag_inv(A::AbstractArray)
+    diagm(1 ./ A)
+end

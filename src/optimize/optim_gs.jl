@@ -7,12 +7,14 @@ function optim_gs(H, A0, filename::String; m = 10, x_tol= 0.0, f_tol = 0.0, g_to
         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
         fprint("load daufult config file")
     end
-    print_cfg(cfg)
 
     optim_gs(H, A0, cfg; m = m, x_tol= x_tol, f_tol = f_tol, g_tol= g_tol, iterations = iterations)
 end
 
 function optim_gs(H, A0, cfg::Dict; m = 10,x_tol= 0.0, f_tol = 0.0, g_tol=1e-6, iterations = 200)
+
+    print_cfg(cfg)
+
     energies = Float64[]
     gradnorms = Float64[]
 
@@ -67,6 +69,7 @@ function optim_gs(H, A0, cfg::Dict; m = 10,x_tol= 0.0, f_tol = 0.0, g_tol=1e-6, 
         Cs, Es = init_ctm(x)
         ts = setproperties(ts0, Cs = Cs, Es = Es, A = x, Ad = conj(x))
         conv_fun(_x) = get_gs_energy(_x, H)[1]
+
         fprint("\n ---- Start to find fixed points -----")
         ts, _ = run_ctm(ts; conv_fun = conv_fun)
         # ts, _ = run_ctm(ts)
@@ -109,29 +112,10 @@ function run_gs(ts::CTMTensors, H, A)
 
     conv_fun(_x) = get_gs_energy(_x, H)[1]
     ts1, s = run_ctm(ts1, conv_fun = conv_fun)
-    # ts, _ = run_ctm(ts)
     
-    # ts, s = iPEPS.run_ctm(conv_ts, 50)
     gs_E, _ = get_gs_energy(ts1, H)
 
-    # gs_E = sum(E) |> real
     # @printf("Gs_Energy: %.10g \n", sum(E))
     # fprint("E: $E, N: $N")
     gs_E
-end
-
-function get_e0_4x4(ts, H)
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
-
-    n_dm = iPEPS.get_dm4(C1, C2, C3, C4, E1, E2, E3, E4, ts.A, ts.A, ts.A, ts.A)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:4]), :)
-
-    nB = tr(n_dm)
-    n_dm = n_dm./nB
-    e0 = tr(H*n_dm)
-
-    # iPEPS.fprint("E0: $e0    nB: $(nB)")
-
-    e0, nB
 end

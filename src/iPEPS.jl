@@ -39,12 +39,11 @@ include("nested_tensor/nested_tensor.jl")
 include("nested_tensor/emptyT.jl")
 
 # model
-include("model/model.jl")
 include("model/basis.jl")
 include("model/ising.jl")
 include("model/heisenberg.jl")
 include("model/honeycomb.jl")
-include("model/hb_B.jl")
+include("model/hb_chiral.jl")
 # include("model/pepo.jl")
 
 # ctm
@@ -61,8 +60,6 @@ include("optimize/optim_gs.jl")
 include("optimize/optim_es.jl")
 include("optimize/optim_wp.jl")
 
-
-include("basis.jl")
 
 include("plot.jl")
 include("_test.jl")
