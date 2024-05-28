@@ -44,6 +44,7 @@ include("model/ising.jl")
 include("model/heisenberg.jl")
 include("model/honeycomb.jl")
 include("model/hb_chiral.jl")
+include("model/lee_gs.jl")
 # include("model/pepo.jl")
 
 # ctm
