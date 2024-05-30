@@ -9,6 +9,10 @@ const sigmay = ComplexF64[0 -1im; 1im 0]
 const sigmaz = Float64[1 0; 0 -1]
 const sI = Float64[1 0; 0 1]
 
+# Sx = [0 sqrt(3) 0 0; sqrt(3) 0 2 0; 0 2 0 sqrt(3); 0 0 sqrt(3) 0] / 2
+# Sy = [0 -1im*sqrt(3) 0 0; 1im*sqrt(3) 0 -1im*2 0; 0 1im*2 0 -1im*sqrt(3); 0 0 1im*sqrt(3) 0] / 2
+# Sz = [3 0 0 0; 0 1 0 0; 0 0 -1 0; 0 0 0 -3] / 2
+
 function tout(a, b)
     c = tcon([a, b], [[-1, -3], [-2, -4]])
     dim = size(c)

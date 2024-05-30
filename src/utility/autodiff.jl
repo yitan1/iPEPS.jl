@@ -4,6 +4,7 @@ ChainRulesCore.@non_differentiable Printf.format(::Any...)
 ChainRulesCore.@non_differentiable append!(::Any...)
 # ChainRulesCore.@non_differentiable maximum(::Any...)
 ChainRulesCore.@non_differentiable get(::Any...)
+ChainRulesCore.@non_differentiable get_local_h(::Any...)
 
 ###### Copy from the pkg of BackwardsLinalg 
 struct ZeroAdder end

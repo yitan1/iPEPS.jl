@@ -33,3 +33,39 @@ function honeycomb_h4()
     h = -h1 .- h3 .- h5 .- h2 .- h4 .- h6
     h ./ 2
 end
+
+function tout_site(a, b)
+    c = tcon([a, b], [[-1, -2], [-3, -4]])
+    dim = size(c)
+    c = reshape(c, dim[1] * dim[2], dim[3] * dim[4])
+    return c
+end
+
+"""
+1--- y ----2
+|          |
+x          x
+|          | 
+4----y-----3
+"""
+function hb_h4_ZZ()
+    II = tout(SI, SI)
+    Iy = tout(SI, sigmay)
+    yI = tout(sigmay, SI)
+    Ix = tout(SI, sigmax)
+    xI = tout(sigmax, SI)
+    zz = tout(sigmaz, sigmaz)
+    
+    hx1 = tout_site(tout_site(II, Ix), tout_site(xI, II))
+    hx2 = tout_site(tout_site(Ix, II), tout_site(II, xI))
+    hy1 = tout_site(tout_site(Iy, yI), tout_site(II, II))
+    hy2 = tout_site(tout_site(II, II), tout_site(yI, Iy))
+    hz1 = tout_site(tout_site(II, zz), tout_site(II, II))
+    hz2 = tout_site(tout_site(II, II), tout_site(II, zz))
+
+    h = -hx1 .- hx2 .- hy1 .- hy2 .- hz1 .- hz2
+    d = size(II, 1)
+    h = reshape(h, d*d, d*d, d*d, d*d)
+
+    return h ./ 2
+end

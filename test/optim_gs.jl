@@ -20,8 +20,9 @@ rng = MersenneTwister(3)
 A = randn(rng, ComplexF64, D,D,D,D,d);
 
 H = ising();
-
-optim_gs(H, A, "")
+cfg = TOML.parsefile("src/optimize/default_config.toml");
+cfg["resume"] = true
+optim_gs(H, A, cfg)
 
 
 
