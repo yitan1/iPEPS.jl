@@ -118,7 +118,7 @@ function optim_es_h4(px, py, cfg::Dict)
         end
         fprint("\nStarting simulation of basis vector $(i)/$(basis_dim)")
 
-        @time gH, gN = get_es_grad(ts, H, basis[:, i])
+        @time gH, gN = get_es_grad_h4(ts, H, basis[:, i])
         envB[:, i] = gN
         effH[:, i] = transpose(conj(basis)) * gH / 2
         effN[:, i] = transpose(conj(basis)) * gN
@@ -147,7 +147,7 @@ function optim_es_h4(px, py, cfg::Dict)
     effH, effN
 end
 
-function get_es_grad(ts::CTMTensors, H, Bi)
+function get_es_grad_h4(ts::CTMTensors, H, Bi)
     B = reshape(Bi, size(ts.A))
     Bd = conj(B)
     # Cs, Es = init_ctm(ts.A, ts.Ad)
@@ -164,7 +164,7 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     max_iter = ts1.Params["max_iter"]
     ts1.Params["max_iter"] = ts1.Params["ad_max_iter"]
 
-    (y, ts1), back = Zygote.pullback(x -> run_es(ts1, H, x), B)
+    (y, ts1), back = Zygote.pullback(x -> run_es_h4(ts1, H, x), B)
 
     ts1.Params["max_iter"] = max_iter
 
@@ -176,7 +176,7 @@ function get_es_grad(ts::CTMTensors, H, Bi)
     gradH[:], gradN[:] ## conj???????
 end
 
-function run_es(ts::CTMTensors, H, B)
+function run_es_h4(ts::CTMTensors, H, B)
     ts1 = setproperties(ts, B=B, Bd=conj(B))
 
     conv_fun(_x) = get_es_energy_4x4(_x, H) / get_all_norm(_x)[1]
@@ -187,24 +187,12 @@ function run_es(ts::CTMTensors, H, B)
     E, ts1
 end
 
-function normalize_gs(ts::CTMTensors)
-    nrm = get_gs_norm(ts)
-    fprint("Gs Norm: $nrm")
-    A1 = ts.A ./ sqrt(abs(nrm))
-    ts1 = setproperties(ts, A=A1, Ad=conj(A1))
-
-    nrm = get_gs_norm(ts1)
-    fprint("Gs Norm: $nrm")
-
-    ts1
-end
-
 function substract_gs_energy_h4(ts::CTMTensors, H)
     gs_E = get_gs_energy_4x4(ts, get_local_h(H))
 
-    II = tout(sI, sI)
+    d = sqrt(size(H, 1)) |> Int
+    II = Matrix{eltype(H)}(I, d, d)
     hI = tout_site(tout_site(II, II), tout_site(II, II))
-    d = size(II, 1)
     hI = reshape(hI, d * d, d * d, d * d, d * d)
 
     newH = similar(H)

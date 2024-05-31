@@ -33,3 +33,24 @@ function heisenberg(Jz=1)
 
     [H, H]
 end
+
+function ising_h4(h = 2.5)
+    II = tout_site(SI, SI)
+    Ix = tout_site(SI, sigmax)
+    xI = tout_site(sigmax, SI)
+    zI = h * tout_site(sigmaz, SI)
+    xx = tout_site(sigmax, sigmax)
+
+    h12 = tout_site(xx, II)
+    h23 = tout_site(Ix, xI)
+    h34 = tout_site(II, xx)
+    h41 = tout_site(xI, Ix)
+    hz1 = tout_site(zI, II)
+    hz2 = tout_site(II, zI)
+
+    h = -h12 .- h23 .- h34 .- h41 .- hz1 .- hz2
+    d = size(SI, 1)
+    h = reshape(h, d*d, d*d, d*d, d*d)
+
+    h ./ 2
+end

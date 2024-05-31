@@ -66,12 +66,12 @@ function optim_gs_h4(H, A0, cfg::Dict; m=10, x_tol=0.0, f_tol=0.0, g_tol=1e-6, i
             end
         end
 
-        ts = get_conv_boundary(x, H, cfg)
+        ts = get_conv_boundary_h4(x, H, cfg)
 
         max_iter = ts.Params["max_iter"]
         ts.Params["max_iter"] = ts.Params["ad_max_iter"]
 
-        y, back = Zygote.pullback(_x -> run_gs(ts, H, _x), x)
+        y, back = Zygote.pullback(_x -> run_gs_h4(ts, H, _x), x)
 
         ts.Params["max_iter"] = max_iter
 
@@ -100,7 +100,7 @@ function optim_gs_h4(H, A0, cfg::Dict; m=10, x_tol=0.0, f_tol=0.0, g_tol=1e-6, i
     res
 end
 
-function get_conv_boundary(x, H, cfg)
+function get_conv_boundary_h4(x, H, cfg)
     ts = CTMTensors(x, cfg)
 
     conv_fun(_x) = get_gs_energy_4x4(_x, H)
@@ -113,7 +113,7 @@ function get_conv_boundary(x, H, cfg)
     return ts
 end
 
-function run_gs(ts::CTMTensors, H, A)
+function run_gs_h4(ts::CTMTensors, H, A)
     ts1 = setproperties(ts, A=A, Ad=conj(A))
 
     conv_fun(_x) = get_gs_energy_4x4(_x, H)
