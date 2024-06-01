@@ -69,3 +69,33 @@ function hb_h4_ZZ()
 
     return h ./ 2
 end
+
+"""
+X       Y
+  Z - Z
+Y       X
+
+w1 - w2
+|     |
+w4 - w3
+"""
+function get_w_op()
+    II = tout(sI, sI)
+    ### ZZ
+    # Iz = tout(sI, sigmaz)
+    # xy = tout(sigmax, sigmay)
+    # zI = tout(sigmaz, sI)
+    # yx = tout(sigmay, sigmax)
+    # wp_op = tout_site(tout_site(Iz, xy), tout_site(zI, yx))
+    ### XX
+    Ix = tout(sI, sigmax)
+    yz = tout(sigmay, sigmaz)
+    xI = tout(sigmax, sI)
+    zy = tout(sigmaz, sigmay)
+    wp_op = tout_site(tout_site(Ix, yz), tout_site(xI, zy))
+    d = size(II, 1)
+
+    wp_op = reshape(wp_op, d * d, d * d, d * d, d * d)
+
+    return wp_op
+end

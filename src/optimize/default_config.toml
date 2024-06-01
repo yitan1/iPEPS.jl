@@ -1,39 +1,49 @@
-# [optim]
-# methods = "LBFGS()"
-# max_iter = 100
+# memory option
+gc = true
 
-# [ctmrg]
+# 0 -> default dir: ./simulation/$(model)_$(out_prefix)_D$D_X$chi/
+# string -> dir name: ./$dir/
+dir = 0 
+
 out_prefix = "test"
 model = "test"
-
-dir = 0 # 0 -> default dir, string -> dir name
 
 D = 2
 chi = 32
 
-resume = false
-
-es_resume = 1 # start from which basis(>0) 
-es_num = 0    # calculate how many basis(>0)
-
-# true -> load exist basis, false -> calculate basis
-basis = false
-basis_t = "default" # "default", "gauge", "cut", "unit"
-basis_cut = 1e-3 # when basis_t = "cut", float
-
-ad = true
-gc = true
-save = true
-part_save = false
-
-nrmB_cut = 1e-3 # float or Int
-
+# ctmrg option
 min_iter = 4
 max_iter = 20
 ad_max_iter = 4
 rg_tol = 1e-6
 
-wp = 1  #should wp_name + 1
-wp_name = 0 #basis
+# gs option
+resume = false
+
+# basis option
+basis = false # true -> load exist basis, false -> calculate basis
+# basis type
+basis_t = "default" # "default", "gauge", "cut", "unit"
+# only valid when basis_t = "cut"
+basis_cut = 1e-3 # when basis_t = "cut", float
+basis_name = 0 # 0 for basis
+
+# optim es
+es_resume = 1 # start from which basis(>0) 
+es_num = 0    # calculate how many basis(>0)
+
+# ad open for es
+ad = true
+
+# save option
+save = true
+# es result become a dir, normally true when es_num != 0
+part_save = false
+
+# diag option, float or Int
+nrmB_cut = 1e-3
+
+# optim wp
+wp = 1  #compute wp = 1,2,3,4; should wp_name + 1
 
 

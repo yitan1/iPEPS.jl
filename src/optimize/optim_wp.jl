@@ -1,4 +1,75 @@
-function evaluate_wp(filename::String; disp = true)
+"""
+1. get effH, effN of wp1 for full basis
+2. diag effH, effN and get new basis wp_1p, wp_1m
+3. get effH, effN of wp2 for basis wp_1p, wp_1m
+4. diag effH, effN and get new basis for wp_1p2p, wp_1p2m, wp_1m2p, wp_1m2m 
+.......
+
+get new 2^4 basis basis_xxxx 
+"""
+function get_wp_basis(cfg)
+    dir = get_dir(cfg)
+    basis_dir = get_basis_name(cfg)
+
+    basis_name = cfg["basis_name"]
+    if !occursin("wp/", basis_name)
+        basis_name = "wp/$(basis_name)"
+    end
+
+    HN_dir = get_wp_name(cfg)
+    wp = cfg["wp"]
+    new_basis_name = ["$(dir)/$(basis_name)_$(wp)p.jld2", "$(dir)/$(basis_name)_$(wp)m.jld2"]
+
+    get_wp_basis(HN_dir, basis_dir, new_basis_name)
+end
+function get_wp_basis(HN_dir, basis_dir, new_basis_dir)
+    dir = HN_dir
+    if isdir(dir)
+        list = readdir(dir, join=true, sort=true)
+        shape = load(list[1], "effH") |> size
+        effH = zeros(ComplexF64, shape)
+        effN = zeros(ComplexF64, shape)
+        for name in list
+            effH .+= load(name, "effH")
+            effN .+= load(name, "effN")
+        end
+    else 
+        effH = load(dir, "effH")
+        effN = load(dir, "effN")
+    end
+
+    H = (effH + effH') / 2
+    N = (effN + effN') / 2
+    ev_N, P = eigen(N)
+    idx = sortperm(real.(ev_N))[end:-1:1]
+    ev_N = ev_N[idx]
+    P = P[:, idx]
+    N2 = P' * N * P
+    H2 = P' * H * P
+    H2 = (H2 + H2') / 2
+    N2 = (N2 + N2') / 2
+    es, vecs = eigen(H2, N2)
+    ixs = sortperm(real.(es))
+    es = es[ixs]
+    vecs = vecs[:, ixs]
+
+    display(es)
+
+    f = load(basis_dir)
+    basis = f["basis"]
+    exci_n = basis * P * vecs
+
+    selected = real.(es) .> 0.0
+    nbasisp = exci_n[:, selected]
+
+    selected = real.(es) .< 0.0
+    nbasism = exci_n[:, selected]
+
+    jldsave(new_basis_dir[1], basis=nbasisp, ts=f["ts"], H=f["H"])
+    jldsave(new_basis_dir[2], basis=nbasism, ts=f["ts"], H=f["H"])
+end
+
+function evaluate_wp(filename::String; disp=true)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
         fprint("load custom config file at $(filename)")
@@ -6,11 +77,12 @@ function evaluate_wp(filename::String; disp = true)
         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
         fprint("load dafault config file")
     end
+
+    evaluate_wp(cfg; disp=disp)
+end
+function evaluate_wp(cfg::Dict; disp=true)
     print_cfg(cfg)
 
-    evaluate_wp(cfg; disp = disp)
-end
-function evaluate_wp(cfg::Dict; disp = true)
     wp_name = get_wp_name(cfg)
     effH = load(wp_name, "effH")
     effN = load(wp_name, "effN")
@@ -18,35 +90,35 @@ function evaluate_wp(cfg::Dict; disp = true)
 
     nrmB_cut = get(cfg, "nrmB_cut", 1e-3)
 
-    H = (effH + effH') /2 
-    N = (effN + effN') /2
+    H = (effH + effH') / 2
+    N = (effN + effN') / 2
     ev_N, P = eigen(N)
     idx = sortperm(real.(ev_N))[end:-1:1]
     ev_N = ev_N[idx]
     if nrmB_cut isa Int
         selected = ev_N .> ev_N[nrmB_cut+1]
     else
-        selected = (ev_N/maximum(ev_N) ) .> nrmB_cut
+        selected = (ev_N / maximum(ev_N)) .> nrmB_cut
     end
     if disp == true
-        display(ev_N/maximum(ev_N))
-        display(ev_N[selected] /maximum(ev_N))
+        display(ev_N / maximum(ev_N))
+        display(ev_N[selected] / maximum(ev_N))
     end
-    P = P[:,idx]
-    P = P[:,selected]
+    P = P[:, idx]
+    P = P[:, selected]
     N2 = P' * N * P
     H2 = P' * H * P
-    H2 = (H2 + H2') /2 
-    N2 = (N2 + N2') /2
-    es, vecs = eigen(H2,N2)
+    H2 = (H2 + H2') / 2
+    N2 = (N2 + N2') / 2
+    es, vecs = eigen(H2, N2)
     ixs = sortperm(real.(es))
     es = es[ixs]
-    vecs = vecs[:,ixs]
+    vecs = vecs[:, ixs]
 
     es, vecs, P
 end
 
-function optim_wp(filename::String)
+function optim_wp(w_op, filename::String)
     if ispath(filename)
         cfg = TOML.parsefile(filename)
         fprint("load custom config file at $(filename)")
@@ -54,23 +126,24 @@ function optim_wp(filename::String)
         cfg = TOML.parsefile("$(@__DIR__)/default_config.toml")
         fprint("load daufult config file")
     end
-    print_cfg(cfg)
 
-    optim_wp(cfg)
+    optim_wp(w_op, cfg)
 end
 
-function optim_wp(cfg)
+function optim_wp(wp_op, cfg::Dict)
+    print_cfg(cfg)
+
     basis_name = get_basis_name(cfg)
     basis = load(basis_name, "basis")
     ts = load(basis_name, "ts")
-    ts = setproperties(ts, Params = cfg)
+    ts = setproperties(ts, Params=cfg)
     fprint("load basis, ts in $basis_name")
 
     basis = complex(basis) # ！！！！ convert Complex
-    basis_dim = size(basis, 2) 
+    basis_dim = size(basis, 2)
 
     wp_name = get_wp_name(ts.Params)
-    if  ts.Params["es_resume"] > 0 && ispath(wp_name) 
+    if ts.Params["es_resume"] > 0 && ispath(wp_name)
         wp_file = load(wp_name)
         effH = wp_file["effH"]
         effN = wp_file["effN"]
@@ -91,14 +164,14 @@ function optim_wp(cfg)
         end
         fprint("\nStarting simulation of basis vector $(i)/$(basis_dim)")
 
-        @time gH, gN = get_wp_grad(ts, basis[:,i])
+        @time gH, gN = get_wp_grad(ts, wp_op, basis[:, i])
         effH[:, i] = transpose(conj(basis)) * gH / 2
         effN[:, i] = transpose(conj(basis)) * gN / 2
 
         fprint("\nFinish basis vector of $(i)/$(basis_dim)")
 
         if ts.Params["save"]
-            jldsave(wp_name; effH = effH, effN = effN)
+            jldsave(wp_name; effH=effH, effN=effN)
             fprint("Saved (effH, effN) and envB to $(wp_name)")
         end
 
@@ -108,7 +181,7 @@ function optim_wp(cfg)
     end
 
     if ts.Params["save"]
-        jldsave(wp_name; effH = effH, effN = effN)
+        jldsave(wp_name; effH=effH, effN=effN)
         fprint("Saved (effH, effN) and envB to $(wp_name)")
     end
 
@@ -119,157 +192,91 @@ function optim_wp(cfg)
     effH, effN
 end
 
-function get_wp_grad(ts, Bi)
+function get_wp_grad(ts, wp_op, Bi)
     B = reshape(Bi, size(ts.A))
     A = ts.A
 
+    wp_op_s4 = get_local_h(wp_op)
+
     # (e, n), back = Zygote.pullback(x -> run_wp_exact(ts, x), B)
     if ts.Params["wp"] == 1
-        f = x -> run_wp(ts, x, A, A, A)
+        f = x -> run_wp(ts, wp_op_s4, x, A, A, A)
     elseif ts.Params["wp"] == 2
-        f = x -> run_wp(ts, A, x, A, A)
+        f = x -> run_wp(ts, wp_op_s4, A, x, A, A)
     elseif ts.Params["wp"] == 3
-        f = x -> run_wp(ts, A, A, x, A)
+        f = x -> run_wp(ts, wp_op_s4, A, A, x, A)
     elseif ts.Params["wp"] == 4
-        f = x -> run_wp(ts, A, A, A, x)
+        f = x -> run_wp(ts, wp_op_s4, A, A, A, x)
     end
 
     (e, n), back = Zygote.pullback(f, B)
     gradH = back((1, nothing))[1]
     gradN = back((nothing, 1))[1]
+    # Nb, gradN = get_all_norm(ts1)
 
     fprint("wp value: $(e/n)")
 
     gradH[:], gradN[:]
 end
 
-function run_wp(ts, B1, B2, B3, B4)
+# local wp
+function run_wp(ts, wp, A1, A2, A3, A4)
     C1, C2, C3, C4 = ts.Cs
     E1, E2, E3, E4 = ts.Es
 
-    n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4, B1, B2, B3, B4)
-    n_dm = reshape(n_dm, prod(size(n_dm)[1:4]), :)
+    s1, s2, s3, s4 = wp
+    A1d, A2d, A3d, A4d = conj(A1), conj(A2), conj(A3), conj(A4)
+    op_A1d, op_A2d, op_A3d, op_A4d = get_op_Ad4(s1, s2, s3, s4, A1d, A2d, A3d, A4d)
 
-    w_op = get_w_op()
-    wp = tr(w_op*n_dm)
-    nB = tr(n_dm)
+    wp, norm = energy_norm_4x4(C1, C2, C3, C4, E1, E2, E3, E4, A1, A2, A3, A4, op_A1d, op_A2d, op_A3d, op_A4d)
+    nB = norm[]
+    wp_exp = wp[]
 
-    fprint("wp: $(wp/nB)    nB: $(nB)")
+    fprint("wp: $(wp_exp/nB) nB: $(norm[])")
 
-    wp, nB
+    wp_exp, nB
 end
 
-function run_wp_all(ts, B)
+# function run_wp(ts, w_op, B1, B2, B3, B4)
+#     C1, C2, C3, C4 = ts.Cs
+#     E1, E2, E3, E4 = ts.Es
+
+#     n_dm = get_dm4(C1, C2, C3, C4, E1, E2, E3, E4, B1, B2, B3, B4)
+#     n_dm = reshape(n_dm, prod(size(n_dm)[1:4]), :)
+
+#     w_op = get_w_op()
+#     wp = tr(w_op*n_dm)
+#     nB = tr(n_dm)
+
+#     fprint("wp: $(wp/nB)    nB: $(nB)")
+
+#     wp, nB
+# end
+
+function run_wp_all(ts, wp, B)
+    wp = get_local_h(wp)
+
     A = ts.A
-    w1, n1 = run_wp(ts, B, A, A, A)
-    w2, n2 = run_wp(ts, A, B, A, A)
-    w3, n3 = run_wp(ts, A, A, B, A)
-    w4, n4 = run_wp(ts, A, A, A, B)
+    w1, n1 = run_wp(ts, wp, B, A, A, A)
+    w2, n2 = run_wp(ts, wp, A, B, A, A)
+    w3, n3 = run_wp(ts, wp, A, A, B, A)
+    w4, n4 = run_wp(ts, wp, A, A, A, B)
 
     fprint("w1: $(w1/n1)    n1: $(n1)\nw2: $(w2/n2)    n2: $(n2)\nw3: $(w3/n3)    n3: $(n3)\nw4: $(w4/n4)    n4: $(n4)")
 
     wp = w1 + w2 + w3 + w4
-    nB = (n1 + n2 + n3 + n4)/4
+    nB = (n1 + n2 + n3 + n4) / 4
 
     wp, nB
 end
 
-function run_wp12(ts, B)
-end
-function run_wp13()
-end
-function run_wp23()
-end
+# function get_w_op()
+#     w1 = tout(sI, sigmax)
+#     w2 = tout(sigmaz, sigmay)
+#     w3 = tout(sigmay, sigmaz)
+#     w4 = tout(sigmax, sI)
 
-"""
-    w1 - w3
-    |     |
-    w2 - w4
-"""
-function get_w_op()
-    w1 = tout(sI, sigmax)
-    w2 = tout(sigmaz, sigmay)
-    w3 = tout(sigmay, sigmaz)
-    w4 = tout(sigmax, sI)
+#     wp = tout(tout(tout(w1, w2), w3), w4)
 
-    wp = tout(tout(tout(w1, w2), w3), w4)
-
-    wp
-end
-
-###############################################################################
-
-function run_wp_exact(ts, B)
-    Bi = reshape(B, size(ts.A));
-    A = ts.A
-    # A = init_hb_gs(2, dir = "XX")
-    La = get_ABC(A,A,A);
-    Lb1 = get_ABC(Bi, A,A);
-    Lb2 = get_ABC(A,Bi,A);
-
-    psi1 = tr_LL(mul_LL(mul_LL(La, Lb1), La), La);
-    psi2 = tr_LL(mul_LL(mul_LL(La, Lb2), La), La);
-    psi3 = tr_LL(mul_LL(mul_LL(La, La), Lb1), La);
-    psi4 = tr_LL(mul_LL(mul_LL(La, La), Lb2), La);
-
-    wp1, n1 = m_wp(psi1)
-    wp2, n2 = m_wp(psi2)
-    wp3, n3 = m_wp(psi3)
-    wp4, n4 = m_wp(psi4)
-
-    wp = wp1 + wp2 + wp3 + wp4
-    wp = wp2 + wp3
-    nB = (n2 + n3)/2
-    nB = (n1 + n2 + n3 + n4)/4
-
-    fprint("w1: $(wp1/nB)    n1: $(n1)\nw2: $(wp2/nB)    n2: $(n2)\nw3: $(wp3/nB)    n3: $(n3)\nw4: $(wp4/nB)    n4: $(n4)")
-    # fprint("w2: $(wp2/nB)    n2: $(n2)\nw3: $(wp3/nB)    n3: $(n3)")
-
-    wp, nB
-end
-
-function m_wp(psi1)
-    psi1 = reshape(psi1, 4^3, 4, 4, 4, 4, 4, 4^4)
-    psi1d = conj(psi1)
-    ndm = tcon([psi1, psi1d], [[1,-1,-2,2,-3,-4,3], [1,-5,-6,2,-7,-8,3]])
-
-
-    w1 = iPEPS.tout(iPEPS.sI, iPEPS.sigmax)
-    w2 = iPEPS.tout(iPEPS.sigmaz, iPEPS.sigmay)
-    w3 = iPEPS.tout(iPEPS.sigmay, iPEPS.sigmaz)
-    w4 = iPEPS.tout(iPEPS.sigmax, iPEPS.sI)
-
-    @ein nwp[m1, m2, m3, m4, m5, m6, m7, m8] := ndm[p1, p2, p3, p4, m5, m6, m7, m8,] * w1[m1, p1] * w2[m2, p2] * w3[m3, p3] * w4[m4, p4];
-
-    nwp = reshape(nwp, 4^4, 4^4)
-    wp = tr(nwp)
-    ndm = reshape(ndm, 4^4, 4^4)
-    n = tr(ndm)
-
-    wp, n
-end
-
-function get_ABC(A, B, C)
-    D = size(A,1)
-    d = size(A, 5)
-    @ein AB[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m2, p1, m5, m7] * B[p1, m3, m4, m6, m8]
-
-    @ein ABC[m1, m2, m3, m4, m5, m6, m7, m8, m9] := AB[p1, m1, m2, p2, m4, m5, m7, m8] * C[p2, m3, p1, m6, m9]
-
-    ABC = reshape(ABC, D^3, D^3, d^3)
-    
-    ABC
-end
-
-function mul_LL(L1, L2)
-    @ein LL[m1, m2, m3, m4] := L1[m1, p1, m3] * L2[p1, m2, m4]
-    LL = reshape(LL, size(LL,1), size(LL,2), size(LL,3)*size(LL,4))
-
-    LL
-end
-
-function tr_LL(L1, L2)
-    @ein LL[m3, m4] := L1[p2, p1, m3] * L2[p1, p2, m4]
-    LL = reshape(LL, :)
-    LL
-end
+#     wp
+# end
