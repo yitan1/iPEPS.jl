@@ -313,6 +313,29 @@ function run_4x4(ts, H)
 
     e0, nB
 end
+# TODO
+function get_gs_energy_h2(ts::CTMTensors, H)
+    s1, s2 = H
+
+    C1, C2, C3, C4 = ts.Cs
+    E1, E2, E3, E4 = ts.Es
+    A = ts.A
+    A1, A2 = A, A
+    A1d, A2d = ts.Ad, ts.Ad
+
+    op_A1d, op_A2d = get_op_Ad2(s1, s2, A1d, A2d)
+
+    eh, nh = energy_norm_3x4(C1, C2, C3, C4, E1, E1, E2, E3, E3, E4, A1, A2, A1d, A2d, op_A1d, op_A2d)
+    ev, nv = energy_norm_4x3(C1, C2, C3, C4, E1, E2, E2, E3, E4, E4, A1, A2, A1d, A2d, op_A1d, op_A2d)
+
+    gs_E = eh[]/nh[] + ev[]/nv[]
+
+    return gs_E
+end
+
+function get_es_enenergy_h2(ts::CTMTensors, H)
+
+end
 
 function get_gs_energy_4x4(ts::CTMTensors, H)
     s1, s2, s3, s4 = H
@@ -373,6 +396,31 @@ function get_es_energy_4x4(ts::CTMTensors, H)
 
     return gs_E
 end
+#TODO
+"""
+C1 --  E1 -- E1 -- C2
+|      |     |      |
+E4 --  A1 -- A2 -- E2
+|      |     |      |
+C4 --  E3 -- E3 -- C3
+"""
+function energy_norm_3x4(C1, C2, C3 ,C4, E1l, E1r, E2, E3l, E3r, E4, A1, A2, A1d, A2d, op_A1d, op_A2d)
+
+end
+
+"""
+C1 --  E1 -- C2
+|      |     |
+E4 --  A1 -- E2
+|      |     |
+E4 --  A2 -- E2
+|      |     |
+C4 --  E3 -- C3
+"""
+function energy_norm_4x3(C1, C2, C3, C4, E1, E2u, E2d, E3, E4u, E4d, A1, A2, A1d, A2d, op_A1d, op_A2d)
+
+end
+
 """
 '''
 C1 --  E1 -- E1 -- C2
