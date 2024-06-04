@@ -199,9 +199,13 @@ function correlation_spin(op, cfg)
 end
 
 function get_spin_boundary(op, ts0)
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
-    
+    A_op = tcon([ts0.A, op], [[-1, -2, -3, -4, 1], [1, -5]])
+
+    chi = ts0.Params["chi"]
+
+    ts = setproperties(ts0, A=A_op)
+    ts, _ = left_rg(ts, chi)
+    ts = setproperties
     ts
 end
 
