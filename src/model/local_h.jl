@@ -30,3 +30,10 @@ function get_local_h(h)
     return sl
 end
 
+# TODO
+function get_local_h2(h)
+    hh, hv = h
+
+    dims = size(h)
+end
+

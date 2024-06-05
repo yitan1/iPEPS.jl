@@ -182,35 +182,74 @@ function evaluate_es(px, py, cfg::Dict)
     es, vecs
 end
 #TODO
-function correlation_spin(op, cfg)
+function correlation_spin(op, cfg::Dict; step = 1, max_iter = 10, direction = "l")
+    correlation_spin(op, op, cfg, step = step, max_iter = max_iter, direction = direction)
+end
+
+function correlation_spin(op1, op2, cfg; step=1, max_iter = 10, direction="l")
     bs_name = get_basis_name(cfg)
     ts0 = load(bs_name, "ts")
-    ts = get_spin_boundary(op, ts0)
+    println("load $bs_name")
+    ts = get_spin_boundary(op2, ts0, direction=direction)
 
-    ts.Params["max_iter"] = 1
-    max_iter = 10
-    for i = 1:max_iter
+    ts.Params["max_iter"] = step
+    nrms = []
+    for _ = 1:max_iter
         ts, _ = run_ctm(ts)
         ndm_Ad = get_env_A(ts)
         # compute A * S * n_dm_Ad
+        A_op = tcon([ts0.A, op1], [[-1, -2, -3, -4, 1], [1, -5]])
 
-        println("correlation: ", nrm0[1])
+        nrm0 = tcon([ndm_Ad, A_op], [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]])
+        append!(nrms, nrm0[])
+
+        println("correlation: ", nrms[end])
     end
+
+    nrms
 end
 
-function get_spin_boundary(op, ts0)
+function get_spin_boundary(op, ts0; direction="l")
     A_op = tcon([ts0.A, op], [[-1, -2, -3, -4, 1], [1, -5]])
 
     chi = ts0.Params["chi"]
 
-    ts = setproperties(ts0, A=A_op)
-    ts, _ = left_rg(ts, chi)
-    ts = setproperties
+    if direction == "l" 
+        ts = setproperties(ts0, A=A_op)
+        ts, _ = left_rg(ts, chi)
+        ts = setproperties(ts, A=ts0.A)
+    else 
+        ts, _ = left_rg(ts, chi)
+    end
+
+    if direction == "r"
+        ts = setproperties(ts0, A=A_op)
+        ts, _ = right_rg(ts, chi)
+        ts = setproperties(ts, A=ts0.A)
+    else 
+        ts, _ = right_rg(ts, chi)
+    end
+
+    if direction == "u"
+        ts = setproperties(ts0, A=A_op)
+        ts, _ = top_rg(ts, chi)
+        ts = setproperties(ts, A=ts0.A)
+    else
+        ts, _ = top_rg(ts, chi)
+    end
+        
+    if direction == "d"
+        ts = setproperties(ts0, A=A_op)
+        ts, _ = bottom_rg(ts, chi)
+        ts = setproperties(ts, A=ts0.A)
+    else
+        ts, _ = bottom_rg(ts, chi)
+    end
+
     ts
 end
 
 function get_env_A(ts)
-    # A = ts.A
     Ad = ts.Ad
     C1, C2, C3, C4 = ts.Cs
     E1, E2, E3, E4 = ts.Es
