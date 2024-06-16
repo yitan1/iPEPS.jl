@@ -182,80 +182,190 @@ function evaluate_es(px, py, cfg::Dict)
     es, vecs
 end
 #TODO
-function correlation_spin(op, cfg::Dict; step = 1, max_iter = 10, direction = "l")
-    correlation_spin(op, op, cfg, step = step, max_iter = max_iter, direction = direction)
+function correlation_spin_A(A, op, cfg::Dict; max_iter=10, direction="h")
+    correlation_spin_A(A, op, op, cfg, max_iter=max_iter, direction=direction)
 end
 
-function correlation_spin(op1, op2, cfg; step=1, max_iter = 10, direction="l")
+function correlation_spin_A(A, op1, op2, cfg::Dict; max_iter=10, direction="h")
+    ts0 = CTMTensors(A, cfg)
+    println("get converged boundary CTM")
+    ts0, _ = run_ctm(ts0)
+
+    return correlation_spin(ts0, op1, op2, max_iter=max_iter, direction=direction)
+end
+
+function correlation_spin(op, cfg::Dict; max_iter=10, direction="h")
+    correlation_spin(op, op, cfg, max_iter=max_iter, direction=direction)
+end
+
+function correlation_spin(op1, op2, cfg::Dict; max_iter=10, direction="h")
     bs_name = get_basis_name(cfg)
     ts0 = load(bs_name, "ts")
     println("load $bs_name")
-    ts = get_spin_boundary(op2, ts0, direction=direction)
 
-    ts.Params["max_iter"] = step
-    nrms = []
-    for _ = 1:max_iter
-        ts, _ = run_ctm(ts)
-        ndm_Ad = get_env_A(ts)
-        # compute A * S * n_dm_Ad
-        A_op = tcon([ts0.A, op1], [[-1, -2, -3, -4, 1], [1, -5]])
-
-        nrm0 = tcon([ndm_Ad, A_op], [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]])
-        append!(nrms, nrm0[])
-
-        println("correlation: ", nrms[end])
-    end
-
-    nrms
+    correlation_spin(ts0, op1, op2, max_iter=max_iter, direction=direction)
 end
 
-function get_spin_boundary(op, ts0; direction="l")
-    A_op = tcon([ts0.A, op], [[-1, -2, -3, -4, 1], [1, -5]])
-
-    chi = ts0.Params["chi"]
-
-    if direction == "l" 
-        ts = setproperties(ts0, A=A_op)
-        ts, _ = left_rg(ts, chi)
-        ts = setproperties(ts, A=ts0.A)
-    else 
-        ts, _ = left_rg(ts, chi)
-    end
-
-    if direction == "r"
-        ts = setproperties(ts0, A=A_op)
-        ts, _ = right_rg(ts, chi)
-        ts = setproperties(ts, A=ts0.A)
-    else 
-        ts, _ = right_rg(ts, chi)
-    end
-
-    if direction == "u"
-        ts = setproperties(ts0, A=A_op)
-        ts, _ = top_rg(ts, chi)
-        ts = setproperties(ts, A=ts0.A)
+function correlation_spin(ts0::CTMTensors, op1, op2; max_iter=10, direction="h")
+    if direction == "h"
+        TM, TM_op1, TM_op2, L0, R0 = get_envs_TM_h(ts0, op1, op2)
     else
-        ts, _ = top_rg(ts, chi)
-    end
-        
-    if direction == "d"
-        ts = setproperties(ts0, A=A_op)
-        ts, _ = bottom_rg(ts, chi)
-        ts = setproperties(ts, A=ts0.A)
-    else
-        ts, _ = bottom_rg(ts, chi)
+        TM, TM_op1, TM_op2, L0, R0 = get_envs_TM_v(ts0, op1, op2)
     end
 
-    ts
+    L0 = transpose(L0)
+    L = L0 * TM_op1
+    R = TM_op2 * R0
+    s2s = [L * R]
+    println("r = 1, correlation: ", s2s[end])
+
+    m1 = L * R0
+    m2 = L0 * R
+    for r = 1:max_iter
+        L = L * TM
+        exp_val = L *R
+
+        append!(s2s, exp_val)
+
+        println("r = $(r+1), correlation: ", s2s[end])
+    end
+
+    s2s, m1, m2
 end
 
-function get_env_A(ts)
-    Ad = ts.Ad
-    C1, C2, C3, C4 = ts.Cs
-    E1, E2, E3, E4 = ts.Es
-    n_dm = get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
-    ndm_Ad = tcon([n_dm, Ad], [[-1, -2, -3, -4, 1, 2, 3, 4], [1, 2, 3, 4, -5]])
-    # nrm0 = tcon([ndm_Ad, A], [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]])
+function get_envs_TM_h(ts0, op1, op2)
+    C1, C2, C3, C4 = ts0.Cs
+    E1, E2, E3, E4 = ts0.Es
+    A = ts0.A
+    Ad = ts0.Ad
 
-    return ndm_Ad
+    ## C1, E4, C4
+    @ein L0[m1, m2, m3, m4] := C1[p1, m1] * E4[p1, p2, m2, m3] * C4[p2, m4]
+    L0 = L0[:]
+
+    # C2, E2, C3
+    @ein R0[m1, m2, m3, m4] := C2[m1, p1] * E2[p1, p2, m2, m3] * C3[p2, m4]
+    R0 = R0[:]
+
+
+    # E1, A, op, Ad, E3
+    @ein T[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * Ad[m2, m4, m6, m8, p1]
+    @ein T_op1[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * op1[p1, p2] * Ad[m2, m4, m6, m8, p2]
+    @ein T_op2[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * op2[p1, p2] * Ad[m2, m4, m6, m8, p2]
+
+    @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := E1[m1, m5, p1, p2] * T[p1, p2, m2, m3, p3, p4, m6, m7] * E3[m4, m8, p3, p4]
+    @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := E1[m1, m5, p1, p2] * T_op1[p1, p2, m2, m3, p3, p4, m6, m7] * E3[m4, m8, p3, p4]
+    @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := E1[m1, m5, p1, p2] * T_op2[p1, p2, m2, m3, p3, p4, m6, m7] * E3[m4, m8, p3, p4]
+
+    TM = reshape(TM, prod(size(TM)[1:4]), :)
+    TM_op1 = reshape(TM_op1, prod(size(TM_op1)[1:4]), :)
+    TM_op2 = reshape(TM_op2, prod(size(TM_op2)[1:4]), :)
+
+    return TM, TM_op1, TM_op2, L0, R0
 end
+
+function get_envs_TM_v(ts0, op1, op2)
+    C1, C2, C3, C4 = ts0.Cs
+    E1, E2, E3, E4 = ts0.Es
+    A = ts0.A
+    Ad = ts0.Ad
+
+    ## C1, E1, C2
+    @ein U0[m1, m2, m3, m4] := C1[m1, p1] * E1[p1, p2, m2, m3] * C2[p2, m4]
+    U0 = U0[:]
+
+    # C4, E3, C3
+    @ein D0[m1, m2, m3, m4] := C4[m1, p1] * E3[p1, p2, m2, m3] * C3[m4, p2]
+    D0 = D0[:]
+
+    # E4, A, op, Ad, E2
+    @ein T[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * Ad[m2, m4, m6, m8, p1]
+    @ein T_op1[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * op1[p1, p2] * Ad[m2, m4, m6, m8, p2]
+    @ein T_op2[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * op2[p1, p2] * Ad[m2, m4, m6, m8, p2]
+
+    @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := E4[m1, m5, p1, p2] * T[m2, m3, p1, p2, m6, m7, p3, p4] * E2[m4, m8, p3, p4]
+    @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := E4[m1, m5, p1, p2] * T_op1[m2, m3, p1, p2, m6, m7, p3, p4] * E2[m4, m8, p3, p4]
+    @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := E4[m1, m5, p1, p2] * T_op2[m2, m3, p1, p2, m6, m7, p3, p4] * E2[m4, m8, p3, p4]
+
+    TM = reshape(TM, prod(size(TM)[1:4]), :)
+    TM_op1 = reshape(TM_op1, prod(size(TM_op1)[1:4]), :)
+    TM_op2 = reshape(TM_op2, prod(size(TM_op2)[1:4]), :)
+
+    return TM, TM_op1, TM_op2, U0, D0
+end
+
+# function correlation_spin(ts0::CTMTensors, op1, op2; step=1, max_iter=10, direction="l")
+#     ts = get_spin_boundary(op2, ts0, direction=direction)
+#     ts.Params["max_iter"] = step
+#     s2s = []
+#     ss = []
+#     for _ = 1:max_iter
+#         ts, _ = run_ctm(ts)
+#         ndm_Ad = get_env_A(ts)
+#         # compute A * S * n_dm_Ad
+#         A_op = tcon([ts0.A, op1], [[-1, -2, -3, -4, 1], [1, -5]])
+
+#         ss0 = tcon([ndm_Ad, A_op], [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]])
+#         s0 = tcon([ndm_Ad, ts0.A], [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]])
+#         append!(s2s, ss0[])
+#         append!(ss, s0[])
+
+#         println("correlation: ", s2s[end])
+#         println("single operator: ", ss[end])
+#     end
+
+#     s2s, ss
+# end
+
+# function get_spin_boundary(op, ts0; direction="l")
+#     A_op = tcon([ts0.A, op], [[-1, -2, -3, -4, 1], [1, -5]])
+
+#     chi = ts0.Params["chi"]
+#     A0 = ts0.A
+#     ts = ts0
+
+#     if direction == "l" 
+#         ts = setproperties(ts, A=A_op)
+#         ts, _ = left_rg(ts, chi)
+#         ts = setproperties(ts, A=A0)
+#     else 
+#         ts, _ = left_rg(ts, chi)
+#     end
+
+#     if direction == "r"
+#         ts = setproperties(ts, A=A_op)
+#         ts, _ = right_rg(ts, chi)
+#         ts = setproperties(ts, A=A0)
+#     else 
+#         ts, _ = right_rg(ts, chi)
+#     end
+
+#     if direction == "u"
+#         ts = setproperties(ts, A=A_op)
+#         ts, _ = top_rg(ts, chi)
+#         ts = setproperties(ts, A=A0)
+#     else
+#         ts, _ = top_rg(ts, chi)
+#     end
+
+#     if direction == "d"
+#         ts = setproperties(ts0, A=A_op)
+#         ts, _ = bottom_rg(ts, chi)
+#         ts = setproperties(ts, A=A0)
+#     else
+#         ts, _ = bottom_rg(ts, chi)
+#     end
+
+#     ts
+# end
+
+# function get_env_A(ts)
+#     Ad = ts.Ad
+#     C1, C2, C3, C4 = ts.Cs
+#     E1, E2, E3, E4 = ts.Es
+#     n_dm = get_single_dm(C1, C2, C3, C4, E1, E2, E3, E4)
+#     ndm_Ad = tcon([n_dm, Ad], [[-1, -2, -3, -4, 1, 2, 3, 4], [1, 2, 3, 4, -5]])
+#     # nrm0 = tcon([ndm_Ad, A], [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]])
+
+#     return ndm_Ad
+# end
