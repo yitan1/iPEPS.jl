@@ -240,22 +240,22 @@ function get_envs_TM_h(ts0, op1, op2)
     Ad = ts0.Ad
 
     ## C1, E4, C4
-    @ein L0[m1, m2, m3, m4] := C1[p1, m1] * E4[p1, p2, m2, m3] * C4[p2, m4]
+    @ein L0[m1, m2, m3, m4] := (C1[p1, m1] * E4[p1, p2, m2, m3]) * C4[p2, m4]
     L0 = L0[:]
 
     # C2, E2, C3
-    @ein R0[m1, m2, m3, m4] := C2[m1, p1] * E2[p1, p2, m2, m3] * C3[p2, m4]
+    @ein R0[m1, m2, m3, m4] := (C2[m1, p1] * E2[p1, p2, m2, m3]) * C3[p2, m4]
     R0 = R0[:]
 
 
     # E1, A, op, Ad, E3
     @ein T[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * Ad[m2, m4, m6, m8, p1]
-    @ein T_op1[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * op1[p1, p2] * Ad[m2, m4, m6, m8, p2]
-    @ein T_op2[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * op2[p1, p2] * Ad[m2, m4, m6, m8, p2]
+    @ein T_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (A[m1, m3, m5, m7, p1] * op1[p1, p2]) * Ad[m2, m4, m6, m8, p2]
+    @ein T_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (A[m1, m3, m5, m7, p1] * op2[p1, p2]) * Ad[m2, m4, m6, m8, p2]
 
-    @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := E1[m1, m5, p1, p2] * T[p1, p2, m2, m3, p3, p4, m6, m7] * E3[m4, m8, p3, p4]
-    @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := E1[m1, m5, p1, p2] * T_op1[p1, p2, m2, m3, p3, p4, m6, m7] * E3[m4, m8, p3, p4]
-    @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := E1[m1, m5, p1, p2] * T_op2[p1, p2, m2, m3, p3, p4, m6, m7] * E3[m4, m8, p3, p4]
+    @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
+    @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T_op1[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
+    @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T_op2[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
 
     TM = reshape(TM, prod(size(TM)[1:4]), :)
     TM_op1 = reshape(TM_op1, prod(size(TM_op1)[1:4]), :)
@@ -271,21 +271,21 @@ function get_envs_TM_v(ts0, op1, op2)
     Ad = ts0.Ad
 
     ## C1, E1, C2
-    @ein U0[m1, m2, m3, m4] := C1[m1, p1] * E1[p1, p2, m2, m3] * C2[p2, m4]
+    @ein U0[m1, m2, m3, m4] := (C1[m1, p1] * E1[p1, p2, m2, m3]) * C2[p2, m4]
     U0 = U0[:]
 
     # C4, E3, C3
-    @ein D0[m1, m2, m3, m4] := C4[m1, p1] * E3[p1, p2, m2, m3] * C3[m4, p2]
+    @ein D0[m1, m2, m3, m4] := (C4[m1, p1] * E3[p1, p2, m2, m3]) * C3[m4, p2]
     D0 = D0[:]
 
     # E4, A, op, Ad, E2
     @ein T[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * Ad[m2, m4, m6, m8, p1]
-    @ein T_op1[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * op1[p1, p2] * Ad[m2, m4, m6, m8, p2]
-    @ein T_op2[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * op2[p1, p2] * Ad[m2, m4, m6, m8, p2]
+    @ein T_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (A[m1, m3, m5, m7, p1] * op1[p1, p2]) * Ad[m2, m4, m6, m8, p2]
+    @ein T_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (A[m1, m3, m5, m7, p1] * op2[p1, p2]) * Ad[m2, m4, m6, m8, p2]
 
-    @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := E4[m1, m5, p1, p2] * T[m2, m3, p1, p2, m6, m7, p3, p4] * E2[m4, m8, p3, p4]
-    @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := E4[m1, m5, p1, p2] * T_op1[m2, m3, p1, p2, m6, m7, p3, p4] * E2[m4, m8, p3, p4]
-    @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := E4[m1, m5, p1, p2] * T_op2[m2, m3, p1, p2, m6, m7, p3, p4] * E2[m4, m8, p3, p4]
+    @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := (E4[m1, m5, p1, p2] * T[m2, m3, p1, p2, m6, m7, p3, p4]) * E2[m4, m8, p3, p4]
+    @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (E4[m1, m5, p1, p2] * T_op1[m2, m3, p1, p2, m6, m7, p3, p4]) * E2[m4, m8, p3, p4]
+    @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (E4[m1, m5, p1, p2] * T_op2[m2, m3, p1, p2, m6, m7, p3, p4]) * E2[m4, m8, p3, p4]
 
     TM = reshape(TM, prod(size(TM)[1:4]), :)
     TM_op1 = reshape(TM_op1, prod(size(TM_op1)[1:4]), :)
