@@ -221,13 +221,14 @@ function correlation_spin(ts0::CTMTensors, op1, op2; max_iter=10, direction="h")
 
     m1 = L * R0
     m2 = L0 * R
-    for r = 1:max_iter
+    for r = 1:max_iter-1
         L = L * TM
         exp_val = L *R
 
         append!(s2s, exp_val)
 
         println("r = $(r+1), correlation: ", s2s[end])
+        flush(stdout)
     end
 
     s2s, m1, m2
