@@ -208,22 +208,22 @@ end
 
 function correlation_spin(ts0::CTMTensors, op1, op2; max_iter=10, direction="h")
     if direction == "h"
-        TM, TM_op1, TM_op2, L0, R0 = get_envs_TM_h(ts0, op1, op2)
+        Et, Ed, T, T_op1, T_op2, L0, R0 = get_envs_TM_h(ts0, op1, op2)
     else
-        TM, TM_op1, TM_op2, L0, R0 = get_envs_TM_v(ts0, op1, op2)
+        # TODO
+        Et ,Ed, T, T_op1, T_op2, L0, R0 = get_envs_TM_v(ts0, op1, op2)
     end
+    L = con_LT(Et, Ed, L0, T_op1, direction = direction)
+    R = con_TR(Et, Ed, T_op2, R0, direction = direction)
 
-    L0 = transpose(L0)
-    L = L0 * TM_op1
-    R = TM_op2 * R0
-    s2s = [L * R]
+    s2s = [con_LR(L, R)]
     println("r = 1, correlation: ", s2s[end])
 
-    m1 = L * R0
-    m2 = L0 * R
+    m1 = con_LR(L, R0)
+    m2 = con_LR(L0, R)
     for r = 1:max_iter-1
-        L = L * TM
-        exp_val = L *R
+        L = con_LT(Et, Ed, L, T, direction = direction)
+        exp_val = con_LR(L, R)
 
         append!(s2s, exp_val)
 
@@ -234,6 +234,32 @@ function correlation_spin(ts0::CTMTensors, op1, op2; max_iter=10, direction="h")
     s2s, m1, m2
 end
 
+function con_LT(Et, Ed, L0, T; direction = "h")
+    if direction == "h"
+        @ein L[p1, p2, p3, p4] := ((L0[m1, m4, m5, m8] * Et[m1, p1, m2, m3]) * T[m2,m3, m4,m5, m6,m7, p2,p3] ) * Ed[m8, p4, m6, m7]
+    else direction == "v"
+        @ein L[p1, p2, p3, p4] := ((L0[m1, m4, m5, m8] * Et[m1, p1, m2, m3]) * T[m4,m5, m2,m3, p2, p3, m6,m7] ) * Ed[m8, p4, m6, m7]
+    end
+
+    return L
+end
+
+function con_TR(Et, Ed, T, R0; direction = "h")
+    if direction == "h"
+        @ein R[p1, p2, p3, p4] := ((R0[m1, m4, m5, m8] * Et[p1, m1, m2, m3]) * T[m2, m3, p2,p3, m6,m7, m4, m5]) * Ed[p4, m8, m6, m7]
+    else direction == "v"
+        @ein R[p1, p2, p3, p4] := ((R0[m1, m4, m5, m8] * Et[p1, m1, m2, m3]) * T[p2, p3, m2, m3, m4, m5, m6, m7]) * Ed[p4, m8, m6, m7]
+    end
+
+    return R
+end
+
+function con_LR(L, R)
+    @ein lr[] := L[m1, m2, m3, m4] * R[m1, m2, m3, m4]
+
+    return lr[]
+end
+
 function get_envs_TM_h(ts0, op1, op2)
     C1, C2, C3, C4 = ts0.Cs
     E1, E2, E3, E4 = ts0.Es
@@ -242,27 +268,28 @@ function get_envs_TM_h(ts0, op1, op2)
 
     ## C1, E4, C4
     @ein L0[m1, m2, m3, m4] := (C1[p1, m1] * E4[p1, p2, m2, m3]) * C4[p2, m4]
-    L0 = L0[:]
+    # L0 = L0[:]
 
     # C2, E2, C3
     @ein R0[m1, m2, m3, m4] := (C2[m1, p1] * E2[p1, p2, m2, m3]) * C3[p2, m4]
-    R0 = R0[:]
-
+    # R0 = R0[:]
 
     # E1, A, op, Ad, E3
     @ein T[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * Ad[m2, m4, m6, m8, p1]
     @ein T_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (A[m1, m3, m5, m7, p1] * op1[p1, p2]) * Ad[m2, m4, m6, m8, p2]
     @ein T_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (A[m1, m3, m5, m7, p1] * op2[p1, p2]) * Ad[m2, m4, m6, m8, p2]
 
-    @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
-    @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T_op1[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
-    @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T_op2[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
+    # @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
+    # @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T_op1[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
+    # @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T_op2[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
 
-    TM = reshape(TM, prod(size(TM)[1:4]), :)
-    TM_op1 = reshape(TM_op1, prod(size(TM_op1)[1:4]), :)
-    TM_op2 = reshape(TM_op2, prod(size(TM_op2)[1:4]), :)
+    # TM = reshape(TM, prod(size(TM)[1:4]), :)
+    # TM_op1 = reshape(TM_op1, prod(size(TM_op1)[1:4]), :)
+    # TM_op2 = reshape(TM_op2, prod(size(TM_op2)[1:4]), :)
+    Et = E1
+    Ed = E3
 
-    return TM, TM_op1, TM_op2, L0, R0
+    return Et, Ed, T, T_op1, T_op2, L0, R0
 end
 
 function get_envs_TM_v(ts0, op1, op2)
@@ -273,26 +300,28 @@ function get_envs_TM_v(ts0, op1, op2)
 
     ## C1, E1, C2
     @ein U0[m1, m2, m3, m4] := (C1[m1, p1] * E1[p1, p2, m2, m3]) * C2[p2, m4]
-    U0 = U0[:]
+    # U0 = U0[:]
 
     # C4, E3, C3
     @ein D0[m1, m2, m3, m4] := (C4[m1, p1] * E3[p1, p2, m2, m3]) * C3[m4, p2]
-    D0 = D0[:]
+    # D0 = D0[:]
 
     # E4, A, op, Ad, E2
     @ein T[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * Ad[m2, m4, m6, m8, p1]
     @ein T_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (A[m1, m3, m5, m7, p1] * op1[p1, p2]) * Ad[m2, m4, m6, m8, p2]
     @ein T_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (A[m1, m3, m5, m7, p1] * op2[p1, p2]) * Ad[m2, m4, m6, m8, p2]
 
-    @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := (E4[m1, m5, p1, p2] * T[m2, m3, p1, p2, m6, m7, p3, p4]) * E2[m4, m8, p3, p4]
-    @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (E4[m1, m5, p1, p2] * T_op1[m2, m3, p1, p2, m6, m7, p3, p4]) * E2[m4, m8, p3, p4]
-    @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (E4[m1, m5, p1, p2] * T_op2[m2, m3, p1, p2, m6, m7, p3, p4]) * E2[m4, m8, p3, p4]
+    # @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := (E4[m1, m5, p1, p2] * T[m2, m3, p1, p2, m6, m7, p3, p4]) * E2[m4, m8, p3, p4]
+    # @ein TM_op1[m1, m2, m3, m4, m5, m6, m7, m8] := (E4[m1, m5, p1, p2] * T_op1[m2, m3, p1, p2, m6, m7, p3, p4]) * E2[m4, m8, p3, p4]
+    # @ein TM_op2[m1, m2, m3, m4, m5, m6, m7, m8] := (E4[m1, m5, p1, p2] * T_op2[m2, m3, p1, p2, m6, m7, p3, p4]) * E2[m4, m8, p3, p4]
 
-    TM = reshape(TM, prod(size(TM)[1:4]), :)
-    TM_op1 = reshape(TM_op1, prod(size(TM_op1)[1:4]), :)
-    TM_op2 = reshape(TM_op2, prod(size(TM_op2)[1:4]), :)
+    # TM = reshape(TM, prod(size(TM)[1:4]), :)
+    # TM_op1 = reshape(TM_op1, prod(size(TM_op1)[1:4]), :)
+    # TM_op2 = reshape(TM_op2, prod(size(TM_op2)[1:4]), :)
 
-    return TM, TM_op1, TM_op2, U0, D0
+    El = E4
+    Er = E2
+    return El, Er, T, T_op1, T_op2, U0, D0
 end
 
 # function correlation_spin(ts0::CTMTensors, op1, op2; step=1, max_iter=10, direction="l")
