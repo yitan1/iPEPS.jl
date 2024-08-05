@@ -19,7 +19,7 @@ using Printf
 using LinearAlgebra
 using OMEinsum
 using Zygote, ChainRulesCore
-using Optim#, LineSearches
+using Optim, LineSearches
 
 # __precompile__(false)
 # TODO
