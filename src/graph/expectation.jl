@@ -181,7 +181,41 @@ function evaluate_es(px, py, cfg::Dict)
 
     es, vecs
 end
-#TODO
+
+function correlation_TM_A(A, cfg::Dict; direction="h")
+    ts0 = CTMTensors(A, cfg)
+    println("get converged boundary CTM")
+    ts0, _ = run_ctm(ts0)
+
+    return correlation_TM(ts0, direction=direction)
+end    
+
+function correlation_TM(ts0; direction = "h")
+    # C1, C2, C3, C4 = ts0.Cs
+    E1, E2, E3, E4 = ts0.Es
+    # A = ts0.A
+    # Ad = ts0.Ad
+
+    if direction == "h"
+        TM = tcon([E4, E2], [[-1, -3, 1, 2], [-2, -4, 1, 2]])
+        # @ein T[m1, m2, m3, m4, m5, m6, m7, m8] := A[m1, m3, m5, m7, p1] * Ad[m2, m4, m6, m8, p1]
+        # @ein TM[m1, m2, m3, m4, m5, m6, m7, m8] := (E1[m1, m5, p1, p2] * T[p1, p2, m2, m3, p3, p4, m6, m7]) * E3[m4, m8, p3, p4]
+        # TM = reshape(TM, prod(size(TM)[1:4]), :)
+    elseif direction == "v"
+        TM = tcon([E1, E3], [[-1, -3, 1, 2], [-2, -4, 1, 2]])
+    end
+
+    TM = reshape(TM, prod(size(TM)[1:2]), :)
+
+    # TM = (TM' .+ TM) ./2
+    # es, _ = eigen(TM)
+    es, _ = eigsolve(TM, 10, :LR)
+    es1 = real.(es)
+    es1 = es1[sortperm(es1)[end:-1:1]]
+
+    return es1[es1 .> 0], es, TM
+end
+
 function correlation_spin_A(A, op, cfg::Dict; max_iter=10, direction="h")
     correlation_spin_A(A, op, op, cfg, max_iter=max_iter, direction=direction)
 end
@@ -210,11 +244,10 @@ function correlation_spin(ts0::CTMTensors, op1, op2; max_iter=10, direction="h")
     if direction == "h"
         Et, Ed, T, T_op1, T_op2, L0, R0 = get_envs_TM_h(ts0, op1, op2)
     else
-        # TODO
-        Et ,Ed, T, T_op1, T_op2, L0, R0 = get_envs_TM_v(ts0, op1, op2)
+        Et, Ed, T, T_op1, T_op2, L0, R0 = get_envs_TM_v(ts0, op1, op2)
     end
-    L = con_LT(Et, Ed, L0, T_op1, direction = direction)
-    R = con_TR(Et, Ed, T_op2, R0, direction = direction)
+    L = con_LT(Et, Ed, L0, T_op1, direction=direction)
+    R = con_TR(Et, Ed, T_op2, R0, direction=direction)
 
     s2s = [con_LR(L, R)]
     println("r = 1, correlation: ", s2s[end])
@@ -222,7 +255,7 @@ function correlation_spin(ts0::CTMTensors, op1, op2; max_iter=10, direction="h")
     m1 = con_LR(L, R0)
     m2 = con_LR(L0, R)
     for r = 1:max_iter-1
-        L = con_LT(Et, Ed, L, T, direction = direction)
+        L = con_LT(Et, Ed, L, T, direction=direction)
         exp_val = con_LR(L, R)
 
         append!(s2s, exp_val)
@@ -234,20 +267,20 @@ function correlation_spin(ts0::CTMTensors, op1, op2; max_iter=10, direction="h")
     s2s, m1, m2
 end
 
-function con_LT(Et, Ed, L0, T; direction = "h")
+function con_LT(Et, Ed, L0, T; direction="h")
     if direction == "h"
-        @ein L[p1, p2, p3, p4] := ((L0[m1, m4, m5, m8] * Et[m1, p1, m2, m3]) * T[m2,m3, m4,m5, m6,m7, p2,p3] ) * Ed[m8, p4, m6, m7]
-    else direction == "v"
-        @ein L[p1, p2, p3, p4] := ((L0[m1, m4, m5, m8] * Et[m1, p1, m2, m3]) * T[m4,m5, m2,m3, p2, p3, m6,m7] ) * Ed[m8, p4, m6, m7]
+        @ein L[p1, p2, p3, p4] := ((L0[m1, m4, m5, m8] * Et[m1, p1, m2, m3]) * T[m2, m3, m4, m5, m6, m7, p2, p3]) * Ed[m8, p4, m6, m7]
+    elseif direction == "v"
+        @ein L[p1, p2, p3, p4] := ((L0[m1, m4, m5, m8] * Et[m1, p1, m2, m3]) * T[m4, m5, m2, m3, p2, p3, m6, m7]) * Ed[m8, p4, m6, m7]
     end
 
     return L
 end
 
-function con_TR(Et, Ed, T, R0; direction = "h")
+function con_TR(Et, Ed, T, R0; direction="h")
     if direction == "h"
-        @ein R[p1, p2, p3, p4] := ((R0[m1, m4, m5, m8] * Et[p1, m1, m2, m3]) * T[m2, m3, p2,p3, m6,m7, m4, m5]) * Ed[p4, m8, m6, m7]
-    else direction == "v"
+        @ein R[p1, p2, p3, p4] := ((R0[m1, m4, m5, m8] * Et[p1, m1, m2, m3]) * T[m2, m3, p2, p3, m6, m7, m4, m5]) * Ed[p4, m8, m6, m7]
+    elseif direction == "v"
         @ein R[p1, p2, p3, p4] := ((R0[m1, m4, m5, m8] * Et[p1, m1, m2, m3]) * T[p2, p3, m2, m3, m4, m5, m6, m7]) * Ed[p4, m8, m6, m7]
     end
 

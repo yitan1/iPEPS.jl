@@ -17,6 +17,7 @@ using TOML
 using JLD2
 using Printf
 using LinearAlgebra
+using KrylovKit
 using OMEinsum
 using Zygote, ChainRulesCore
 using Optim, LineSearches
