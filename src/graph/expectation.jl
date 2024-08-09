@@ -188,9 +188,9 @@ function correlation_TM_A(A, cfg::Dict; direction="h")
     ts0, _ = run_ctm(ts0)
 
     return correlation_TM(ts0, direction=direction)
-end    
+end
 
-function correlation_TM(ts0; direction = "h")
+function correlation_TM(ts0; direction="h", N=10, full=false)
     # C1, C2, C3, C4 = ts0.Cs
     E1, E2, E3, E4 = ts0.Es
     # A = ts0.A
@@ -208,12 +208,15 @@ function correlation_TM(ts0; direction = "h")
     TM = reshape(TM, prod(size(TM)[1:2]), :)
 
     # TM = (TM' .+ TM) ./2
-    # es, _ = eigen(TM)
-    es, _ = eigsolve(TM, 10, :LR)
-    es1 = real.(es)
+    if full
+        es, _ = eigen(TM)
+    else
+        es, _ = eigsolve(TM, N, :LM)
+    end
+    es1 = abs.(es)
     es1 = es1[sortperm(es1)[end:-1:1]]
 
-    return es1[es1 .> 0], es, TM
+    return es1[es1.>0], es, TM
 end
 
 function correlation_spin_A(A, op, cfg::Dict; max_iter=10, direction="h")
