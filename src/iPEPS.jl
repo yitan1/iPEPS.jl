@@ -21,6 +21,7 @@ using KrylovKit
 using OMEinsum
 using Zygote, ChainRulesCore
 using Optim, LineSearches
+# using OptimKit
 
 # __precompile__(false)
 # TODO

@@ -90,10 +90,29 @@ function optim_gs(H, A0, cfg::Dict; m=10, x_tol=0.0, f_tol=0.0, g_tol=1e-6, iter
         end
     end
 
-    # optimizer = L_BFGS_B(1024, 17)
-    # res = optimizer(Optim.only_fg!(fg!), A0, m=20, factr=1e7, pgtol=1e-5, iprint=-1, maxfun=15000, maxiter=15000)
-
     res = optimize(Optim.only_fg!(fg!), A0, LBFGS(m=m, manifold=Optim.Sphere()), Optim.Options(x_tol=0.0, f_tol=1e-7, g_tol=g_tol, callback=verbose, iterations=iterations, extended_trace=true))
+
+    # function fg1!(x)
+    #     x = renormalize(x)
+    #     ts = get_conv_boundary(x, H, cfg)
+
+    #     max_iter = ts.Params["max_iter"]
+    #     ts.Params["max_iter"] = ts.Params["ad_max_iter"]
+
+    #     y, back = Zygote.pullback(_x -> run_gs(ts, H, _x), x)
+    #     g = back(1)[1]
+    #     println(sum(g))
+
+    #     ts.Params["max_iter"] = max_iter
+
+    #     fprint("Finish autodiff")
+    #     y = real(y)
+    #     return y, g
+    # end
+
+    # inner(x, v1, v2) = real(dot(v1, v2))
+
+    # res = optimize(fg1!, A0, LBFGS(verbosity = 4), inner = inner)
 
     res
 end
@@ -117,9 +136,9 @@ function run_gs(ts::CTMTensors, H, A)
     conv_fun(_x) = get_gs_energy(_x, H)[1]
     ts1, s = run_ctm(ts1, conv_fun=conv_fun)
 
-    gs_E, _ = get_gs_energy(ts1, H)
+    gs_E, N = get_gs_energy(ts1, H)
 
     # @printf("Gs_Energy: %.10g \n", sum(E))
-    # fprint("E: $E, N: $N")
+    fprint("E: $gs_E, N: $N")
     gs_E
 end
